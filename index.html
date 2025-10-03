@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lukáš Drštička - Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #neuralCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            z-index: 100;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradient 8s ease infinite;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .portfolio-item {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .portfolio-item:hover {
+            transform: scale(1.02);
+        }
+
+        .portfolio-item img {
+            transition: transform 0.5s ease;
+        }
+
+        .portfolio-item:hover img {
+            transform: scale(1.1);
+        }
+
+        .portfolio-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(168, 85, 247, 0.8));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .portfolio-item:hover .portfolio-overlay {
+            opacity: 1;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .filter-btn {
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .chat-message {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #60a5fa;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .quick-reply-btn {
+            transition: all 0.2s ease;
+        }
+
+        .quick-reply-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+
+        .confidence-indicator {
+            font-size: 10px;
+            color: #60a5fa;
+            margin-top: 2px;
+        }
+
+        .ai-suggestion {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            padding: 8px 12px;
+            margin-top: 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .ai-suggestion.warning {
+            background: rgba(251, 191, 36, 0.1);
+            border-left-color: #fbbf24;
+        }
+
+        .ai-suggestion.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: #22c55e;
+        }
+
+        .ai-generated-text {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .ai-action-btn {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 8px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .ai-action-btn:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .contact-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <canvas id="neuralCanvas"></canvas>
+
+    <header class="fixed top-0 w-full z-50 glass">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full h-10 w-10 flex flex-col justify-center items-center font-bold text-xs">
+                    <span>LD</span>
+                </div>
+                <span class="text-lg font-semibold">Lukáš Drštička</span>
+            </div>
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a>
+                <a href="#o-mne" class="hover:text-blue-400 transition">O mně</a>
+                <a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="pt-20">
+        <section class="min-h-screen flex items-center justify-center px-6">
+            <div class="text-center">
+                <h1 class="text-6xl md:text-8xl font-bold mb-6 gradient-text">
+                    Lukáš Drštička
+                </h1>
+                <p class="text-2xl md:text-3xl text-gray-300 mb-4">
+                    Fotograf & AI Developer
+                </p>
+                <p class="text-lg text-gray-400">
+                    Přerov
+                </p>
+            </div>
+        </section>
+
+        <section id="portfolio" class="py-24">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl font-bold mb-12 text-center gradient-text">Portfolio</h2>
+                
+                <div class="flex justify-center gap-4 mb-12 flex-wrap">
+                    <button class="filter-btn active glass px-6 py-2 rounded-full" data-filter="all">Vše</button>
+                    <button class="filter-btn glass px-6 py-2 rounded-full" data-filter="foto">Fotografie</button>
+                    <button class="filter-btn glass px-6 py-2 rounded-full" data-filter="ai">AI Projekty</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolioGrid">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
+                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Portret+1" alt="Portrét" class="w-full h-80 object-cover">
+                        <div class="portfolio-overlay">
+                            <span class="text-white text-xl font-semibold">Portrét</span>
+                        </div>
+                    </div>
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
+                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Sport+1" alt="Sport" class="w-full h-80 object-cover">
+                        <div class="portfolio-overlay">
+                            <span class="text-white text-xl font-semibold">Sport</span>
+                        </div>
+                    </div>
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
+                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=AI+Chatbot" alt="AI Projekt" class="w-full h-80 object-cover">
+                        <div class="portfolio-overlay">
+                            <span class="text-white text-xl font-semibold">AI Chatbot</span>
+                        </div>
+                    </div>
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
+                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Produkt+1" alt="Produktová fotografie" class="w-full h-80 object-cover">
+                        <div class="portfolio-overlay">
+                            <span class="text-white text-xl font-semibold">Produktová fotografie</span>
+                        </div>
+                    </div>
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
+                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Automatizace" alt="Automatizace" class="w-full h-80 object-cover">
+                        <div class="portfolio-overlay">
+                            <span class="text-white text-xl font-semibold">Automatizace</span>
+                        </div>
+                    </div>
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
+                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Portret+2" alt="Portrét 2" class="w-full h-80 object-cover">
+                        <div class="portfolio-overlay">
+                            <span class="text-white text-xl font-semibold">Portrét</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="o-mne" class="py-24">
+            <div class="container mx-auto px-6 max-w-4xl">
+                <div class="glass rounded-3xl p-12 text-center">
+                    <h2 class="text-4xl font-bold mb-8 gradient-text">O mně</h2>
+                    <p class="text-xl text-gray-300 leading-relaxed">
+                        Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="kontakt" class="py-24">
+            <div class="container mx-auto px-6 max-w-4xl">
+                <div class="glass rounded-3xl p-12">
+                    <h2 class="text-4xl font-bold mb-8 text-center gradient-text">Kontakt</h2>
+                    
+                    <div class="mb-8 text-center">
+                        <a href="mailto:lukas.drsticka@gmail.com" class="text-2xl text-blue-400 hover:text-blue-300 transition">
+                            lukas.drsticka@gmail.com
+                        </a>
+                        <div class="flex justify-center gap-6 mt-6">
+                            <a href="#" class="text-gray-400 hover:text-white transition text-3xl">📷</a>
+                            <a href="#" class="text-gray-400 hover:text-white transition text-3xl">💼</a>
+                            <a href="#" class="text-gray-400 hover:text-white transition text-3xl">🔗</a>
+                        </div>
+                    </div>
+
+                    <div class="mt-12">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 justify-center">
+                            <span>✉️</span>
+                            <span>Napište mi zprávu</span>
+                            <span class="text-sm text-blue-400">(s AI asistentem)</span>
+                        </h3>
+                        
+                        <form id="contactForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2">Jméno</label>
+                                <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Vaše jméno">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2">Email</label>
+                                <input type="email" id="contactEmail" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="vas@email.cz">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm text-gray-300 mb-2 flex items-center gap-2">
+                                    <span>Zpráva</span>
+                                    <span class="text-xs text-blue-400">🤖 AI vám pomůže</span>
+                                </label>
+                                <textarea id="contactMessage" class="w-full contact-textarea glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Popište svůj projekt..."></textarea>
+                                <div id="aiSuggestions"></div>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-3 rounded-xl hover:opacity-90 transition font-semibold">
+                                Odeslat zprávu
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="glass border-t border-white/10 py-8 mt-24 relative z-10">
+        <div class="container mx-auto px-6 text-center">
+            <p class="text-gray-400 mb-2">© 2025 Lukáš Drštička</p>
+            <p class="text-gray-500 text-sm">Vytvořeno pomocí Vibecoding (Claude & Gemini)</p>
+        </div>
+    </footer>
+
+    <div class="fixed bottom-6 right-6 z-50">
+        <button id="chatBtn" class="relative bg-gradient-to-br from-blue-600 to-purple-600 rounded-full h-16 w-16 flex items-center justify-center shadow-2xl hover:scale-110 transition text-3xl">
+            🤖
+            <span id="unreadBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">0</span>
+        </button>
+        <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: 550px;">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex justify-between items-center rounded-t-2xl">
+                <h3 class="font-bold text-lg">🤖 AI Asistent</h3>
+                <div class="flex gap-2">
+                    <button id="clearChat" class="text-xl hover:text-gray-200" title="Smazat historii">🗑️</button>
+                    <button id="closeChat" class="text-2xl hover:text-gray-200">&times;</button>
+                </div>
+            </div>
+            <div id="messages" class="flex-1 p-4 overflow-y-auto"></div>
+            <div id="quickReplies" class="px-4 pb-2 hidden"></div>
+            <div class="p-4 border-t border-white/10">
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Napište zprávu..." class="flex-1 glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="sendBtn" class="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold">↑</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="lightbox" class="lightbox">
+        <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10">&times;</button>
+        <img id="lightboxImg" src="" alt="">
+    </div>
+
+    <script>
+        // NEURAL NETWORK VISUALIZATION
+        class NeuralNetworkVisualization {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.neurons = [];
+                this.connections = [];
+                this.mouse = { x: 0, y: 0 };
+                this.activityLevel = 0;
+                
+                this.resize();
+                this.init();
+                this.animate();
+                
+                window.addEventListener('resize', () => this.resize());
+                document.addEventListener('mousemove', (e) => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
+                });
+                
+                document.addEventListener('click', () => {
+                    this.activityLevel = Math.min(this.activityLevel + 0.5, 1);
+                });
+            }
+            
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            init() {
+                const layers = [5, 8, 6, 4];
+                const spacing = this.canvas.width / (layers.length + 1);
+                
+                layers.forEach((count, layerIndex) => {
+                    const layerHeight = this.canvas.height / (count + 1);
+                    
+                    for (let i = 0; i < count; i++) {
+                        this.neurons.push({
+                            x: spacing * (layerIndex + 1),
+                            y: layerHeight * (i + 1),
+                            layer: layerIndex,
+                            index: i,
+                            activation: Math.random(),
+                            pulsePhase: Math.random() * Math.PI * 2
+                        });
+                    }
+                });
+                
+                for (let i = 0; i < this.neurons.length; i++) {
+                    const neuron = this.neurons[i];
+                    
+                    for (let j = 0; j < this.neurons.length; j++) {
+                        const target = this.neurons[j];
+                        
+                        if (target.layer === neuron.layer + 1) {
+                            this.connections.push({
+                                from: neuron,
+                                to: target,
+                                weight: Math.random() * 2 - 1
+                            });
+                        }
+                    }
+                }
+            }
+            
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.activityLevel *= 0.95;
+                
+                this.neurons.forEach(neuron => {
+                    neuron.pulsePhase += 0.02;
+                    
+                    const dx = neuron.x - this.mouse.x;
+                    const dy = neuron.y - this.mouse.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 150) {
+                        neuron.activation = Math.min(1, neuron.activation + 0.1);
+                    } else {
+                        neuron.activation *= 0.98;
+                    }
+                    
+                    neuron.activation += this.activityLevel * 0.1;
+                    neuron.activation = Math.max(0.1, Math.min(1, neuron.activation));
+                });
+                
+                this.connections.forEach(conn => {
+                    const alpha = (conn.from.activation + conn.to.activation) / 2;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(conn.from.x, conn.from.y);
+                    this.ctx.lineTo(conn.to.x, conn.to.y);
+                    
+                    const gradient = this.ctx.createLinearGradient(
+                        conn.from.x, conn.from.y,
+                        conn.to.x, conn.to.y
+                    );
+                    
+                    gradient.addColorStop(0, `rgba(59, 130, 246, ${alpha * 0.3})`);
+                    gradient.addColorStop(1, `rgba(168, 85, 247, ${alpha * 0.3})`);
+                    
+                    this.ctx.strokeStyle = gradient;
+                    this.ctx.lineWidth = Math.abs(conn.weight) * 2;
+                    this.ctx.stroke();
+                });
+                
+                this.neurons.forEach(neuron => {
+                    const pulse = Math.sin(neuron.pulsePhase) * 0.3 + 0.7;
+                    const radius = 4 + neuron.activation * 4 * pulse;
+                    
+                    const gradient = this.ctx.createRadialGradient(
+                        neuron.x, neuron.y, 0,
+                        neuron.x, neuron.y, radius * 3
+                    );
+                    
+                    gradient.addColorStop(0, `rgba(59, 130, 246, ${neuron.activation * 0.8})`);
+                    gradient.addColorStop(0.5, `rgba(168, 85, 247, ${neuron.activation * 0.4})`);
+                    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(neuron.x, neuron.y, radius * 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${neuron.activation})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(neuron.x, neuron.y, radius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        const neuralCanvas = document.getElementById('neuralCanvas');
+        const neuralViz = new NeuralNetworkVisualization(neuralCanvas);
+
+        // AI WRITING ASSISTANT
+        class AIWritingAssistant {
+            constructor() {
+                this.messageInput = document.getElementById('contactMessage');
+                this.suggestionsContainer = document.getElementById('aiSuggestions');
+                this.lastMessage = '';
+                this.debounceTimer = null;
+                
+                this.messageInput.addEventListener('input', () => {
+                    clearTimeout(this.debounceTimer);
+                    this.debounceTimer = setTimeout(() => this.analyze(), 500);
+                });
+            }
+            
+            analyze() {
+                const message = this.messageInput.value.trim();
+                
+                if (message === this.lastMessage || message.length < 10) {
+                    this.suggestionsContainer.innerHTML = '';
+                    return;
+                }
+                
+                this.lastMessage = message;
+                const suggestions = [];
+                const generatedTexts = [];
+                
+                const normalized = message.toLowerCase();
+                
+                // Detekce co uživatel chce a generování textu
+                if (message.length < 50) {
+                    suggestions.push({
+                        type: 'warning',
+                        text: '💡 Zkuste být konkrétnější - AI může pomoci rozšířit text.'
+                    });
+                    
+                    // Nabídnout rozšíření
+                    const expandedText = this.expandShortMessage(message);
+                    if (expandedText) {
+                        generatedTexts.push({
+                            type: 'generated',
+                            text: expandedText,
+                            label: '✨ AI návrh rozšíření:'
+                        });
+                    }
+                }
+                
+                const projectTypes = ['fotografie', 'fotka', 'focení', 'foto', 'chatbot', 'ai', 'automatizace', 'web', 'aplikace'];
+                const hasProjectType = projectTypes.some(type => normalized.includes(type));
+                
+                if (!hasProjectType && message.length > 30) {
+                    suggestions.push({
+                        type: 'info',
+                        text: '🎯 Uveďte typ projektu - AI může doplnit detaily.'
+                    });
+                }
+                
+                const hasDeadline = normalized.includes('termín') || normalized.includes('kdy') || 
+                                   normalized.includes('datum') || /\d{1,2}\.\d{1,2}/.test(message);
+                
+                if (!hasDeadline && message.length > 50 && hasProjectType) {
+                    const textWithDeadline = this.addDeadlineToText(message);
+                    generatedTexts.push({
+                        type: 'generated',
+                        text: textWithDeadline,
+                        label: '📅 Verze s termínem:'
+                    });
+                }
+                
+                const hasBudget = normalized.includes('rozpočet') || normalized.includes('budget') || 
+                                 normalized.includes('cena') || normalized.includes('kolik');
+                
+                if (!hasBudget && message.length > 50 && hasProjectType) {
+                    const textWithBudget = this.addBudgetToText(message);
+                    generatedTexts.push({
+                        type: 'generated',
+                        text: textWithBudget,
+                        label: '💰 Verze s rozpočtem:'
+                    });
+                }
+                
+                if (message.length > 100 && hasProjectType && (hasDeadline || hasBudget)) {
+                    suggestions.push({
+                        type: 'success',
+                        text: '✅ Výborně! Vaše zpráva je kompletní.'
+                    });
+                }
+                
+                this.renderSuggestions(suggestions, generatedTexts);
+            }
+            
+            expandShortMessage(message) {
+                const normalized = message.toLowerCase();
+                
+                if (normalized.includes('potřebuj') || normalized.includes('chci')) {
+                    if (normalized.includes('focen') || normalized.includes('foto')) {
+                        if (normalized.includes('portrét')) {
+                            return `Dobrý den, potřebuji focení portrétů. Zajímá mě váš přístup k portrétní fotografii a cenová nabídka. Rád bych prodiskutoval možnosti lokace a stylu focení. Děkuji.`;
+                        }
+                        if (normalized.includes('sport')) {
+                            return `Zdravím, hledám fotografa na sportovní akci. Zajímala by mě vaše zkušenost se sportovní fotografií a dostupnost v následujících měsících. Můžeme si domluvit konzultaci?`;
+                        }
+                        if (normalized.includes('produkt')) {
+                            return `Dobrý den, potřebuji produktovou fotografii pro e-shop. Zajímá mě váš proces, případné ukázky předchozích prací a orientační cena. Těším se na odpověď.`;
+                        }
+                        return `Dobrý den, mám zájem o fotografické služby. Chtěl bych se dozvědět více o vašem portfoliu, cenách a dostupnosti. Můžeme si domluvit úvodní konzultaci? Děkuji.`;
+                    }
+                    
+                    if (normalized.includes('chatbot') || normalized.includes('ai')) {
+                        return `Zdravím, mám zájem o vytvoření AI chatbota pro můj web. Zajímá mě technické řešení, možnosti integrace a cenová kalkulace. Můžeme probrat detaily projektu?`;
+                    }
+                    
+                    if (normalized.includes('automatizace')) {
+                        return `Dobrý den, hledám řešení pro automatizaci firemních procesů. Zajímala by mě vaše zkušenost s podobnými projekty a možný rozsah spolupráce. Těším se na diskuzi.`;
+                    }
+                }
+                
+                return null;
+            }
+            
+            addDeadlineToText(message) {
+                return `${message}\n\nPředpokládaný termín realizace: co nejdříve / do konce měsíce (prosím upřesněte podle vašich potřeb).`;
+            }
+            
+            addBudgetToText(message) {
+                return `${message}\n\nOrientační rozpočet: 5 000 - 20 000 Kč (prosím upřesněte váš rozpočet pro přesnější nabídku).`;
+            }
+            
+            renderSuggestions(suggestions, generatedTexts) {
+                if (suggestions.length === 0 && generatedTexts.length === 0) {
+                    this.suggestionsContainer.innerHTML = '';
+                    return;
+                }
+                
+                let html = '';
+                
+                suggestions.forEach(s => {
+                    html += `<div class="ai-suggestion ${s.type}">${s.text}</div>`;
+                });
+                
+                generatedTexts.forEach(g => {
+                    html += `
+                        <div class="ai-generated-text">
+                            <div class="font-semibold text-purple-400 mb-2">${g.label}</div>
+                            <div class="text-gray-300 mb-2">${g.text}</div>
+                            <button class="ai-action-btn use-text-btn" data-text="${this.escapeHtml(g.text)}">
+                                ✓ Použít tento text
+                            </button>
+                            <button class="ai-action-btn append-text-btn" data-text="${this.escapeHtml(g.text)}">
+                                + Přidat k mému textu
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                this.suggestionsContainer.innerHTML = html;
+                
+                // Event listeners pro tlačítka
+                this.suggestionsContainer.querySelectorAll('.use-text-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.messageInput.value = btn.dataset.text;
+                        this.messageInput.dispatchEvent(new Event('input'));
+                    });
+                });
+                
+                this.suggestionsContainer.querySelectorAll('.append-text-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const currentText = this.messageInput.value.trim();
+                        const newText = btn.dataset.text;
+                        this.messageInput.value = currentText + '\n\n' + newText;
+                        this.messageInput.dispatchEvent(new Event('input'));
+                    });
+                });
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
+        const writingAssistant = new AIWritingAssistant();
+        
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Demo: Zpráva by se odeslala na email.');
+        });
+
+        // ENHANCED AI CHATBOT
+        class EnhancedChatbot {
+            constructor() {
+                this.conversationHistory = [];
+                this.userContext = {
+                    intent: null,
+                    entities: {},
+                    sentiment: 'neutral',
+                    lastTopic: null
+                };
+                
+                this.knowledgeBase = this.buildKnowledgeBase();
+                this.synonyms = this.buildSynonyms();
+                this.intents = this.buildIntents();
+            }
+
+            buildKnowledgeBase() {
+                return {
+                    services: {
+                        photography: {
+                            portrait: {
+                                description: 'Portrétní fotografie v ateliéru i venku',
+                                keywords: ['portrét', 'portrait', 'lidé', 'osoba']
+                            },
+                            sport: {
+                                description: 'Sportovní a akční fotografie',
+                                keywords: ['sport', 'akce', 'akční']
+                            },
+                            product: {
+                                description: 'Produktová fotografie pro e-shopy',
+                                keywords: ['produkt', 'eshop', 'výrobek']
+                            }
+                        },
+                        ai: {
+                            chatbot: {
+                                description: 'AI chatboti pro weby',
+                                keywords: ['chatbot', 'bot', 'asistent']
+                            },
+                            automation: {
+                                description: 'Automatizace procesů',
+                                keywords: ['automatizace', 'automatický', 'proces']
+                            }
+                        }
+                    },
+                    contact: {
+                        email: 'lukas.drsticka@gmail.com',
+                        location: 'Přerov'
+                    }
+                };
+            }
+
+            buildSynonyms() {
+                return {
+                    greeting: ['ahoj', 'čau', 'nazdar', 'dobrý den', 'hello', 'hi', 'hej'],
+                    thanks: ['děkuji', 'dík', 'díky', 'thanks'],
+                    price: ['cena', 'ceník', 'kolik', 'stojí'],
+                    contact: ['kontakt', 'napsat', 'email']
+                };
+            }
+
+            buildIntents() {
+                return {
+                    greeting: {
+                        patterns: ['ahoj', 'čau', 'dobrý den', 'nazdar', 'hej', 'hello', 'hi'],
+                        responses: [
+                            'Ahoj! Jsem AI asistent Lukáše. Jak ti můžu pomoct?',
+                            'Zdravím! Co tě zajímá - fotografie nebo AI projekty?'
+                        ]
+                    },
+                    capabilities: {
+                        patterns: ['co umíš', 'co děláš', 'co nabízíš', 'služby', 'schopnosti'],
+                        responses: [
+                            'Umím odpovídat na dotazy o fotografických službách (portréty, sport, produkty), AI projektech (chatboti, automatizace) a cenách.',
+                            'Lukáš se specializuje na fotografii a AI development. O čem chceš vědět víc?'
+                        ]
+                    },
+                    price_inquiry: {
+                        patterns: ['kolik', 'cena', 'ceník', 'stojí', 'price'],
+                        responses: [
+                            'Ceny jsou individuální podle projektu. Nejlepší bude napsat na: lukas.drsticka@gmail.com'
+                        ]
+                    },
+                    contact_request: {
+                        patterns: ['kontakt', 'email', 'napsat', 'oslovit'],
+                        responses: [
+                            'Email: lukas.drsticka@gmail.com - klidně napiš!'
+                        ]
+                    }
+                };
+            }
+
+            normalizeText(text) {
+                return text.toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .trim();
+            }
+
+            detectIntent(text) {
+                const normalized = this.normalizeText(text);
+                let bestIntent = null;
+                let maxConfidence = 0;
+
+                Object.entries(this.intents).forEach(([intentName, intentData]) => {
+                    let maxScore = 0;
+
+                    intentData.patterns.forEach(pattern => {
+                        const normalizedPattern = this.normalizeText(pattern);
+                        let score = 0;
+                        
+                        if (normalized === normalizedPattern) {
+                            score = 1.0;
+                        } else if (normalized.includes(normalizedPattern)) {
+                            score = 0.9;
+                        } else if (normalizedPattern.includes(normalized)) {
+                            score = 0.85;
+                        }
+                        
+                        if (score > maxScore) maxScore = score;
+                    });
+
+                    if (maxScore > maxConfidence) {
+                        maxConfidence = maxScore;
+                        bestIntent = intentName;
+                    }
+                });
+
+                return { intent: bestIntent, confidence: maxConfidence };
+            }
+
+            extractEntities(text) {
+                const entities = { services: [] };
+                const normalized = this.normalizeText(text);
+                
+                Object.entries(this.knowledgeBase.services).forEach(([category, services]) => {
+                    Object.entries(services).forEach(([service, data]) => {
+                        data.keywords.forEach(keyword => {
+                            if (normalized.includes(this.normalizeText(keyword))) {
+                                entities.services.push({category, service, data});
+                            }
+                        });
+                    });
+                });
+
+                return entities;
+            }
+
+            generateResponse(userMessage) {
+                const intentResult = this.detectIntent(userMessage);
+                const entities = this.extractEntities(userMessage);
+
+                if (entities.services.length > 0) {
+                    const service = entities.services[0];
+                    return {
+                        response: `${service.data.description}. Chceš vědět víc o cenách nebo kontaktu?`,
+                        confidence: 0.85,
+                        intent: 'service_info'
+                    };
+                }
+
+                if (intentResult.intent && intentResult.confidence > 0.6) {
+                    const responses = this.intents[intentResult.intent].responses;
+                    return {
+                        response: responses[Math.floor(Math.random() * responses.length)],
+                        confidence: intentResult.confidence,
+                        intent: intentResult.intent
+                    };
+                }
+
+                return {
+                    response: 'Zajímavá otázka! Pro podrobnou odpověď napiš na: lukas.drsticka@gmail.com',
+                    confidence: 0.3,
+                    intent: 'fallback'
+                };
+            }
+
+            addBotMessage(message, confidence, intent) {
+                this.conversationHistory.push({
+                    role: 'bot',
+                    message, confidence, intent,
+                    timestamp: Date.now()
+                });
+            }
+        }
+
+        const CHAT_STORAGE_KEY = 'chatHistory';
+        let chatbot = new EnhancedChatbot();
+        let unreadCount = 0;
+        let chatOpen = false;
+
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const portfolioItems = document.querySelectorAll('.portfolio-item');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const closeLightbox = document.getElementById('closeLightbox');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+                portfolioItems.forEach(item => {
+                    item.style.display = (filter === 'all' || item.dataset.category === filter) ? 'block' : 'none';
+                });
+            });
+        });
+
+        portfolioItems.forEach(item => {
+            item.addEventListener('click', () => {
+                lightboxImg.src = item.querySelector('img').src;
+                lightbox.classList.add('active');
+            });
+        });
+
+        closeLightbox.addEventListener('click', () => lightbox.classList.remove('active'));
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) lightbox.classList.remove('active');
+        });
+
+        const chatBtn = document.getElementById('chatBtn');
+        const chatWindow = document.getElementById('chatWindow');
+        const closeChat = document.getElementById('closeChat');
+        const clearChat = document.getElementById('clearChat');
+        const messages = document.getElementById('messages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const quickReplies = document.getElementById('quickReplies');
+
+        chatBtn.addEventListener('click', () => {
+            chatWindow.classList.toggle('hidden');
+            chatOpen = !chatOpen;
+            if (chatOpen) {
+                unreadCount = 0;
+                updateUnreadBadge();
+                if (messages.children.length === 0) {
+                    addMessage('bot', 'Ahoj! Tady Lukáš. Mám AI asistenta, který ti pomůže. Na co se chceš zeptat?', 0.95, 'greeting');
+                    showQuickReplies();
+                }
+            }
+        });
+
+        closeChat.addEventListener('click', () => {
+            chatWindow.classList.add('hidden');
+            chatOpen = false;
+        });
+
+        clearChat.addEventListener('click', () => {
+            if (confirm('Smazat celou historii?')) {
+                messages.innerHTML = '';
+                localStorage.removeItem(CHAT_STORAGE_KEY);
+                chatbot = new EnhancedChatbot();
+                addMessage('bot', 'Historie smazána. Můžeme začít znovu!', 1.0, 'system');
+                showQuickReplies();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function addMessage(sender, text, confidence = null, intent = null) {
+            const time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+            const div = document.createElement('div');
+            div.className = `chat-message mb-4 flex gap-2 ${sender === 'user' ? 'flex-row-reverse' : ''}`;
+            
+            const avatar = sender === 'user' ? '👤' : '🤖';
+            const avatarBg = sender === 'user' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass';
+            
+            let confidenceIndicator = '';
+            if (confidence !== null && sender === 'bot') {
+                const confidencePercent = Math.round(confidence * 100);
+                let color = confidence < 0.5 ? 'text-red-400' : confidence < 0.75 ? 'text-yellow-400' : 'text-green-400';
+                confidenceIndicator = `<div class="confidence-indicator ${color}">Jistota: ${confidencePercent}% | ${intent}</div>`;
+            }
+            
+            div.innerHTML = `
+                <div class="message-avatar ${avatarBg}">${avatar}</div>
+                <div class="flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'} max-w-xs">
+                    <div class="p-3 rounded-xl ${sender === 'user' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass'}">${text}</div>
+                    <div class="message-time">${time}</div>
+                    ${confidenceIndicator}
+                </div>
+            `;
+            
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+            
+            if (sender === 'bot' && !chatOpen) {
+                unreadCount++;
+                updateUnreadBadge();
+            }
+        }
+
+        function showTypingIndicator() {
+            const div = document.createElement('div');
+            div.id = 'typingIndicator';
+            div.className = 'chat-message mb-4 flex gap-2';
+            div.innerHTML = `
+                <div class="message-avatar glass">🤖</div>
+                <div class="glass rounded-xl typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            document.getElementById('typingIndicator')?.remove();
+        }
+
+        function showQuickReplies() {
+            const replies = [
+                { text: '📷 Fotografie', value: 'Jaké fotografie děláš?' },
+                { text: '🤖 AI projekty', value: 'Co umíš s AI?' },
+                { text: '💰 Ceny', value: 'Kolik to stojí?' },
+                { text: '✉️ Kontakt', value: 'Jak tě kontaktovat?' }
+            ];
+            
+            quickReplies.innerHTML = replies.map(r => 
+                `<button class="quick-reply-btn glass px-4 py-2 rounded-full text-sm mr-2 mb-2">${r.text}</button>`
+            ).join('');
+            quickReplies.classList.remove('hidden');
+            
+            quickReplies.querySelectorAll('button').forEach((btn, i) => {
+                btn.addEventListener('click', () => {
+                    chatInput.value = replies[i].value;
+                    sendMessage();
+                    quickReplies.classList.add('hidden');
+                });
+            });
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            quickReplies.classList.add('hidden');
+            addMessage('user', text);
+            chatInput.value = '';
+
+            showTypingIndicator();
+
+            setTimeout(() => {
+                removeTypingIndicator();
+                const result = chatbot.generateResponse(text);
+                addMessage('bot', result.response, result.confidence, result.intent);
+                chatbot.addBotMessage(result.response, result.confidence, result.intent);
+            }, 1000);
+        }
+
+        function updateUnreadBadge() {
+            if (unreadCount > 0) {
+                unreadBadge.textContent = unreadCount;
+                unreadBadge.classList.remove('hidden');
+            } else {
+                unreadBadge.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
