@@ -113,11 +113,6 @@ git push -u origin main
 # Vyber branch: main, folder: / (root)
 ```
 
-### Deploy na Netlify
-1. Jdi na [netlify.com](https://netlify.com)
-2. Drag & drop složku s projektem
-3. Web okamžitě online
-
 ## 📝 TODO / Budoucí vylepšení
 
 - [ ] Přidat skutečné projekty do galerie
