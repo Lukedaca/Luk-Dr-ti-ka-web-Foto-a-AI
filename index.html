@@ -2078,28 +2078,59 @@
         });
 
         // ========== DRAG & DROP UPLOAD ==========
+        let uploadedFiles = [];
+
+        // Get elements (will be used in multiple functions)
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const imagePreviewGrid = document.getElementById('imagePreviewGrid');
         const mainImageSelector = document.getElementById('mainImageSelector');
         const mainImageSelect = document.getElementById('mainImageSelect');
-        let uploadedFiles = [];
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragging');
-        });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragging');
-            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-            handleFiles(files);
-        });
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            handleFiles(files);
-        });
+        function initializeUpload() {
+
+            if (!dropZone || !fileInput) {
+                console.error('Drop zone or file input not found!');
+                return;
+            }
+
+            // Click on drop zone to open file dialog
+            dropZone.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') {
+                    fileInput.click();
+                }
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragging');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragging');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragging');
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                if (files.length > 0) {
+                    handleFiles(files);
+                } else {
+                    alert('Prosím nahrajte pouze obrázky (JPG, PNG, GIF, atd.)');
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                    handleFiles(files);
+                }
+            });
+        }
+
+        // Initialize upload functionality
+        initializeUpload();
 
         function handleFiles(files) {
             uploadedFiles = [...uploadedFiles, ...files];
@@ -2289,7 +2320,12 @@
         function renderPortfolio() {
             const portfolioGrid = document.getElementById('portfolioGrid');
             const projects = portfolioManager.loadProjects();
-            if (projects.length === 0) return;
+
+            if (projects.length === 0) {
+                // Žádné custom projekty, ale musíme přidat eventy k placeholder položkám
+                attachPortfolioEvents();
+                return;
+            }
 
             portfolioGrid.innerHTML = projects.map(project => {
                 const mainImage = project.images[project.mainImageIndex] || project.images[0];
