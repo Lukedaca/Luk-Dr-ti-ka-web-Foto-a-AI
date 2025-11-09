@@ -85,85 +85,6 @@
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        [data-theme="light"] {
-            --bg-primary: #ddd5c7;
-            --bg-secondary: #c9bfb0;
-            --text-primary: #1a202c;
-            --text-secondary: #4a5568;
-            --glass-bg: rgba(255, 255, 255, 0.35);
-            --glass-border: rgba(60, 60, 60, 0.2);
-        }
-
-        /* Light mode specific adjustments */
-        [data-theme="light"] body {
-            background: linear-gradient(135deg, #ddd5c7 0%, #c9bfb0 50%, #ddd5c7 100%);
-        }
-
-        [data-theme="light"] .gradient-text {
-            background: linear-gradient(135deg, #1e40af, #6b21a8, #0e7490);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        [data-theme="light"] .glass {
-            background: rgba(255, 255, 255, 0.45);
-            border: 1px solid rgba(60, 60, 60, 0.18);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        [data-theme="light"] .glass:hover {
-            background: rgba(255, 255, 255, 0.65);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-        }
-
-        [data-theme="light"] #neuralCanvas {
-            opacity: 0.08;
-        }
-
-        [data-theme="light"] .mesh-gradient {
-            background:
-                radial-gradient(at 0% 0%, rgba(30, 64, 175, 0.06) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(107, 33, 168, 0.06) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(14, 116, 144, 0.06) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(30, 64, 175, 0.06) 0px, transparent 50%);
-        }
-
-        [data-theme="light"] input,
-        [data-theme="light"] textarea,
-        [data-theme="light"] select {
-            background: rgba(255, 255, 255, 0.65);
-            color: #1a202c;
-            border: 1px solid rgba(60, 60, 60, 0.22);
-        }
-
-        [data-theme="light"] input::placeholder,
-        [data-theme="light"] textarea::placeholder {
-            color: #718096;
-        }
-
-        [data-theme="light"] .portfolio-overlay {
-            background: linear-gradient(135deg, rgba(30, 64, 175, 0.88), rgba(107, 33, 168, 0.88));
-        }
-
-        [data-theme="light"] .skill-bar {
-            opacity: 0.8;
-        }
-
-        [data-theme="light"] .admin-panel {
-            background: rgba(221, 213, 199, 0.98);
-            border-left: 1px solid rgba(60, 60, 60, 0.22);
-        }
-
-        [data-theme="light"] header {
-            background: rgba(255, 255, 255, 0.35);
-            border-bottom: 1px solid rgba(60, 60, 60, 0.15);
-        }
-
-        [data-theme="light"] footer {
-            background: rgba(255, 255, 255, 0.35);
-            border-top: 1px solid rgba(60, 60, 60, 0.15);
-        }
-
         * {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
@@ -599,11 +520,6 @@
                 <a href="#o-mne" class="hover:text-blue-400 transition">O mně</a>
                 <a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a>
 
-                <!-- Dark/Light Mode Toggle -->
-                <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 transition" aria-label="Toggle theme">
-                    <span class="theme-icon">🌙</span>
-                </button>
-
                 <!-- Admin Button -->
                 <button id="adminBtn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-sm font-semibold hover:opacity-90 transition" aria-label="Admin panel">
                     🔐 Admin
@@ -625,9 +541,6 @@
                 <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Skills</a>
                 <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
                 <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
-                <button id="themeToggleMobile" class="p-4 rounded-full hover:bg-white/10 transition text-4xl">
-                    <span class="theme-icon">🌙</span>
-                </button>
                 <button id="adminBtnMobile" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-semibold hover:opacity-90 transition">
                     🔐 Admin Panel
                 </button>
@@ -1290,8 +1203,7 @@
         // ========== INITIALIZATION ==========
         const STORAGE_KEYS = {
             PORTFOLIO: 'portfolio_projects',
-            ADMIN_AUTH: 'admin_authenticated',
-            THEME: 'theme_preference'
+            ADMIN_AUTH: 'admin_authenticated'
         };
 
         function isAdminAuthenticated() {
@@ -1328,31 +1240,6 @@
                 mobileMenu.classList.remove('active');
                 document.body.style.overflow = '';
             });
-        });
-
-        // ========== THEME TOGGLE ==========
-        const themeToggle = document.getElementById('themeToggle');
-        const themeToggleMobile = document.getElementById('themeToggleMobile');
-        const themeIcons = document.querySelectorAll('.theme-icon');
-        function setTheme(theme) {
-            if (theme === 'light') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                themeIcons.forEach(icon => icon.textContent = '☀️');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                themeIcons.forEach(icon => icon.textContent = '🌙');
-            }
-            localStorage.setItem(STORAGE_KEYS.THEME, theme);
-        }
-        const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
-        setTheme(savedTheme);
-        themeToggle.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            setTheme(current);
-        });
-        themeToggleMobile.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            setTheme(current);
         });
 
         // ========== TYPING ANIMATION ==========
