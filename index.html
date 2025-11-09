@@ -3,13 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lukáš Drštička - Portfolio</title>
+    <title>Lukáš Drštička - Fotograf & AI Developer | Portfolio</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Portfolio Lukáše Drštičky - profesionální fotograf a AI developer z Přerova. Specializace na portrétní, sportovní a produktovou fotografii + AI chatboty a automatizace.">
+    <meta name="keywords" content="fotograf Přerov, AI developer, portrétní fotografie, sportovní fotografie, AI chatbot, automatizace, Lukáš Drštička">
+    <meta name="author" content="Lukáš Drštička">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lukasdrsticka.cz/">
+    <meta property="og:title" content="Lukáš Drštička - Fotograf & AI Developer">
+    <meta property="og:description" content="Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.">
+    <meta property="og:image" content="https://lukasdrsticka.cz/og-image.jpg">
+    <meta property="og:locale" content="cs_CZ">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://lukasdrsticka.cz/">
+    <meta name="twitter:title" content="Lukáš Drštička - Fotograf & AI Developer">
+    <meta name="twitter:description" content="Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.">
+    <meta name="twitter:image" content="https://lukasdrsticka.cz/og-image.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Lukáš Drštička",
+      "url": "https://lukasdrsticka.cz",
+      "email": "lukas.drsticka@gmail.com",
+      "jobTitle": "Fotograf & AI Developer",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Přerov",
+        "addressCountry": "CZ"
+      },
+      "sameAs": [
+        "https://www.linkedin.com/in/lukas-drsticka",
+        "https://github.com/lukas-drsticka"
+      ],
+      "knowsAbout": ["Photography", "Artificial Intelligence", "Web Development", "Automation", "Chatbots"],
+      "offers": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Portrétní fotografie",
+            "description": "Profesionální portrétní fotografie v ateliéru i venku"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "AI Chatbot Development",
+            "description": "Vývoj AI chatbotů a automatizačních řešení"
+          }
+        }
+      ]
+    }
+    </script>
+
     <style>
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #1a1f3a;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+            color: var(--text-primary);
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
@@ -265,9 +357,160 @@
             min-height: 120px;
             resize: vertical;
         }
+
+        /* Mobile Menu Animations */
+        #mobileMenu.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        #mobileMenuBtn.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        #mobileMenuBtn.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        #mobileMenuBtn.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+
+        .mobile-menu-link {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .mobile-menu-link:nth-child(1) { animation-delay: 0.1s; }
+        .mobile-menu-link:nth-child(2) { animation-delay: 0.2s; }
+        .mobile-menu-link:nth-child(3) { animation-delay: 0.3s; }
+        .mobile-menu-link:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mesh Gradient Background */
+        .mesh-gradient {
+            background:
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(34, 211, 238, 0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.3) 0px, transparent 50%);
+            animation: meshMove 15s ease infinite;
+        }
+
+        @keyframes meshMove {
+            0%, 100% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
+            25% { background-position: 100% 0%, 100% 100%, 0% 100%, 0% 0%; }
+            50% { background-position: 100% 100%, 0% 100%, 0% 0%, 100% 0%; }
+            75% { background-position: 0% 100%, 0% 0%, 100% 0%, 100% 100%; }
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Admin Panel Styles */
+        .admin-panel {
+            position: fixed;
+            right: -100%;
+            top: 0;
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            background: rgba(10, 14, 39, 0.98);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9998;
+            overflow-y: auto;
+        }
+
+        .admin-panel.active {
+            right: 0;
+        }
+
+        .drag-drop-zone {
+            border: 2px dashed rgba(59, 130, 246, 0.5);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drag-drop-zone.dragging {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drag-drop-zone:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .image-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: move;
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .image-preview-item:hover .remove-btn {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="text-white">
+    <!-- Scroll Progress Bar -->
+    <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
+
+    <!-- Custom Cursor Spotlight -->
+    <div id="cursorSpotlight" class="pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
+
     <canvas id="neuralCanvas"></canvas>
 
     <header class="fixed top-0 w-full z-50 glass">
@@ -278,26 +521,103 @@
                 </div>
                 <span class="text-lg font-semibold">Lukáš Drštička</span>
             </div>
+
+            <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8">
                 <a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a>
+                <a href="#skills" class="hover:text-blue-400 transition">Skills</a>
                 <a href="#o-mne" class="hover:text-blue-400 transition">O mně</a>
                 <a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a>
+
+                <!-- Dark/Light Mode Toggle -->
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-white/10 transition" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+
+                <!-- Admin Button -->
+                <button id="adminBtn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-sm font-semibold hover:opacity-90 transition" aria-label="Admin panel">
+                    🔐 Admin
+                </button>
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden flex flex-col items-center justify-center w-10 h-10 space-y-1.5 z-50" aria-label="Toggle mobile menu">
+                <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
+                <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
+                <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobileMenu" class="fixed inset-0 bg-black/95 backdrop-blur-xl opacity-0 invisible transition-all duration-300 md:hidden">
+            <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl">
+                <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
+                <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Skills</a>
+                <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
+                <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
+                <button id="themeToggleMobile" class="p-4 rounded-full hover:bg-white/10 transition text-4xl">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <button id="adminBtnMobile" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-semibold hover:opacity-90 transition">
+                    🔐 Admin Panel
+                </button>
             </nav>
         </div>
     </header>
 
     <main class="pt-20">
-        <section class="min-h-screen flex items-center justify-center px-6">
-            <div class="text-center">
+        <!-- Hero Section -->
+        <section class="min-h-screen flex items-center justify-center px-6 relative mesh-gradient">
+            <div class="text-center max-w-5xl mx-auto relative z-10">
+                <div class="mb-6 flex justify-center gap-4 flex-wrap">
+                    <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0s;">📷 Fotografie</span>
+                    <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0.5s;">🤖 AI Development</span>
+                    <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">⚡ Automatizace</span>
+                </div>
+
                 <h1 class="text-6xl md:text-8xl font-bold mb-6 gradient-text">
                     Lukáš Drštička
                 </h1>
-                <p class="text-2xl md:text-3xl text-gray-300 mb-4">
-                    Fotograf & AI Developer
+
+                <div class="text-2xl md:text-4xl text-gray-300 mb-8 h-12 flex items-center justify-center">
+                    <span id="typingText" class="font-semibold"></span>
+                    <span id="typingCursor" class="inline-block w-1 h-8 bg-blue-500 ml-1 animate-pulse"></span>
+                </div>
+
+                <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+                    Propojuji kreativitu s technologií. Vytvářím vizuální příběhy skrze fotografie a inovativní AI řešení na míru.
                 </p>
-                <p class="text-lg text-gray-400">
-                    Přerov
-                </p>
+
+                <div class="flex gap-4 justify-center flex-wrap">
+                    <a href="#portfolio" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition shadow-lg hover:shadow-xl hover:scale-105 transform">
+                        Prohlédnout portfolio
+                    </a>
+                    <a href="#kontakt" class="px-8 py-4 glass rounded-full font-semibold hover:bg-white/10 transition">
+                        Napsat zprávu
+                    </a>
+                </div>
+
+                <div class="mt-16 flex justify-center gap-8 text-sm text-gray-400">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold gradient-text" data-count="50">0</div>
+                        <div>Projektů</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold gradient-text" data-count="100">0</div>
+                        <div>Fotografií</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold gradient-text" data-count="3">0</div>
+                        <div>Roky zkušeností</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scroll Down Indicator -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
             </div>
         </section>
 
@@ -346,6 +666,281 @@
                         <img src="https://placehold.co/800x600/1a202c/ffffff?text=Portret+2" alt="Portrét 2" class="w-full h-80 object-cover">
                         <div class="portfolio-overlay">
                             <span class="text-white text-xl font-semibold">Portrét</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text">Dovednosti & Technologie</h2>
+                <p class="text-center text-gray-400 mb-16 max-w-2xl mx-auto">
+                    Kombinace kreativního a technického know-how pro realizaci vašich projektů
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Photography Skills -->
+                    <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+                        <div class="text-5xl mb-4">📷</div>
+                        <h3 class="text-2xl font-bold mb-6">Fotografie</h3>
+
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Portrétní foto</span>
+                                    <span class="text-sm text-blue-400">95%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="95" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Sportovní foto</span>
+                                    <span class="text-sm text-blue-400">90%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="90" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Produktová foto</span>
+                                    <span class="text-sm text-blue-400">85%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="85" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Postprodukce</span>
+                                    <span class="text-sm text-blue-400">92%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="92" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI/Dev Skills -->
+                    <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+                        <div class="text-5xl mb-4">🤖</div>
+                        <h3 class="text-2xl font-bold mb-6">AI & Development</h3>
+
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">AI Chatbots</span>
+                                    <span class="text-sm text-blue-400">88%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="88" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">JavaScript/React</span>
+                                    <span class="text-sm text-blue-400">85%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="85" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Python/ML</span>
+                                    <span class="text-sm text-blue-400">80%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="80" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Automatizace</span>
+                                    <span class="text-sm text-blue-400">87%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="87" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tools -->
+                    <div class="glass rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+                        <div class="text-5xl mb-4">🛠️</div>
+                        <h3 class="text-2xl font-bold mb-6">Nástroje</h3>
+
+                        <div class="flex flex-wrap gap-3">
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Adobe Lightroom</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Photoshop</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">VS Code</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Git/GitHub</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">TensorFlow</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">OpenAI API</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Figma</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Tailwind CSS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="py-24">
+            <div class="container mx-auto px-6 max-w-6xl">
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text">Reference klientů</h2>
+                <p class="text-center text-gray-400 mb-16">Co říkají lidé, se kterými jsem spolupracoval</p>
+
+                <div class="relative">
+                    <div id="testimonialsContainer" class="overflow-hidden">
+                        <div id="testimonialsSlider" class="flex transition-transform duration-500 ease-out">
+                            <!-- Testimonial 1 -->
+                            <div class="min-w-full px-4">
+                                <div class="glass rounded-2xl p-8 md:p-12 max-w-4xl mx-auto">
+                                    <div class="flex items-center justify-center mb-6">
+                                        <span class="text-yellow-400 text-2xl">⭐⭐⭐⭐⭐</span>
+                                    </div>
+                                    <p class="text-xl text-gray-300 mb-8 text-center italic">
+                                        "Lukáš vytvořil perfektní fotografie pro náš tým. Profesionální přístup a skvělé výsledky!"
+                                    </p>
+                                    <div class="text-center">
+                                        <div class="font-semibold text-lg">Jan Novák</div>
+                                        <div class="text-gray-400">CEO, Tech Startup</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testimonial 2 -->
+                            <div class="min-w-full px-4">
+                                <div class="glass rounded-2xl p-8 md:p-12 max-w-4xl mx-auto">
+                                    <div class="flex items-center justify-center mb-6">
+                                        <span class="text-yellow-400 text-2xl">⭐⭐⭐⭐⭐</span>
+                                    </div>
+                                    <p class="text-xl text-gray-300 mb-8 text-center italic">
+                                        "AI chatbot od Lukáše nám ušetřil hodiny práce. Přesně to, co jsme potřebovali!"
+                                    </p>
+                                    <div class="text-center">
+                                        <div class="font-semibold text-lg">Petra Svobodová</div>
+                                        <div class="text-gray-400">Marketing Manager</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Testimonial 3 -->
+                            <div class="min-w-full px-4">
+                                <div class="glass rounded-2xl p-8 md:p-12 max-w-4xl mx-auto">
+                                    <div class="flex items-center justify-center mb-6">
+                                        <span class="text-yellow-400 text-2xl">⭐⭐⭐⭐⭐</span>
+                                    </div>
+                                    <p class="text-xl text-gray-300 mb-8 text-center italic">
+                                        "Skvělá práce na automatizaci našich procesů. Doporučuji!"
+                                    </p>
+                                    <div class="text-center">
+                                        <div class="font-semibold text-lg">Martin Dvořák</div>
+                                        <div class="text-gray-400">Majitel e-shopu</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <button id="prevTestimonial" class="absolute left-0 top-1/2 -translate-y-1/2 glass p-3 rounded-full hover:bg-white/10 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <button id="nextTestimonial" class="absolute right-0 top-1/2 -translate-y-1/2 glass p-3 rounded-full hover:bg-white/10 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Dots -->
+                    <div class="flex justify-center gap-2 mt-8">
+                        <button class="testimonial-dot w-3 h-3 rounded-full bg-blue-500 transition-all" data-index="0"></button>
+                        <button class="testimonial-dot w-3 h-3 rounded-full bg-gray-600 transition-all" data-index="1"></button>
+                        <button class="testimonial-dot w-3 h-3 rounded-full bg-gray-600 transition-all" data-index="2"></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline/Process Section -->
+        <section class="py-24 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent">
+            <div class="container mx-auto px-6 max-w-5xl">
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text">Jak pracuji</h2>
+                <p class="text-center text-gray-400 mb-16">Jednoduchý proces od návrhu po realizaci</p>
+
+                <div class="relative">
+                    <!-- Vertical Line -->
+                    <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-blue-500 opacity-30"></div>
+
+                    <!-- Step 1 -->
+                    <div class="relative flex items-center mb-16">
+                        <div class="w-1/2 pr-12 text-right">
+                            <div class="glass rounded-xl p-6">
+                                <h3 class="text-2xl font-bold mb-2">1. Konzultace</h3>
+                                <p class="text-gray-300">Probereme vaše představy, cíle a požadavky projektu</p>
+                            </div>
+                        </div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl font-bold z-10">
+                            💬
+                        </div>
+                        <div class="w-1/2 pl-12"></div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="relative flex items-center mb-16">
+                        <div class="w-1/2 pr-12"></div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl font-bold z-10">
+                            📋
+                        </div>
+                        <div class="w-1/2 pl-12 text-left">
+                            <div class="glass rounded-xl p-6">
+                                <h3 class="text-2xl font-bold mb-2">2. Plánování</h3>
+                                <p class="text-gray-300">Vytvoříme detailní plán a časový harmonogram</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="relative flex items-center mb-16">
+                        <div class="w-1/2 pr-12 text-right">
+                            <div class="glass rounded-xl p-6">
+                                <h3 class="text-2xl font-bold mb-2">3. Realizace</h3>
+                                <p class="text-gray-300">Fotografie, kód nebo AI řešení podle plánu</p>
+                            </div>
+                        </div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl font-bold z-10">
+                            ⚡
+                        </div>
+                        <div class="w-1/2 pl-12"></div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="relative flex items-center">
+                        <div class="w-1/2 pr-12"></div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xl font-bold z-10">
+                            ✨
+                        </div>
+                        <div class="w-1/2 pl-12 text-left">
+                            <div class="glass rounded-xl p-6">
+                                <h3 class="text-2xl font-bold mb-2">4. Dokončení</h3>
+                                <p class="text-gray-300">Finální úpravy a předání hotového projektu</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -416,10 +1011,194 @@
         </section>
     </main>
 
-    <footer class="glass border-t border-white/10 py-8 mt-24 relative z-10">
-        <div class="container mx-auto px-6 text-center">
-            <p class="text-gray-400 mb-2">© 2025 Lukáš Drštička</p>
-            <p class="text-gray-500 text-sm">Vytvořeno pomocí Vibecoding (Claude & Gemini)</p>
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="p-8">
+            <!-- Admin Header -->
+            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <h2 class="text-3xl font-bold gradient-text">🔐 Admin Panel</h2>
+                <button id="closeAdminPanel" class="text-3xl hover:text-gray-300 transition">&times;</button>
+            </div>
+
+            <!-- Auth Section (if not logged in) -->
+            <div id="adminAuth" class="mb-8">
+                <h3 class="text-xl font-semibold mb-4">Přihlášení</h3>
+                <div class="space-y-4">
+                    <input type="password" id="adminPassword" placeholder="Heslo..." class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button id="adminLoginBtn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-semibold hover:opacity-90 transition">
+                        Přihlásit se
+                    </button>
+                    <p class="text-xs text-gray-400">Demo heslo: admin123</p>
+                </div>
+            </div>
+
+            <!-- Admin Content (visible after login) -->
+            <div id="adminContent" class="hidden">
+                <!-- Upload Section -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-4">📤 Přidat projekt</h3>
+
+                    <!-- Project Type Selection -->
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-300 mb-2">Typ projektu</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center glass px-4 py-3 rounded-xl cursor-pointer hover:bg-white/10 transition">
+                                <input type="radio" name="projectType" value="single" checked class="mr-2">
+                                <span>📷 Jednotlivá fotka</span>
+                            </label>
+                            <label class="flex items-center glass px-4 py-3 rounded-xl cursor-pointer hover:bg-white/10 transition">
+                                <input type="radio" name="projectType" value="gallery" class="mr-2">
+                                <span>🖼️ Galerie (více fotek)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Project Details -->
+                    <div class="space-y-4 mb-4">
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2">Název projektu</label>
+                            <input type="text" id="projectName" placeholder="Např. Portrétní focení" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2">Kategorie</label>
+                            <select id="projectCategory" class="w-full glass rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="foto">📷 Fotografie</option>
+                                <option value="ai">🤖 AI Projekt</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-300 mb-2">Popis (volitelný)</label>
+                            <textarea id="projectDescription" placeholder="Krátký popis projektu..." class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Drag & Drop Upload Zone -->
+                    <div id="dropZone" class="drag-drop-zone">
+                        <div class="text-5xl mb-4">📤</div>
+                        <p class="text-lg font-semibold mb-2">Přetáhněte fotky sem</p>
+                        <p class="text-sm text-gray-400 mb-4">nebo klikněte pro výběr</p>
+                        <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                        <button onclick="document.getElementById('fileInput').click()" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition">
+                            Vybrat soubory
+                        </button>
+                    </div>
+
+                    <!-- Image Preview Grid -->
+                    <div id="imagePreviewGrid" class="image-preview-grid mt-4 hidden"></div>
+
+                    <!-- Main Image Selector (for galleries) -->
+                    <div id="mainImageSelector" class="hidden mt-4">
+                        <label class="block text-sm text-gray-300 mb-2">Hlavní náhledová fotka</label>
+                        <select id="mainImageSelect" class="w-full glass rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="0">První fotka</option>
+                        </select>
+                    </div>
+
+                    <!-- Save Button -->
+                    <button id="saveProjectBtn" class="w-full mt-4 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-semibold hover:opacity-90 transition">
+                        💾 Uložit projekt
+                    </button>
+                </div>
+
+                <!-- Existing Projects -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold mb-4">📁 Existující projekty</h3>
+                    <div id="existingProjects" class="space-y-3">
+                        <p class="text-gray-400 text-sm">Zatím žádné projekty...</p>
+                    </div>
+                </div>
+
+                <!-- Export/Import -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">💾 Záloha dat</h3>
+                    <div class="flex gap-3">
+                        <button id="exportDataBtn" class="flex-1 glass py-3 rounded-xl font-semibold hover:bg-white/10 transition">
+                            📥 Export JSON
+                        </button>
+                        <button id="importDataBtn" class="flex-1 glass py-3 rounded-xl font-semibold hover:bg-white/10 transition">
+                            📤 Import JSON
+                        </button>
+                        <input type="file" id="importFileInput" accept=".json" class="hidden">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for Admin Panel -->
+    <div id="adminOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm opacity-0 invisible transition-all duration-300 z-[9997]"></div>
+
+    <footer class="glass border-t border-white/10 py-16 mt-24 relative z-10">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <!-- Brand Column -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full h-12 w-12 flex flex-col justify-center items-center font-bold text-sm">
+                            <span>LD</span>
+                        </div>
+                        <span class="text-xl font-semibold">Lukáš Drštička</span>
+                    </div>
+                    <p class="text-gray-400 mb-6 max-w-sm">
+                        Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.
+                    </p>
+
+                    <!-- Newsletter -->
+                    <div>
+                        <h4 class="font-semibold mb-3">📬 Newsletter</h4>
+                        <form id="newsletterForm" class="flex gap-2">
+                            <input type="email" placeholder="vas@email.cz" class="flex-1 glass rounded-xl px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-semibold hover:opacity-90 transition">
+                                Odebírat
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Links Column -->
+                <div>
+                    <h4 class="font-semibold mb-4">Odkazy</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a></li>
+                        <li><a href="#skills" class="hover:text-blue-400 transition">Dovednosti</a></li>
+                        <li><a href="#o-mne" class="hover:text-blue-400 transition">O mně</a></li>
+                        <li><a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Column -->
+                <div>
+                    <h4 class="font-semibold mb-4">Kontakt</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>
+                            <a href="mailto:lukas.drsticka@gmail.com" class="hover:text-blue-400 transition">
+                                lukas.drsticka@gmail.com
+                            </a>
+                        </li>
+                        <li>📍 Přerov, CZ</li>
+                    </ul>
+
+                    <!-- Social Links -->
+                    <div class="flex gap-3 mt-4">
+                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="Instagram">
+                            📷
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="LinkedIn">
+                            💼
+                        </a>
+                        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="GitHub">
+                            🔗
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-8 text-center">
+                <p class="text-gray-400 mb-2">© 2025 Lukáš Drštička. Všechna práva vyhrazena.</p>
+                <p class="text-gray-500 text-sm">Vytvořeno s ❤️ pomocí Claude & Gemini | Designed with modern web standards</p>
+            </div>
         </div>
     </footer>
 
@@ -453,7 +1232,167 @@
     </div>
 
     <script>
-        // NEURAL NETWORK VISUALIZATION
+        // ========== INITIALIZATION ==========
+        const STORAGE_KEYS = {
+            PORTFOLIO: 'portfolio_projects',
+            ADMIN_AUTH: 'admin_authenticated',
+            THEME: 'theme_preference'
+        };
+
+        function isAdminAuthenticated() {
+            return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
+        }
+
+        // ========== SCROLL PROGRESS ==========
+        const scrollProgress = document.getElementById('scrollProgress');
+        window.addEventListener('scroll', () => {
+            const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (window.scrollY / windowHeight) * 100;
+            scrollProgress.style.width = scrolled + '%';
+        });
+
+        // ========== CURSOR SPOTLIGHT ==========
+        const cursorSpotlight = document.getElementById('cursorSpotlight');
+        document.addEventListener('mousemove', (e) => {
+            cursorSpotlight.style.left = e.clientX + 'px';
+            cursorSpotlight.style.top = e.clientY + 'px';
+            cursorSpotlight.style.opacity = '1';
+        });
+
+        // ========== MOBILE MENU ==========
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+        });
+        document.querySelectorAll('.mobile-menu-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenuBtn.classList.remove('active');
+                mobileMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+
+        // ========== THEME TOGGLE ==========
+        const themeToggle = document.getElementById('themeToggle');
+        const themeToggleMobile = document.getElementById('themeToggleMobile');
+        const themeIcons = document.querySelectorAll('.theme-icon');
+        function setTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeIcons.forEach(icon => icon.textContent = '☀️');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                themeIcons.forEach(icon => icon.textContent = '🌙');
+            }
+            localStorage.setItem(STORAGE_KEYS.THEME, theme);
+        }
+        const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
+        setTheme(savedTheme);
+        themeToggle.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            setTheme(current);
+        });
+        themeToggleMobile.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            setTheme(current);
+        });
+
+        // ========== TYPING ANIMATION ==========
+        const typingText = document.getElementById('typingText');
+        const texts = ['Fotograf & AI Developer', 'Kreativní Vizionář', 'Tech Enthusiast'];
+        let textIndex = 0, charIndex = 0, isDeleting = false;
+        function typeText() {
+            const currentText = texts[textIndex];
+            if (isDeleting) {
+                typingText.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingText.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+            if (!isDeleting && charIndex === currentText.length) {
+                setTimeout(() => isDeleting = true, 2000);
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % texts.length;
+            }
+            setTimeout(typeText, isDeleting ? 50 : 100);
+        }
+        typeText();
+
+        // ========== COUNTER & SKILL BARS ANIMATION ==========
+        function animateCounter(element) {
+            const target = parseInt(element.getAttribute('data-count'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = target + '+';
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 16);
+        }
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.hasAttribute('data-count')) {
+                        animateCounter(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                    if (entry.target.classList.contains('skill-bar')) {
+                        const width = entry.target.getAttribute('data-width');
+                        entry.target.style.width = width + '%';
+                        observer.unobserve(entry.target);
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+        document.querySelectorAll('[data-count]').forEach(el => observer.observe(el));
+        document.querySelectorAll('.skill-bar').forEach(el => observer.observe(el));
+
+        // ========== TESTIMONIALS CAROUSEL ==========
+        const testimonialsSlider = document.getElementById('testimonialsSlider');
+        const prevTestimonial = document.getElementById('prevTestimonial');
+        const nextTestimonial = document.getElementById('nextTestimonial');
+        const testimonialDots = document.querySelectorAll('.testimonial-dot');
+        let currentTestimonial = 0;
+        const totalTestimonials = 3;
+        function showTestimonial(index) {
+            currentTestimonial = (index + totalTestimonials) % totalTestimonials;
+            testimonialsSlider.style.transform = `translateX(-${currentTestimonial * 100}%)`;
+            testimonialDots.forEach((dot, i) => {
+                if (i === currentTestimonial) {
+                    dot.classList.remove('bg-gray-600');
+                    dot.classList.add('bg-blue-500');
+                } else {
+                    dot.classList.remove('bg-blue-500');
+                    dot.classList.add('bg-gray-600');
+                }
+            });
+        }
+        prevTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial - 1));
+        nextTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial + 1));
+        testimonialDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => showTestimonial(index));
+        });
+        setInterval(() => showTestimonial(currentTestimonial + 1), 5000);
+
+        // ========== NEWSLETTER ==========
+        document.getElementById('newsletterForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = e.target.querySelector('input[type="email"]').value;
+            alert(`Děkujeme! Newsletter bude zasílán na: ${email}`);
+            e.target.reset();
+        });
+
+        // ========== NEURAL NETWORK VISUALIZATION ==========
         class NeuralNetworkVisualization {
             constructor(canvas) {
                 this.canvas = canvas;
@@ -1141,6 +2080,335 @@
                 unreadBadge.classList.add('hidden');
             }
         }
+
+        // ========== ADMIN PANEL ==========
+        const adminBtn = document.getElementById('adminBtn');
+        const adminBtnMobile = document.getElementById('adminBtnMobile');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminOverlay = document.getElementById('adminOverlay');
+        const closeAdminPanel = document.getElementById('closeAdminPanel');
+        const adminAuth = document.getElementById('adminAuth');
+        const adminContent = document.getElementById('adminContent');
+        const adminPassword = document.getElementById('adminPassword');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+
+        function openAdminPanel() {
+            adminPanel.classList.add('active');
+            adminOverlay.style.opacity = '1';
+            adminOverlay.style.visibility = 'visible';
+            document.body.style.overflow = 'hidden';
+            if (isAdminAuthenticated()) {
+                adminAuth.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                loadExistingProjects();
+            }
+        }
+
+        function closeAdminPanelFunc() {
+            adminPanel.classList.remove('active');
+            adminOverlay.style.opacity = '0';
+            adminOverlay.style.visibility = 'invisible';
+            document.body.style.overflow = '';
+        }
+
+        adminBtn.addEventListener('click', openAdminPanel);
+        adminBtnMobile.addEventListener('click', () => {
+            openAdminPanel();
+            mobileMenuBtn.classList.remove('active');
+            mobileMenu.classList.remove('active');
+        });
+        closeAdminPanel.addEventListener('click', closeAdminPanelFunc);
+        adminOverlay.addEventListener('click', closeAdminPanelFunc);
+
+        adminLoginBtn.addEventListener('click', () => {
+            if (adminPassword.value === 'admin123') {
+                localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+                adminAuth.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                loadExistingProjects();
+            } else {
+                alert('Nesprávné heslo!');
+            }
+        });
+
+        adminPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adminLoginBtn.click();
+        });
+
+        // ========== DRAG & DROP UPLOAD ==========
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreviewGrid = document.getElementById('imagePreviewGrid');
+        const mainImageSelector = document.getElementById('mainImageSelector');
+        const mainImageSelect = document.getElementById('mainImageSelect');
+        let uploadedFiles = [];
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+            const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            handleFiles(files);
+        });
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            uploadedFiles = [...uploadedFiles, ...files];
+            displayImagePreviews();
+            updateMainImageSelector();
+            const isGallery = document.querySelector('input[name="projectType"]:checked').value === 'gallery';
+            if (isGallery && uploadedFiles.length > 1) {
+                mainImageSelector.classList.remove('hidden');
+            }
+        }
+
+        function displayImagePreviews() {
+            imagePreviewGrid.innerHTML = '';
+            imagePreviewGrid.classList.remove('hidden');
+            uploadedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `<img src="${e.target.result}" alt="Preview"><button class="remove-btn" onclick="removeImage(${index})">×</button>`;
+                    imagePreviewGrid.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updateMainImageSelector() {
+            mainImageSelect.innerHTML = uploadedFiles.map((file, index) => `<option value="${index}">Fotka ${index + 1}</option>`).join('');
+        }
+
+        window.removeImage = function(index) {
+            uploadedFiles.splice(index, 1);
+            displayImagePreviews();
+            updateMainImageSelector();
+            if (uploadedFiles.length === 0) {
+                imagePreviewGrid.classList.add('hidden');
+                mainImageSelector.classList.add('hidden');
+            }
+        };
+
+        document.querySelectorAll('input[name="projectType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const isGallery = e.target.value === 'gallery';
+                if (isGallery && uploadedFiles.length > 1) {
+                    mainImageSelector.classList.remove('hidden');
+                } else {
+                    mainImageSelector.classList.add('hidden');
+                }
+            });
+        });
+
+        // ========== PORTFOLIO MANAGER ==========
+        class PortfolioManager {
+            loadProjects() {
+                const data = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
+                return data ? JSON.parse(data) : [];
+            }
+            saveProjects(projects) {
+                localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify(projects));
+            }
+            addProject(project) {
+                const projects = this.loadProjects();
+                project.id = Date.now();
+                projects.push(project);
+                this.saveProjects(projects);
+            }
+            deleteProject(id) {
+                let projects = this.loadProjects();
+                projects = projects.filter(p => p.id !== id);
+                this.saveProjects(projects);
+            }
+            exportData() {
+                return JSON.stringify(this.loadProjects(), null, 2);
+            }
+            importData(jsonString) {
+                try {
+                    const data = JSON.parse(jsonString);
+                    this.saveProjects(data);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+        }
+
+        const portfolioManager = new PortfolioManager();
+
+        document.getElementById('saveProjectBtn').addEventListener('click', async () => {
+            const projectName = document.getElementById('projectName').value;
+            const projectCategory = document.getElementById('projectCategory').value;
+            const projectDescription = document.getElementById('projectDescription').value;
+            const projectType = document.querySelector('input[name="projectType"]:checked').value;
+
+            if (!projectName || uploadedFiles.length === 0) {
+                alert('Vyplňte název a přidejte alespoň jednu fotku!');
+                return;
+            }
+
+            const images = await Promise.all(uploadedFiles.map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            }));
+
+            const project = {
+                name: projectName,
+                category: projectCategory,
+                description: projectDescription,
+                type: projectType,
+                images: images,
+                mainImageIndex: projectType === 'gallery' ? parseInt(mainImageSelect.value) : 0
+            };
+
+            portfolioManager.addProject(project);
+            alert('Projekt uložen!');
+
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectDescription').value = '';
+            uploadedFiles = [];
+            imagePreviewGrid.innerHTML = '';
+            imagePreviewGrid.classList.add('hidden');
+            mainImageSelector.classList.add('hidden');
+
+            loadExistingProjects();
+            renderPortfolio();
+        });
+
+        function loadExistingProjects() {
+            const container = document.getElementById('existingProjects');
+            const projects = portfolioManager.loadProjects();
+            if (projects.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">Zatím žádné projekty...</p>';
+                return;
+            }
+            container.innerHTML = projects.map(project => `
+                <div class="glass rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                        <div class="font-semibold">${project.name}</div>
+                        <div class="text-sm text-gray-400">${project.type === 'gallery' ? '🖼️ Galerie' : '📷 Jednotlivá'} | ${project.images.length} fotek</div>
+                    </div>
+                    <button onclick="deleteProject(${project.id})" class="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded-lg hover:bg-red-600/40 transition">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        window.deleteProject = function(id) {
+            if (confirm('Opravdu smazat?')) {
+                portfolioManager.deleteProject(id);
+                loadExistingProjects();
+                renderPortfolio();
+            }
+        };
+
+        document.getElementById('exportDataBtn').addEventListener('click', () => {
+            const data = portfolioManager.exportData();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `portfolio-${Date.now()}.json`;
+            a.click();
+        });
+
+        document.getElementById('importDataBtn').addEventListener('click', () => {
+            document.getElementById('importFileInput').click();
+        });
+
+        document.getElementById('importFileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (portfolioManager.importData(e.target.result)) {
+                        alert('Import úspěšný!');
+                        loadExistingProjects();
+                        renderPortfolio();
+                    } else {
+                        alert('Chyba importu!');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function renderPortfolio() {
+            const portfolioGrid = document.getElementById('portfolioGrid');
+            const projects = portfolioManager.loadProjects();
+            if (projects.length === 0) return;
+
+            portfolioGrid.innerHTML = projects.map(project => {
+                const mainImage = project.images[project.mainImageIndex] || project.images[0];
+                const dataAttr = project.type === 'gallery' ? `data-gallery='${JSON.stringify(project.images)}'` : '';
+                return `
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="${project.category}" ${dataAttr}>
+                        <img src="${mainImage}" alt="${project.name}" class="w-full h-80 object-cover" loading="lazy">
+                        <div class="portfolio-overlay">
+                            <span class="text-white text-xl font-semibold">${project.name}</span>
+                            ${project.type === 'gallery' ? '<div class="text-sm mt-2">🖼️ ' + project.images.length + ' fotek</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            attachPortfolioEvents();
+        }
+
+        function attachPortfolioEvents() {
+            document.querySelectorAll('.portfolio-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const galleryData = item.getAttribute('data-gallery');
+                    if (galleryData) {
+                        const images = JSON.parse(galleryData);
+                        openGalleryLightbox(images, 0);
+                    } else {
+                        const img = item.querySelector('img').src;
+                        document.getElementById('lightboxImg').src = img;
+                        document.getElementById('lightbox').classList.add('active');
+                    }
+                });
+            });
+        }
+
+        function openGalleryLightbox(images, startIndex) {
+            let currentIndex = startIndex;
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightboxImg');
+
+            lightboxImg.src = images[currentIndex];
+            lightbox.classList.add('active');
+
+            const handleKeyboard = (e) => {
+                if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                    currentIndex--;
+                    lightboxImg.src = images[currentIndex];
+                } else if (e.key === 'ArrowRight' && currentIndex < images.length - 1) {
+                    currentIndex++;
+                    lightboxImg.src = images[currentIndex];
+                }
+            };
+
+            document.addEventListener('keydown', handleKeyboard);
+
+            document.getElementById('closeLightbox').addEventListener('click', () => {
+                document.removeEventListener('keydown', handleKeyboard);
+            }, { once: true });
+        }
+
+        renderPortfolio();
+        attachPortfolioEvents();
     </script>
 </body>
 </html>
