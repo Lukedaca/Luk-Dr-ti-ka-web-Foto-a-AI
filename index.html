@@ -1473,12 +1473,15 @@
         }
 
         // ========== NEWSLETTER ==========
-        document.getElementById('newsletterForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = e.target.querySelector('input[type="email"]').value;
-            alert(`Děkujeme! Newsletter bude zasílán na: ${email}`);
-            e.target.reset();
-        });
+        const newsletterForm = document.getElementById('newsletterForm');
+        if (newsletterForm) {
+            newsletterForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = e.target.querySelector('input[type="email"]').value;
+                alert(`Děkujeme! Newsletter bude zasílán na: ${email}`);
+                e.target.reset();
+            });
+        }
 
         // ========== NEURAL NETWORK VISUALIZATION ==========
         class NeuralNetworkVisualization {
@@ -1820,11 +1823,14 @@
         }
         
         const writingAssistant = new AIWritingAssistant();
-        
-        document.getElementById('contactForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Demo: Zpráva by se odeslala na email.');
-        });
+
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                alert('Demo: Zpráva by se odeslala na email.');
+            });
+        }
 
         // ENHANCED AI CHATBOT
         class EnhancedChatbot {
@@ -2280,8 +2286,8 @@
 
         function initializeUpload() {
 
-            if (!dropZone || !fileInput) {
-                console.error('Drop zone or file input not found!');
+            if (!dropZone || !fileInput || !imagePreviewGrid || !mainImageSelector || !mainImageSelect) {
+                console.warn('Upload prvky nebyly nalezeny, inicializace přeskočena.');
                 return;
             }
 
@@ -2518,6 +2524,8 @@
 
         function renderPortfolio() {
             const portfolioGrid = document.getElementById('portfolioGrid');
+            if (!portfolioGrid) return;
+
             const projects = portfolioManager.loadProjects();
 
             if (projects.length === 0) {
@@ -2585,7 +2593,6 @@
         }
 
         renderPortfolio();
-        attachPortfolioEvents();
         });
     </script>
 </body>
