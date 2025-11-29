@@ -1439,25 +1439,29 @@
         const testimonialDots = document.querySelectorAll('.testimonial-dot');
         let currentTestimonial = 0;
         const totalTestimonials = 3;
-        function showTestimonial(index) {
-            currentTestimonial = (index + totalTestimonials) % totalTestimonials;
-            testimonialsSlider.style.transform = `translateX(-${currentTestimonial * 100}%)`;
-            testimonialDots.forEach((dot, i) => {
-                if (i === currentTestimonial) {
-                    dot.classList.remove('bg-gray-600');
-                    dot.classList.add('bg-blue-500');
-                } else {
-                    dot.classList.remove('bg-blue-500');
-                    dot.classList.add('bg-gray-600');
-                }
+
+        if (testimonialsSlider && prevTestimonial && nextTestimonial && testimonialDots.length) {
+            function showTestimonial(index) {
+                currentTestimonial = (index + totalTestimonials) % totalTestimonials;
+                testimonialsSlider.style.transform = `translateX(-${currentTestimonial * 100}%)`;
+                testimonialDots.forEach((dot, i) => {
+                    if (i === currentTestimonial) {
+                        dot.classList.remove('bg-gray-600');
+                        dot.classList.add('bg-blue-500');
+                    } else {
+                        dot.classList.remove('bg-blue-500');
+                        dot.classList.add('bg-gray-600');
+                    }
+                });
+            }
+
+            prevTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial - 1));
+            nextTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial + 1));
+            testimonialDots.forEach((dot, index) => {
+                dot.addEventListener('click', () => showTestimonial(index));
             });
+            setInterval(() => showTestimonial(currentTestimonial + 1), 5000);
         }
-        prevTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial - 1));
-        nextTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial + 1));
-        testimonialDots.forEach((dot, index) => {
-            dot.addEventListener('click', () => showTestimonial(index));
-        });
-        setInterval(() => showTestimonial(currentTestimonial + 1), 5000);
 
         // ========== NEWSLETTER ==========
         document.getElementById('newsletterForm').addEventListener('submit', (e) => {
