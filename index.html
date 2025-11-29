@@ -1633,7 +1633,7 @@
         }
         
         const neuralCanvas = document.getElementById('neuralCanvas');
-        const neuralViz = new NeuralNetworkVisualization(neuralCanvas);
+        const neuralViz = neuralCanvas ? new NeuralNetworkVisualization(neuralCanvas) : null;
 
         // AI WRITING ASSISTANT
         class AIWritingAssistant {
@@ -1642,7 +1642,10 @@
                 this.suggestionsContainer = document.getElementById('aiSuggestions');
                 this.lastMessage = '';
                 this.debounceTimer = null;
-                
+                if (!this.messageInput || !this.suggestionsContainer) {
+                    return;
+                }
+
                 this.messageInput.addEventListener('input', () => {
                     clearTimeout(this.debounceTimer);
                     this.debounceTimer = setTimeout(() => this.analyze(), 500);
@@ -2019,28 +2022,34 @@
         const lightboxImg = document.getElementById('lightboxImg');
         const closeLightbox = document.getElementById('closeLightbox');
 
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const filter = btn.dataset.filter;
-                portfolioItems.forEach(item => {
-                    item.style.display = (filter === 'all' || item.dataset.category === filter) ? 'block' : 'none';
+        if (filterBtns.length && portfolioItems.length) {
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const filter = btn.dataset.filter;
+                    portfolioItems.forEach(item => {
+                        item.style.display = (filter === 'all' || item.dataset.category === filter) ? 'block' : 'none';
+                    });
                 });
             });
-        });
+        }
 
-        portfolioItems.forEach(item => {
-            item.addEventListener('click', () => {
-                lightboxImg.src = item.querySelector('img').src;
-                lightbox.classList.add('active');
+        if (lightbox && lightboxImg && portfolioItems.length) {
+            portfolioItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    lightboxImg.src = item.querySelector('img').src;
+                    lightbox.classList.add('active');
+                });
             });
-        });
 
-        closeLightbox.addEventListener('click', () => lightbox.classList.remove('active'));
-        lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox) lightbox.classList.remove('active');
-        });
+            if (closeLightbox) {
+                closeLightbox.addEventListener('click', () => lightbox.classList.remove('active'));
+            }
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) lightbox.classList.remove('active');
+            });
+        }
 
         const chatBtn = document.getElementById('chatBtn');
         const chatWindow = document.getElementById('chatWindow');
@@ -2208,7 +2217,10 @@
         const adminPassword = document.getElementById('adminPassword');
         const adminLoginBtn = document.getElementById('adminLoginBtn');
 
+        const adminElementsReady = adminBtn && adminBtnMobile && adminPanel && adminOverlay && closeAdminPanel && adminAuth && adminContent && adminPassword && adminLoginBtn;
+
         function openAdminPanel() {
+            if (!adminElementsReady) return;
             adminPanel.classList.add('active');
             adminOverlay.style.opacity = '1';
             adminOverlay.style.visibility = 'visible';
@@ -2221,35 +2233,40 @@
         }
 
         function closeAdminPanelFunc() {
+            if (!adminElementsReady) return;
             adminPanel.classList.remove('active');
             adminOverlay.style.opacity = '0';
             adminOverlay.style.visibility = 'invisible';
             document.body.style.overflow = '';
         }
 
-        adminBtn.addEventListener('click', openAdminPanel);
-        adminBtnMobile.addEventListener('click', () => {
-            openAdminPanel();
-            mobileMenuBtn.classList.remove('active');
-            mobileMenu.classList.remove('active');
-        });
-        closeAdminPanel.addEventListener('click', closeAdminPanelFunc);
-        adminOverlay.addEventListener('click', closeAdminPanelFunc);
+        if (adminElementsReady) {
+            adminBtn.addEventListener('click', openAdminPanel);
+            adminBtnMobile.addEventListener('click', () => {
+                openAdminPanel();
+                if (mobileMenuBtn && mobileMenu) {
+                    mobileMenuBtn.classList.remove('active');
+                    mobileMenu.classList.remove('active');
+                }
+            });
+            closeAdminPanel.addEventListener('click', closeAdminPanelFunc);
+            adminOverlay.addEventListener('click', closeAdminPanelFunc);
 
-        adminLoginBtn.addEventListener('click', () => {
-            if (adminPassword.value === 'admin123') {
-                localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
-                adminAuth.classList.add('hidden');
-                adminContent.classList.remove('hidden');
-                loadExistingProjects();
-            } else {
-                alert('Nesprávné heslo!');
-            }
-        });
+            adminLoginBtn.addEventListener('click', () => {
+                if (adminPassword.value === 'admin123') {
+                    localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+                    adminAuth.classList.add('hidden');
+                    adminContent.classList.remove('hidden');
+                    loadExistingProjects();
+                } else {
+                    alert('Nesprávné heslo!');
+                }
+            });
 
-        adminPassword.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') adminLoginBtn.click();
-        });
+            adminPassword.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') adminLoginBtn.click();
+            });
+        }
 
         // ========== DRAG & DROP UPLOAD ==========
         let uploadedFiles = [];
@@ -2392,7 +2409,8 @@
 
         const portfolioManager = new PortfolioManager();
 
-        document.getElementById('saveProjectBtn').addEventListener('click', async () => {
+        const saveProjectBtn = document.getElementById('saveProjectBtn');
+        if (saveProjectBtn) saveProjectBtn.addEventListener('click', async () => {
             const projectName = document.getElementById('projectName').value;
             const projectCategory = document.getElementById('projectCategory').value;
             const projectDescription = document.getElementById('projectDescription').value;
@@ -2436,6 +2454,7 @@
 
         function loadExistingProjects() {
             const container = document.getElementById('existingProjects');
+            if (!container) return;
             const projects = portfolioManager.loadProjects();
             if (projects.length === 0) {
                 container.innerHTML = '<p class="text-gray-400 text-sm">Zatím žádné projekty...</p>';
@@ -2460,7 +2479,8 @@
             }
         };
 
-        document.getElementById('exportDataBtn').addEventListener('click', () => {
+        const exportDataBtn = document.getElementById('exportDataBtn');
+        if (exportDataBtn) exportDataBtn.addEventListener('click', () => {
             const data = portfolioManager.exportData();
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -2470,26 +2490,31 @@
             a.click();
         });
 
-        document.getElementById('importDataBtn').addEventListener('click', () => {
-            document.getElementById('importFileInput').click();
-        });
+        const importDataBtn = document.getElementById('importDataBtn');
+        const importFileInput = document.getElementById('importFileInput');
 
-        document.getElementById('importFileInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    if (portfolioManager.importData(e.target.result)) {
-                        alert('Import úspěšný!');
-                        loadExistingProjects();
-                        renderPortfolio();
-                    } else {
-                        alert('Chyba importu!');
-                    }
-                };
-                reader.readAsText(file);
-            }
-        });
+        if (importDataBtn && importFileInput) {
+            importDataBtn.addEventListener('click', () => {
+                importFileInput.click();
+            });
+
+            importFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (portfolioManager.importData(e.target.result)) {
+                            alert('Import úspěšný!');
+                            loadExistingProjects();
+                            renderPortfolio();
+                        } else {
+                            alert('Chyba importu!');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
 
         function renderPortfolio() {
             const portfolioGrid = document.getElementById('portfolioGrid');
