@@ -1311,43 +1311,91 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-        const STORAGE_KEYS = {
-            PORTFOLIO: 'portfolio_projects',
-            ADMIN_AUTH: 'admin_authenticated'
-        };
+            function cleanConflictMarkers() {
+                const markers = ['<<<<<<<', '=======', '>>>>>>>'];
 
-        const themeToggle = document.getElementById('themeToggle');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const cleanTextNode = (node) => {
+                    let text = node.nodeValue;
+                    let changed = false;
 
-        function applyTheme(theme) {
-            const useLight = theme === 'light';
-            document.documentElement.classList.toggle('theme-light', useLight);
-            localStorage.setItem('ld_theme', useLight ? 'light' : 'dark');
-            if (themeToggle) {
-                themeToggle.textContent = useLight ? '🌙' : '☀️';
+                    markers.forEach(marker => {
+                        if (text.includes(marker)) {
+                            text = text.split(marker).join('');
+                            changed = true;
+                        }
+                    });
+
+                    if (changed) {
+                        node.nodeValue = text;
+                    }
+                };
+
+                const textWalker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_TEXT,
+                    null
+                );
+
+                while (textWalker.nextNode()) {
+                    cleanTextNode(textWalker.currentNode);
+                }
+
+                const commentWalker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_COMMENT,
+                    null
+                );
+
+                const commentsToRemove = [];
+                while (commentWalker.nextNode()) {
+                    const commentNode = commentWalker.currentNode;
+                    if (markers.some(marker => commentNode.nodeValue.includes(marker))) {
+                        commentsToRemove.push(commentNode);
+                    }
+                }
+
+                commentsToRemove.forEach(node => node.parentNode?.removeChild(node));
             }
-        }
 
-        const savedTheme = localStorage.getItem('ld_theme');
-        applyTheme(savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light'));
+            cleanConflictMarkers();
 
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                const nextTheme = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light';
-                applyTheme(nextTheme);
-            });
-        }
+            const STORAGE_KEYS = {
+                PORTFOLIO: 'portfolio_projects',
+                ADMIN_AUTH: 'admin_authenticated'
+            };
 
-        function isAdminAuthenticated() {
-            return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
-        }
+            const themeToggle = document.getElementById('themeToggle');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-        const scrollProgress = document.getElementById('scrollProgress');
-        if (scrollProgress) {
-            window.addEventListener('scroll', () => {
-                const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                const scrolled = (window.scrollY / windowHeight) * 100;
-                scrollProgress.style.width = scrolled + '%';
+            function applyTheme(theme) {
+                const useLight = theme === 'light';
+                document.documentElement.classList.toggle('theme-light', useLight);
+                localStorage.setItem('ld_theme', useLight ? 'light' : 'dark');
+                if (themeToggle) {
+                    themeToggle.textContent = useLight ? '🌙' : '☀️';
+                }
+            }
+
+            const savedTheme = localStorage.getItem('ld_theme');
+            applyTheme(savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light'));
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const nextTheme = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light';
+                    applyTheme(nextTheme);
+                });
+            }
+
+            function isAdminAuthenticated() {
+                return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
+            }
+
+            const scrollProgress = document.getElementById('scrollProgress');
+            if (scrollProgress) {
+                window.addEventListener('scroll', () => {
+                    const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                    const scrolled = (window.scrollY / windowHeight) * 100;
+                    scrollProgress.style.width = scrolled + '%';
             });
         }
 
