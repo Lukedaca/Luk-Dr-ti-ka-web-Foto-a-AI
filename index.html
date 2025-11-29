@@ -1311,13 +1311,11 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-        // --- INITIALIZATION ---
         const STORAGE_KEYS = {
             PORTFOLIO: 'portfolio_projects',
             ADMIN_AUTH: 'admin_authenticated'
         };
 
-        // --- THEME TOGGLE ---
         const themeToggle = document.getElementById('themeToggle');
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -1344,7 +1342,6 @@
             return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
         }
 
-        // --- SCROLL PROGRESS ---
         const scrollProgress = document.getElementById('scrollProgress');
         if (scrollProgress) {
             window.addEventListener('scroll', () => {
@@ -1354,7 +1351,6 @@
             });
         }
 
-        // --- CURSOR SPOTLIGHT ---
         const cursorSpotlight = document.getElementById('cursorSpotlight');
         if (cursorSpotlight) {
             document.addEventListener('mousemove', (e) => {
@@ -1364,7 +1360,6 @@
             });
         }
 
-        // --- MOBILE MENU ---
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileMenu = document.getElementById('mobileMenu');
         if (mobileMenuBtn && mobileMenu) {
@@ -1382,7 +1377,6 @@
             });
         }
 
-        // --- TYPING ANIMATION ---
         const typingText = document.getElementById('typingText');
         if (typingText) {
             const texts = ['Fotograf & AI Developer', 'Kreativní Vizionář', 'Tech Enthusiast'];
@@ -1407,7 +1401,6 @@
             typeText();
         }
 
-        // --- COUNTER & SKILL BARS ANIMATION ---
         function animateCounter(element) {
             const target = parseInt(element.getAttribute('data-count'));
             const duration = 2000;
@@ -1441,7 +1434,6 @@
         document.querySelectorAll('[data-count]').forEach(el => observer.observe(el));
         document.querySelectorAll('.skill-bar').forEach(el => observer.observe(el));
 
-        // --- TESTIMONIALS CAROUSEL ---
         const testimonialsSlider = document.getElementById('testimonialsSlider');
         const prevTestimonial = document.getElementById('prevTestimonial');
         const nextTestimonial = document.getElementById('nextTestimonial');
@@ -1472,7 +1464,6 @@
             setInterval(() => showTestimonial(currentTestimonial + 1), 5000);
         }
 
-        // --- NEWSLETTER ---
         const newsletterForm = document.getElementById('newsletterForm');
         if (newsletterForm) {
             newsletterForm.addEventListener('submit', (e) => {
@@ -1483,7 +1474,6 @@
             });
         }
 
-        // --- NEURAL NETWORK VISUALIZATION ---
         class NeuralNetworkVisualization {
             constructor(canvas) {
                 this.canvas = canvas;
@@ -2212,7 +2202,6 @@
 
         safeInitChatbot();
 
-        // --- ADMIN PANEL ---
         const adminBtn = document.getElementById('adminBtn');
         const adminBtnMobile = document.getElementById('adminBtnMobile');
         const adminPanel = document.getElementById('adminPanel');
@@ -2274,7 +2263,6 @@
             });
         }
 
-        // --- DRAG & DROP UPLOAD ---
         let uploadedFiles = [];
 
         // Get elements (will be used in multiple functions)
@@ -2379,7 +2367,6 @@
             });
         });
 
-        // --- PORTFOLIO MANAGER ---
         class PortfolioManager {
             loadProjects() {
                 const data = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
