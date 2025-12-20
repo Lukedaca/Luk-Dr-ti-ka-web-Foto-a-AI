@@ -2184,8 +2184,8 @@
 
         const adminElementsReady = adminBtn && adminBtnMobile && adminPanel && adminOverlay && closeAdminPanel && adminAuth && adminContent && adminPassword && adminLoginBtn;
         const ADMIN_ACCESS_PARAM = 'admin';
-        const ADMIN_ACCESS_TOKEN = 'CHANGE_ME_LONG_SECRET';
-        const ADMIN_PASSWORD = 'CHANGE_ME_STRONG_PASSWORD';
+        const ADMIN_ACCESS_TOKEN = 'admin123';
+        const ADMIN_PASSWORD = 'admin123';
         const adminAccessStored = localStorage.getItem('admin_access_granted') === 'true';
         const adminAccessViaUrl = new URLSearchParams(window.location.search).get(ADMIN_ACCESS_PARAM) === ADMIN_ACCESS_TOKEN;
         const adminAccessGranted = adminAccessStored || adminAccessViaUrl;
