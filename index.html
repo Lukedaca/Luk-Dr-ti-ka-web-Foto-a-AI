@@ -33,7 +33,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
@@ -86,6 +86,11 @@
             --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-bg-hover: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.1);
+            --glow-strong: rgba(59, 130, 246, 0.35);
+            --glow-soft: rgba(139, 92, 246, 0.25);
+            --shadow-soft: 0 20px 50px rgba(5, 10, 25, 0.45);
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --font-display: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
         }
 
         .theme-light {
@@ -103,12 +108,38 @@
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            font-family: var(--font-sans);
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
             color: var(--text-primary);
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            background:
+                radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.15), transparent 50%),
+                radial-gradient(circle at 85% 15%, rgba(139, 92, 246, 0.2), transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(34, 211, 238, 0.2), transparent 55%),
+                radial-gradient(circle at 10% 80%, rgba(59, 130, 246, 0.12), transparent 50%);
+            opacity: 0.8;
+            filter: blur(10px);
+        }
+
+        body::after {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
+            background-size: 3px 3px;
+            opacity: 0.2;
+            mix-blend-mode: soft-light;
         }
 
         #neuralCanvas {
@@ -136,6 +167,7 @@
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 14px 40px rgba(8, 12, 30, 0.35);
         }
 
         .glass:hover {
@@ -153,6 +185,57 @@
             animation: gradient 8s ease infinite;
         }
 
+        .display-text {
+            font-family: var(--font-display);
+            letter-spacing: -0.02em;
+            text-shadow: 0 20px 60px rgba(14, 20, 40, 0.45);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+        }
+
+        .hero-ambient {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .hero-orb {
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(20px);
+            opacity: 0.6;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .hero-orb.one {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.45), transparent 70%);
+            top: 8%;
+            left: 8%;
+        }
+
+        .hero-orb.two {
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.4), transparent 70%);
+            top: 0%;
+            right: 5%;
+            animation-delay: -2s;
+        }
+
+        .hero-orb.three {
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.4), transparent 70%);
+            bottom: 5%;
+            right: 25%;
+            animation-delay: -4s;
+        }
+
         @keyframes gradient {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -162,11 +245,15 @@
             position: relative;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: var(--shadow-soft);
         }
 
         .portfolio-item:hover {
             transform: scale(1.02);
+            border-color: rgba(59, 130, 246, 0.35);
+            box-shadow: 0 30px 70px rgba(10, 18, 40, 0.6);
         }
 
         .portfolio-item img {
@@ -186,6 +273,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
         }
 
         .portfolio-item:hover .portfolio-overlay {
@@ -198,6 +286,7 @@
 
         .filter-btn {
             transition: all 0.3s ease;
+            border: 1px solid transparent;
         }
 
         .filter-btn:hover {
@@ -208,7 +297,56 @@
         .filter-btn.active {
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
             box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
         }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -6px;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .btn-primary {
+            box-shadow: 0 20px 40px var(--glow-strong);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px) scale(0.98);
+            transition: all 0.8s ease;
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
 
         .lightbox {
             display: none;
@@ -538,10 +676,10 @@
 
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8" aria-label="Hlavní navigace">
-                <a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a>
-                <a href="#skills" class="hover:text-blue-400 transition">Dovednosti</a>
-                <a href="#o-mne" class="hover:text-blue-400 transition">O mně</a>
-                <a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a>
+                <a href="#portfolio" class="nav-link hover:text-blue-400 transition">Portfolio</a>
+                <a href="#skills" class="nav-link hover:text-blue-400 transition">Dovednosti</a>
+                <a href="#o-mne" class="nav-link hover:text-blue-400 transition">O mně</a>
+                <a href="#kontakt" class="nav-link hover:text-blue-400 transition">Kontakt</a>
 
                 <button id="themeToggle" class="px-4 py-2 glass rounded-full text-sm font-semibold hover:bg-white/10 transition" aria-label="Přepnout režim">
                     🌙 / ☀️
@@ -578,14 +716,19 @@
     <main class="pt-20">
         <!-- Hero Section -->
         <section class="min-h-screen flex items-center justify-center px-6 relative mesh-gradient">
-            <div class="text-center max-w-5xl mx-auto relative z-10">
+            <div class="hero-ambient">
+                <span class="hero-orb one"></span>
+                <span class="hero-orb two"></span>
+                <span class="hero-orb three"></span>
+            </div>
+            <div class="text-center max-w-5xl mx-auto relative z-10 reveal">
                 <div class="mb-6 flex justify-center gap-4 flex-wrap" aria-label="Hlavní zaměření">
                     <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0s;">📷 Fotografie</span>
                     <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0.5s;">🤖 AI Development</span>
                     <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">⚡ Automatizace</span>
                 </div>
 
-                <h1 class="text-6xl md:text-8xl font-bold mb-4 gradient-text">
+                <h1 class="text-6xl md:text-8xl font-bold mb-4 gradient-text display-text">
                     Lukáš Drštička
                 </h1>
 
@@ -596,15 +739,15 @@
                     <span id="typingCursor" class="inline-block w-1 h-8 bg-blue-500 ml-1 animate-pulse"></span>
                 </div>
 
-                <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+                <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed reveal reveal-delay-1">
                     Jasný proces od konzultace po předání dat. Fotím portréty, sport a produktové série a stavím chatboty či automatizace, které šetří čas.
                 </p>
 
-                <div class="flex gap-4 justify-center flex-wrap">
-                    <a href="#portfolio" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition shadow-lg hover:shadow-xl hover:scale-105 transform" aria-label="Prohlédnout portfolio">
+                <div class="flex gap-4 justify-center flex-wrap reveal reveal-delay-2">
+                    <a href="#portfolio" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition shadow-lg hover:shadow-xl btn-primary" aria-label="Prohlédnout portfolio">
                         Prohlédnout portfolio
                     </a>
-                    <a href="#kontakt" class="px-8 py-4 glass rounded-full font-semibold hover:bg-white/10 transition" aria-label="Domluvit konzultaci">
+                    <a href="#kontakt" class="px-8 py-4 glass rounded-full font-semibold hover:bg-white/10 transition btn-secondary" aria-label="Domluvit konzultaci">
                         Domluvit konzultaci
                     </a>
                 </div>
@@ -618,9 +761,9 @@
             </div>
         </section>
 
-        <section id="portfolio" class="py-24">
+        <section id="portfolio" class="py-24 reveal">
             <div class="container mx-auto px-6">
-                <h2 class="text-4xl font-bold mb-12 text-center gradient-text">Portfolio</h2>
+                <h2 class="text-4xl font-bold mb-12 text-center gradient-text section-title">Portfolio</h2>
                 
                 <div class="flex justify-center gap-4 mb-12 flex-wrap">
                     <button class="filter-btn active glass px-6 py-2 rounded-full" data-filter="all">Vše</button>
@@ -670,9 +813,9 @@
         </section>
 
         <!-- Skills Section -->
-        <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent">
+        <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent reveal">
             <div class="container mx-auto px-6 max-w-6xl">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text">Dovednosti & Technologie</h2>
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Dovednosti & Technologie</h2>
                 <p class="text-center text-gray-400 mb-16 max-w-2xl mx-auto">
                     Kombinace kreativního a technického know-how pro realizaci vašich projektů
                 </p>
@@ -795,9 +938,9 @@
         </section>
 
         <!-- Timeline/Process Section -->
-        <section class="py-24 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent">
+        <section class="py-24 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent reveal">
             <div class="container mx-auto px-6 max-w-5xl">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text">Jak pracuji</h2>
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Jak pracuji</h2>
                 <p class="text-center text-gray-400 mb-16">Jednoduchý proces od návrhu po realizaci</p>
 
                 <div class="relative">
@@ -863,10 +1006,10 @@
             </div>
         </section>
 
-        <section id="o-mne" class="py-24">
+        <section id="o-mne" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-4xl">
                 <div class="glass rounded-3xl p-12 text-center">
-                    <h2 class="text-4xl font-bold mb-8 gradient-text">O mně</h2>
+                    <h2 class="text-4xl font-bold mb-8 gradient-text section-title">O mně</h2>
                     <p class="text-xl text-gray-300 leading-relaxed">
                         Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.
                     </p>
@@ -874,11 +1017,11 @@
             </div>
         </section>
 
-        <section id="faq" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent">
+        <section id="faq" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent reveal">
             <div class="container mx-auto px-6 max-w-5xl">
                 <div class="mb-10 text-center">
                     <p class="text-sm uppercase tracking-[0.3em] text-blue-300 mb-2">FAQ</p>
-                    <h2 class="text-4xl font-bold gradient-text">Časté otázky</h2>
+                    <h2 class="text-4xl font-bold gradient-text section-title">Časté otázky</h2>
                     <p class="text-gray-400 mt-3">Krátké odpovědi na nejčastější dotazy k focení i AI projektům.</p>
                 </div>
 
@@ -903,10 +1046,10 @@
             </div>
         </section>
 
-        <section id="kontakt" class="py-24">
+        <section id="kontakt" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-4xl">
                 <div class="glass rounded-3xl p-12">
-                    <h2 class="text-4xl font-bold mb-8 text-center gradient-text">Kontakt</h2>
+                    <h2 class="text-4xl font-bold mb-8 text-center gradient-text section-title">Kontakt</h2>
 
                     <div class="mb-8 text-center">
                         <a href="mailto:lukas.drsticka@gmail.com" class="text-2xl text-blue-400 hover:text-blue-300 transition">
@@ -1337,6 +1480,24 @@
                 });
             });
         }
+
+        function setupRevealAnimations() {
+            const revealElements = document.querySelectorAll('.reveal');
+            if (!revealElements.length) return;
+
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+
+            revealElements.forEach(el => observer.observe(el));
+        }
+
+        setupRevealAnimations();
 
         const typingText = document.getElementById('typingText');
         if (typingText) {
