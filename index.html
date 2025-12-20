@@ -2085,26 +2085,34 @@
                     services: {
                         photography: {
                             portrait: {
-                                description: 'Portrétní fotografie v ateliéru i venku',
-                                keywords: ['portrét', 'portrait', 'lidé', 'osoba']
+                                description: 'Portrétní fotografie v ateliéru i venku s důrazem na výraz a světlo',
+                                keywords: ['portrét', 'portrait', 'lidé', 'osoba', 'portrétní']
                             },
                             sport: {
-                                description: 'Sportovní a akční fotografie',
-                                keywords: ['sport', 'akce', 'akční']
+                                description: 'Sportovní a akční fotografie s důrazem na timing',
+                                keywords: ['sport', 'akce', 'akční', 'zápas', 'trénink']
                             },
-                            product: {
-                                description: 'Produktová fotografie pro e-shopy',
-                                keywords: ['produkt', 'eshop', 'výrobek']
+                            action: {
+                                description: 'Akční sekvence a série snímků pro dynamický příběh',
+                                keywords: ['sekvence', 'série', 'pohyb', 'dynamika']
                             }
                         },
                         ai: {
-                            chatbot: {
-                                description: 'AI chatboti pro weby',
-                                keywords: ['chatbot', 'bot', 'asistent']
+                            fotograf_ai: {
+                                description: 'Fotograf AI (semiagent) pro rychlou postprodukci a konzistentní styl',
+                                keywords: ['fotograf ai', 'fotograf', 'ai postprodukce', 'postprodukce', 'retuš']
+                            },
+                            vibecoding: {
+                                description: 'Vibecoding a prototypování s Claude, Gemini, ChatGPT a Codex',
+                                keywords: ['vibecoding', 'claude', 'gemini', 'chatgpt', 'codex']
+                            },
+                            agent_coding: {
+                                description: 'Agentní kódování pro rychlé iterace a automatizaci workflow',
+                                keywords: ['agentní', 'agent', 'agentní kódování']
                             },
                             automation: {
-                                description: 'Automatizace procesů',
-                                keywords: ['automatizace', 'automatický', 'proces']
+                                description: 'Automatizace workflow a procesů',
+                                keywords: ['automatizace', 'automatický', 'proces', 'workflow']
                             }
                         }
                     },
@@ -2119,8 +2127,17 @@
                 return {
                     greeting: ['ahoj', 'čau', 'nazdar', 'dobrý den', 'hello', 'hi', 'hej'],
                     thanks: ['děkuji', 'dík', 'díky', 'thanks'],
-                    price: ['cena', 'ceník', 'kolik', 'stojí'],
-                    contact: ['kontakt', 'napsat', 'email']
+                    price_inquiry: ['cena', 'ceník', 'kolik', 'stojí', 'rozpočet'],
+                    contact_request: ['kontakt', 'napsat', 'email', 'telefon'],
+                    booking: ['termín', 'rezervace', 'rezervovat', 'domluvit', 'schůzka'],
+                    availability: ['dostupnost', 'volný', 'kdy můžeš', 'kdy máš'],
+                    delivery_time: ['dodání', 'termín dodání', 'kdy budou', 'jak dlouho'],
+                    portrait: ['portrét', 'portrétní', 'portrait', 'lidé'],
+                    sport: ['sport', 'zápas', 'trénink', 'akce'],
+                    postproduction: ['postprodukce', 'retuš', 'úpravy'],
+                    fotograf_ai: ['fotograf ai', 'ai postprodukce', 'semiagent'],
+                    ai_stack: ['chatgpt', 'codex', 'claude', 'gemini', 'vibecoding', 'agentní'],
+                    portfolio: ['portfolio', 'ukázka', 'reference', 'práce']
                 };
             }
 
@@ -2130,26 +2147,82 @@
                         patterns: ['ahoj', 'čau', 'dobrý den', 'nazdar', 'hej', 'hello', 'hi'],
                         responses: [
                             'Ahoj! Jsem AI asistent Lukáše. Jak ti můžu pomoct?',
-                            'Zdravím! Co tě zajímá - fotografie nebo AI projekty?'
+                            'Zdravím! Co tě zajímá - sportovní, portrétní focení nebo AI/automatizace?'
+                        ]
+                    },
+                    thanks: {
+                        patterns: ['děkuji', 'dík', 'díky', 'thanks'],
+                        responses: [
+                            'Rádo se stalo! Pokud chceš, napiš pár detailů (termín, místo, očekávání).',
+                            'Není zač! Můžeme rovnou domluvit termín nebo projít portfolio.'
                         ]
                     },
                     capabilities: {
                         patterns: ['co umíš', 'co děláš', 'co nabízíš', 'služby', 'schopnosti'],
                         responses: [
-                            'Umím odpovídat na dotazy o fotografických službách (portréty, sport, produkty), AI projektech (chatboti, automatizace) a cenách.',
-                            'Lukáš se specializuje na fotografii a AI development. O čem chceš vědět víc?'
+                            'Lukáš se zaměřuje na sportovní a portrétní fotografii a rychlou AI postprodukci přes Fotograf AI. Z tech věcí dělá vibecoding a agentní automatizace.',
+                            'Můžu poradit se sportovní/portrétní fotkou, postprodukcí (Fotograf AI) i AI workflow. Co je pro tebe priorita?'
+                        ]
+                    },
+                    portfolio: {
+                        patterns: ['portfolio', 'ukázky', 'ukázka', 'reference', 'práce'],
+                        responses: [
+                            'Portfolio najdeš přímo na stránce. Chceš sportovní nebo portrétní ukázky?',
+                            'Rád pošlu konkrétní ukázky – napiš, jestli řešíš sport nebo portrét.'
                         ]
                     },
                     price_inquiry: {
                         patterns: ['kolik', 'cena', 'ceník', 'stojí', 'price'],
                         responses: [
-                            'Ceny jsou individuální podle projektu. Nejlepší bude napsat na: lukas.drsticka@gmail.com'
+                            'Ceny jsou individuální podle rozsahu, termínu a lokality. Napiš stručně zadání a ozvu se: lukas.drsticka@gmail.com'
+                        ]
+                    },
+                    booking: {
+                        patterns: ['termín', 'rezervace', 'rezervovat', 'domluvit', 'schůzka'],
+                        responses: [
+                            'Jasně, napiš prosím datum, místo a typ focení (sport/portrét).',
+                            'Pošli termín, lokaci a očekávání – připravím návrh.'
+                        ]
+                    },
+                    availability: {
+                        patterns: ['dostupnost', 'volný', 'kdy můžeš', 'kdy máš'],
+                        responses: [
+                            'Dostupnost řeším individuálně. Pošli prosím termín a místo.',
+                            'Napiš, kdy a kde potřebuješ fotit, a ozvu se s potvrzením.'
+                        ]
+                    },
+                    delivery_time: {
+                        patterns: ['dodání', 'termín dodání', 'kdy budou', 'jak dlouho'],
+                        responses: [
+                            'Dodání se liší podle rozsahu. Orientačně to upřesním po zadání.',
+                            'Jakmile znám rozsah, řeknu ti přesný termín dodání.'
                         ]
                     },
                     contact_request: {
                         patterns: ['kontakt', 'email', 'napsat', 'oslovit'],
                         responses: [
                             'Email: lukas.drsticka@gmail.com - klidně napiš!'
+                        ]
+                    },
+                    postproduction: {
+                        patterns: ['postprodukce', 'retuš', 'úpravy', 'ai postprodukce'],
+                        responses: [
+                            'Postprodukci řeším přes Fotograf AI (semiagent), takže dodání je rychlé a konzistentní.',
+                            'Fotograf AI mi drží styl napříč sérií a urychluje retuš.'
+                        ]
+                    },
+                    fotograf_ai: {
+                        patterns: ['fotograf ai', 'semiagent', 'ai postprodukce'],
+                        responses: [
+                            'Fotograf AI je moje semiagent aplikace pro rychlou postprodukci a jednotný look.',
+                            'Fotograf AI výrazně zkracuje čas postprodukce bez ztráty kvality.'
+                        ]
+                    },
+                    ai_stack: {
+                        patterns: ['vibecoding', 'claude', 'gemini', 'chatgpt', 'codex', 'agentní'],
+                        responses: [
+                            'Tech stack: vibecoding s Claude, Gemini, ChatGPT a Codex. K tomu agentní workflow pro automatizace.',
+                            'Používám Claude/Gemini/ChatGPT/Codex a agentní kódování pro rychlé iterace.'
                         ]
                     }
                 };
@@ -2170,7 +2243,12 @@
                 Object.entries(this.intents).forEach(([intentName, intentData]) => {
                     let maxScore = 0;
 
-                    intentData.patterns.forEach(pattern => {
+                    const patterns = [
+                        ...intentData.patterns,
+                        ...(this.synonyms[intentName] || [])
+                    ];
+
+                    patterns.forEach(pattern => {
                         const normalizedPattern = this.normalizeText(pattern);
                         let score = 0;
                         
@@ -2180,6 +2258,12 @@
                             score = 0.9;
                         } else if (normalizedPattern.includes(normalized)) {
                             score = 0.85;
+                        } else {
+                            const words = normalizedPattern.split(' ').filter(Boolean);
+                            const hits = words.filter(word => normalized.includes(word));
+                            if (words.length && hits.length === words.length) {
+                                score = 0.75;
+                            }
                         }
                         
                         if (score > maxScore) maxScore = score;
@@ -2217,6 +2301,7 @@
 
                 if (entities.services.length > 0) {
                     const service = entities.services[0];
+                    this.userContext.lastTopic = service.service;
                     return {
                         response: `${service.data.description}. Chceš vědět víc o cenách nebo kontaktu?`,
                         confidence: 0.85,
@@ -2226,6 +2311,7 @@
 
                 if (intentResult.intent && intentResult.confidence > 0.6) {
                     const responses = this.intents[intentResult.intent].responses;
+                    this.userContext.intent = intentResult.intent;
                     return {
                         response: responses[Math.floor(Math.random() * responses.length)],
                         confidence: intentResult.confidence,
@@ -2234,7 +2320,7 @@
                 }
 
                 return {
-                    response: 'Zajímavá otázka! Pro podrobnou odpověď napiš na: lukas.drsticka@gmail.com',
+                    response: 'Zajímavá otázka! Můžu poradit se sportovní/portrétní fotkou, Fotograf AI nebo cenami. Co z toho je pro tebe nejdůležitější?',
                     confidence: 0.3,
                     intent: 'fallback'
                 };
@@ -2430,10 +2516,10 @@
 
         function showQuickReplies() {
             const replies = [
-                { text: '📷 Fotografie', value: 'Jaké fotografie děláš?' },
-                { text: '🤖 AI projekty', value: 'Co umíš s AI?' },
-                { text: '💰 Ceny', value: 'Kolik to stojí?' },
-                { text: '✉️ Kontakt', value: 'Jak tě kontaktovat?' }
+                { text: '📷 Portréty', value: 'Děláš portrétní focení?' },
+                { text: '🏟️ Sport', value: 'Fotíš sportovní akce?' },
+                { text: '✨ Fotograf AI', value: 'Jak funguje Fotograf AI?' },
+                { text: '💰 Ceny', value: 'Kolik to stojí?' }
             ];
             
             quickReplies.innerHTML = replies.map(r => 
