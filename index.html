@@ -2551,9 +2551,8 @@
 
             portfolioGrid.innerHTML = projects.map(project => {
                 const mainImage = project.images[project.mainImageIndex] || project.images[0];
-                const dataAttr = project.type === 'gallery' ? `data-gallery='${JSON.stringify(project.images)}'` : '';
                 return `
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="${project.category}" ${dataAttr}>
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="${project.category}" data-project-id="${project.id}">
                         <img src="${mainImage}" alt="${project.name}" class="w-full h-80 object-cover" loading="lazy">
                         <div class="portfolio-overlay">
                             <span class="text-white text-xl font-semibold">${project.name}</span>
@@ -2572,14 +2571,34 @@
                 if (item.dataset.lightboxBound === 'true') return;
                 item.dataset.lightboxBound = 'true';
                 item.addEventListener('click', () => {
+                    const projectId = item.getAttribute('data-project-id');
+                    if (projectId) {
+                        const projects = portfolioManager.loadProjects();
+                        const project = projects.find(p => String(p.id) === projectId);
+                        if (project && project.images?.length) {
+                            if (project.type === 'gallery') {
+                                openGalleryLightbox(project.images, 0);
+                            } else {
+                                const mainImage = project.images[project.mainImageIndex] || project.images[0];
+                                openSingleLightbox(mainImage);
+                            }
+                            return;
+                        }
+                    }
+
                     const galleryData = item.getAttribute('data-gallery');
                     if (galleryData) {
-                        const images = JSON.parse(galleryData);
-                        openGalleryLightbox(images, 0);
-                    } else {
-                        const img = item.querySelector('img').src;
-                        openSingleLightbox(img);
+                        try {
+                            const images = JSON.parse(galleryData);
+                            openGalleryLightbox(images, 0);
+                            return;
+                        } catch (e) {
+                            console.warn('Neplatná galerie v atributu.', e);
+                        }
                     }
+
+                    const img = item.querySelector('img')?.src;
+                    if (img) openSingleLightbox(img);
                 });
             });
         }
