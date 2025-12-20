@@ -2061,38 +2061,63 @@
         let chatOpen = false;
 
         const filterBtns = document.querySelectorAll('.filter-btn');
-        const portfolioItems = document.querySelectorAll('.portfolio-item');
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightboxImg');
-        const closeLightbox = document.getElementById('closeLightbox');
+        const closeLightboxBtn = document.getElementById('closeLightbox');
+        let activeFilter = 'all';
+        let galleryKeyHandler = null;
 
-        if (filterBtns.length && portfolioItems.length) {
+        function getPortfolioItems() {
+            return Array.from(document.querySelectorAll('.portfolio-item'));
+        }
+
+        function closeLightboxModal() {
+            if (!lightbox) return;
+            lightbox.classList.remove('active');
+            if (galleryKeyHandler) {
+                document.removeEventListener('keydown', galleryKeyHandler);
+                galleryKeyHandler = null;
+            }
+        }
+
+        function openSingleLightbox(src) {
+            if (!(lightbox && lightboxImg)) return;
+            if (galleryKeyHandler) {
+                document.removeEventListener('keydown', galleryKeyHandler);
+                galleryKeyHandler = null;
+            }
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+        }
+
+        if (closeLightboxBtn) {
+            closeLightboxBtn.addEventListener('click', closeLightboxModal);
+        }
+        if (lightbox) {
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) closeLightboxModal();
+            });
+        }
+
+        function applyPortfolioFilter(filter) {
+            getPortfolioItems().forEach(item => {
+                item.style.display = (filter === 'all' || item.dataset.category === filter) ? 'block' : 'none';
+            });
+        }
+
+        if (filterBtns.length) {
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     filterBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    const filter = btn.dataset.filter;
-                    portfolioItems.forEach(item => {
-                        item.style.display = (filter === 'all' || item.dataset.category === filter) ? 'block' : 'none';
-                    });
+                    activeFilter = btn.dataset.filter;
+                    applyPortfolioFilter(activeFilter);
                 });
             });
         }
-
-        if (lightbox && lightboxImg && portfolioItems.length) {
-            portfolioItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    lightboxImg.src = item.querySelector('img').src;
-                    lightbox.classList.add('active');
-                });
-            });
-
-            if (closeLightbox) {
-                closeLightbox.addEventListener('click', () => lightbox.classList.remove('active'));
-            }
-            lightbox.addEventListener('click', (e) => {
-                if (e.target === lightbox) lightbox.classList.remove('active');
-            });
+        const initialActiveFilter = document.querySelector('.filter-btn.active');
+        if (initialActiveFilter) {
+            activeFilter = initialActiveFilter.dataset.filter;
         }
 
         const chatBtn = document.getElementById('chatBtn');
@@ -2566,6 +2591,7 @@
             if (projects.length === 0) {
                 // Žádné custom projekty, ale musíme přidat eventy k placeholder položkám
                 attachPortfolioEvents();
+                applyPortfolioFilter(activeFilter);
                 return;
             }
 
@@ -2584,10 +2610,13 @@
             }).join('');
 
             attachPortfolioEvents();
+            applyPortfolioFilter(activeFilter);
         }
 
         function attachPortfolioEvents() {
-            document.querySelectorAll('.portfolio-item').forEach(item => {
+            getPortfolioItems().forEach(item => {
+                if (item.dataset.lightboxBound === 'true') return;
+                item.dataset.lightboxBound = 'true';
                 item.addEventListener('click', () => {
                     const galleryData = item.getAttribute('data-gallery');
                     if (galleryData) {
@@ -2595,36 +2624,36 @@
                         openGalleryLightbox(images, 0);
                     } else {
                         const img = item.querySelector('img').src;
-                        document.getElementById('lightboxImg').src = img;
-                        document.getElementById('lightbox').classList.add('active');
+                        openSingleLightbox(img);
                     }
                 });
             });
         }
 
         function openGalleryLightbox(images, startIndex) {
+            if (!(lightbox && lightboxImg) || !images.length) return;
             let currentIndex = startIndex;
-            const lightbox = document.getElementById('lightbox');
-            const lightboxImg = document.getElementById('lightboxImg');
-
-            lightboxImg.src = images[currentIndex];
-            lightbox.classList.add('active');
+            const setImage = () => {
+                lightboxImg.src = images[currentIndex];
+            };
 
             const handleKeyboard = (e) => {
                 if (e.key === 'ArrowLeft' && currentIndex > 0) {
                     currentIndex--;
-                    lightboxImg.src = images[currentIndex];
+                    setImage();
                 } else if (e.key === 'ArrowRight' && currentIndex < images.length - 1) {
                     currentIndex++;
-                    lightboxImg.src = images[currentIndex];
+                    setImage();
                 }
             };
 
+            if (galleryKeyHandler) {
+                document.removeEventListener('keydown', galleryKeyHandler);
+            }
+            galleryKeyHandler = handleKeyboard;
             document.addEventListener('keydown', handleKeyboard);
-
-            document.getElementById('closeLightbox').addEventListener('click', () => {
-                document.removeEventListener('keydown', handleKeyboard);
-            }, { once: true });
+            setImage();
+            lightbox.classList.add('active');
         }
 
         renderPortfolio();
