@@ -1250,6 +1250,32 @@
                 PORTFOLIO: 'portfolio_projects',
                 ADMIN_AUTH: 'admin_authenticated'
             };
+            const storage = {
+                get(key) {
+                    try {
+                        return localStorage.getItem(key);
+                    } catch (e) {
+                        console.warn('LocalStorage read failed.', e);
+                        return null;
+                    }
+                },
+                set(key, value) {
+                    try {
+                        localStorage.setItem(key, value);
+                        return true;
+                    } catch (e) {
+                        console.warn('LocalStorage write failed.', e);
+                        return false;
+                    }
+                },
+                remove(key) {
+                    try {
+                        localStorage.removeItem(key);
+                    } catch (e) {
+                        console.warn('LocalStorage remove failed.', e);
+                    }
+                }
+            };
 
             const themeToggle = document.getElementById('themeToggle');
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1257,13 +1283,13 @@
             function applyTheme(theme) {
                 const useLight = theme === 'light';
                 document.documentElement.classList.toggle('theme-light', useLight);
-                localStorage.setItem('ld_theme', useLight ? 'light' : 'dark');
+                storage.set('ld_theme', useLight ? 'light' : 'dark');
                 if (themeToggle) {
                     themeToggle.textContent = useLight ? '🌙' : '☀️';
                 }
             }
 
-            const savedTheme = localStorage.getItem('ld_theme');
+            const savedTheme = storage.get('ld_theme');
             applyTheme(savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light'));
 
             if (themeToggle) {
@@ -1274,7 +1300,7 @@
             }
 
             function isAdminAuthenticated() {
-                return localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
+                return storage.get(STORAGE_KEYS.ADMIN_AUTH) === 'true';
             }
 
             const scrollProgress = document.getElementById('scrollProgress');
@@ -2054,7 +2080,7 @@
             clearChat.addEventListener('click', () => {
                 if (confirm('Smazat celou historii?')) {
                     messages.innerHTML = '';
-                    localStorage.removeItem(CHAT_STORAGE_KEY);
+                    storage.remove(CHAT_STORAGE_KEY);
                     chatbot = new EnhancedChatbot();
                     addMessage('bot', 'Historie smazána. Můžeme začít znovu!', 1.0, 'system');
                     showQuickReplies();
@@ -2186,12 +2212,12 @@
         const ADMIN_ACCESS_PARAM = 'admin';
         const ADMIN_ACCESS_TOKEN = 'admin123';
         const ADMIN_PASSWORD = 'admin123';
-        const adminAccessStored = localStorage.getItem('admin_access_granted') === 'true';
+        const adminAccessStored = storage.get('admin_access_granted') === 'true';
         const adminAccessViaUrl = new URLSearchParams(window.location.search).get(ADMIN_ACCESS_PARAM) === ADMIN_ACCESS_TOKEN;
         const adminAccessGranted = adminAccessStored || adminAccessViaUrl;
 
         if (adminAccessViaUrl) {
-            localStorage.setItem('admin_access_granted', 'true');
+            storage.set('admin_access_granted', 'true');
         }
 
         if (adminBtn && !adminAccessGranted) adminBtn.classList.add('hidden');
@@ -2233,7 +2259,7 @@
 
             adminLoginBtn.addEventListener('click', () => {
                 if (adminPassword.value === ADMIN_PASSWORD) {
-                    localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+                    storage.set(STORAGE_KEYS.ADMIN_AUTH, 'true');
                     adminAuth.classList.add('hidden');
                     adminContent.classList.remove('hidden');
                     loadExistingProjects();
@@ -2378,20 +2404,19 @@
 
         class PortfolioManager {
             loadProjects() {
-                const data = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
+                const data = storage.get(STORAGE_KEYS.PORTFOLIO);
                 if (!data) return [];
                 try {
                     return JSON.parse(data);
                 } catch (e) {
                     console.warn('Neplatná data v úložišti, mažu portfolio.', e);
-                    localStorage.removeItem(STORAGE_KEYS.PORTFOLIO);
+                    storage.remove(STORAGE_KEYS.PORTFOLIO);
                     return [];
                 }
             }
             saveProjects(projects) {
                 try {
-                    localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify(projects));
-                    return true;
+                    return storage.set(STORAGE_KEYS.PORTFOLIO, JSON.stringify(projects));
                 } catch (e) {
                     console.warn('Ukládání do úložiště selhalo.', e);
                     return false;
