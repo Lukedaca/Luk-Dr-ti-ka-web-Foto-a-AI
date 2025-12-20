@@ -526,10 +526,8 @@
 
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8" aria-label="Hlavní navigace">
-                <a href="#sluzby" class="hover:text-blue-400 transition">Služby</a>
                 <a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a>
                 <a href="#skills" class="hover:text-blue-400 transition">Dovednosti</a>
-                <a href="#projekty" class="hover:text-blue-400 transition">Case studies</a>
                 <a href="#o-mne" class="hover:text-blue-400 transition">O mně</a>
                 <a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a>
 
@@ -554,10 +552,8 @@
         <!-- Mobile Menu Overlay -->
         <div id="mobileMenu" class="fixed inset-0 bg-black/95 backdrop-blur-xl opacity-0 invisible transition-all duration-300 md:hidden">
             <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobilní navigace">
-                <a href="#sluzby" class="mobile-menu-link hover:text-blue-400 transition">Služby</a>
                 <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
                 <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
-                <a href="#projekty" class="mobile-menu-link hover:text-blue-400 transition">Case studies</a>
                 <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
                 <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
                 <button id="adminBtnMobile" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-semibold hover:opacity-90 transition">
@@ -782,131 +778,6 @@
                             <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Tailwind CSS</span>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Services Section -->
-        <section id="sluzby" class="py-24">
-            <div class="container mx-auto px-6 max-w-6xl">
-                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-                    <div>
-                        <p class="text-sm uppercase tracking-[0.3em] text-blue-300 mb-2">Služby</p>
-                        <h2 class="text-4xl font-bold gradient-text">Spojuji foto a AI pod jeden proces</h2>
-                        <p class="text-gray-300 mt-4 max-w-3xl">Jasně rozdělené balíčky pro focení i automatizaci, aby bylo od začátku zřejmé, co dostanete a jak spolupráce probíhá.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="glass px-4 py-2 rounded-full text-sm">Portréty • Sport • Produkt</span>
-                        <span class="glass px-4 py-2 rounded-full text-sm">Chatboti • Integrace • Webové nástroje</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="glass rounded-3xl p-8 space-y-6">
-                        <div class="flex items-center gap-3">
-                            <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl">📷</div>
-                            <div>
-                                <h3 class="text-2xl font-bold">Fotografie</h3>
-                                <p class="text-gray-400">Portréty, sport a produktové focení s důrazem na světlo a postprodukci.</p>
-                            </div>
-                        </div>
-                        <ul class="space-y-3 text-gray-200">
-                            <li class="flex items-start gap-3"><span class="text-blue-400">•</span><span>Portréty v ateliéru i exteriéru včetně retuše.</span></li>
-                            <li class="flex items-start gap-3"><span class="text-blue-400">•</span><span>Sportovní reporty s rychlým výběrem a dodáním snímků.</span></li>
-                            <li class="flex items-start gap-3"><span class="text-blue-400">•</span><span>Produktová fotografie s konzistentním stylingem pro e‑shop.</span></li>
-                        </ul>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="px-3 py-2 bg-white/10 rounded-full text-xs">Světlo & kompozice</span>
-                            <span class="px-3 py-2 bg-white/10 rounded-full text-xs">Barevné ladění</span>
-                            <span class="px-3 py-2 bg-white/10 rounded-full text-xs">Retuš detailů</span>
-                        </div>
-                        <a href="#kontakt" class="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition" aria-label="Domluvit focení">
-                            Domluvit focení
-                            <span aria-hidden="true">→</span>
-                        </a>
-                    </div>
-
-                    <div class="glass rounded-3xl p-8 space-y-6">
-                        <div class="flex items-center gap-3">
-                            <div class="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-2xl">🤖</div>
-                            <div>
-                                <h3 class="text-2xl font-bold">AI & Automatizace</h3>
-                                <p class="text-gray-400">Chatboti, integrace a malé webové nástroje, které šetří čas.</p>
-                            </div>
-                        </div>
-                        <ul class="space-y-3 text-gray-200">
-                            <li class="flex items-start gap-3"><span class="text-blue-400">•</span><span>AI chatbot pro web nebo interní použití s jasným scénářem.</span></li>
-                            <li class="flex items-start gap-3"><span class="text-blue-400">•</span><span>Automatizace reportů, e‑mailů a ticketů napojená na stávající nástroje.</span></li>
-                            <li class="flex items-start gap-3"><span class="text-blue-400">•</span><span>Lehké webové aplikace pro sběr dat či konfiguraci objednávek.</span></li>
-                        </ul>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="px-3 py-2 bg-white/10 rounded-full text-xs">OpenAI API</span>
-                            <span class="px-3 py-2 bg-white/10 rounded-full text-xs">Python</span>
-                            <span class="px-3 py-2 bg-white/10 rounded-full text-xs">Tailwind</span>
-                            <span class="px-3 py-2 bg-white/10 rounded-full text-xs">Zapier/Make</span>
-                        </div>
-                        <a href="#kontakt" class="inline-flex items-center gap-2 px-5 py-3 glass rounded-full font-semibold hover:bg-white/10 transition" aria-label="Navrhnout AI řešení">
-                            Navrhnout AI řešení
-                            <span aria-hidden="true">→</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Case Studies -->
-        <section id="projekty" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent">
-            <div class="container mx-auto px-6 max-w-6xl">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
-                    <div>
-                        <p class="text-sm uppercase tracking-[0.3em] text-blue-300 mb-2">Case studies</p>
-                        <h2 class="text-4xl font-bold gradient-text">Reálné scénáře a konkrétní výsledek</h2>
-                        <p class="text-gray-300 mt-4 max-w-3xl">Každý projekt shrnuji na problém, řešení a výsledek. Bez přikrášlování – jen kroky, které dávají smysl.</p>
-                    </div>
-                    <a href="#portfolio" class="glass px-5 py-3 rounded-full font-semibold hover:bg-white/10 transition" aria-label="Zobrazit portfolio">
-                        Zobrazit portfolio
-                    </a>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <article class="glass rounded-2xl p-6 space-y-4 hover:-translate-y-1 transition">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">🎯</span>
-                            <h3 class="text-xl font-bold">Produktová série</h3>
-                        </div>
-                        <p class="text-blue-300 text-sm">Problém</p>
-                        <p class="text-gray-300">Nekonzistentní produktové fotky pro e‑shop komplikovaly nová vydání.</p>
-                        <p class="text-blue-300 text-sm">Řešení</p>
-                        <p class="text-gray-300">Předem definovaný styling, lightbox setup a dávková postprodukce pro sjednocení vzhledu.</p>
-                        <p class="text-blue-300 text-sm">Výsledek</p>
-                        <p class="text-gray-200">E‑shop získal sérii fotografií s jednotným vzhledem, takže novinky mohly jít ven bez zdržení.</p>
-                    </article>
-
-                    <article class="glass rounded-2xl p-6 space-y-4 hover:-translate-y-1 transition">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">💬</span>
-                            <h3 class="text-xl font-bold">Chatbot pro podporu</h3>
-                        </div>
-                        <p class="text-blue-300 text-sm">Problém</p>
-                        <p class="text-gray-300">Tým podpory řešil opakující se dotazy a chyběla jednotná odpověď.</p>
-                        <p class="text-blue-300 text-sm">Řešení</p>
-                        <p class="text-gray-300">Navržení konverzačních scénářů, propojení s databází článků a audit bezpečnosti promptů.</p>
-                        <p class="text-blue-300 text-sm">Výsledek</p>
-                        <p class="text-gray-200">Zákazníci dostali jasné odpovědi přímo na webu a tým se mohl věnovat složitějším případům.</p>
-                    </article>
-
-                    <article class="glass rounded-2xl p-6 space-y-4 hover:-translate-y-1 transition">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">⚡</span>
-                            <h3 class="text-xl font-bold">Automatizace reportů</h3>
-                        </div>
-                        <p class="text-blue-300 text-sm">Problém</p>
-                        <p class="text-gray-300">Manuální generování týdenních reportů zabíralo hodiny času.</p>
-                        <p class="text-blue-300 text-sm">Řešení</p>
-                        <p class="text-gray-300">Skript pro sběr dat z API, automatické formátování a odeslání na e‑mail nebo Slack.</p>
-                        <p class="text-blue-300 text-sm">Výsledek</p>
-                        <p class="text-gray-200">Reporty odcházejí samy a obsahují jen ověřená data připravená pro rozhodování.</p>
-                    </article>
                 </div>
             </div>
         </section>
