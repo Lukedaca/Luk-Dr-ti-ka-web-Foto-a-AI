@@ -162,6 +162,12 @@
             z-index: 100;
         }
 
+        header.is-scrolled {
+            box-shadow: 0 16px 40px rgba(6, 10, 24, 0.45);
+            background: rgba(9, 13, 32, 0.65);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
         .glass {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -193,6 +199,19 @@
 
         .section-title {
             font-family: var(--font-display);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 72px;
+            height: 4px;
+            margin: 14px auto 0;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.9));
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
         }
 
         .hero-ambient {
@@ -200,6 +219,8 @@
             inset: 0;
             overflow: hidden;
             z-index: 0;
+            transform: translate3d(var(--hero-x, 0px), var(--hero-y, 0px), 0);
+            transition: transform 0.2s ease;
         }
 
         .hero-orb {
@@ -248,10 +269,11 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: var(--shadow-soft);
+            transform-style: preserve-3d;
         }
 
         .portfolio-item:hover {
-            transform: scale(1.02);
+            transform: scale(1.02) translateY(-4px);
             border-color: rgba(59, 130, 246, 0.35);
             box-shadow: 0 30px 70px rgba(10, 18, 40, 0.6);
         }
@@ -331,6 +353,31 @@
 
         .btn-secondary {
             border: 1px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+        }
+
+        .chip {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 30px rgba(6, 12, 24, 0.4);
+        }
+
+        .btn-outline-glow {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-outline-glow::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-outline-glow:hover::after {
+            opacity: 1;
         }
 
         .reveal {
@@ -723,9 +770,9 @@
             </div>
             <div class="text-center max-w-5xl mx-auto relative z-10 reveal">
                 <div class="mb-6 flex justify-center gap-4 flex-wrap" aria-label="Hlavní zaměření">
-                    <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0s;">📷 Fotografie</span>
-                    <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0.5s;">🤖 AI Development</span>
-                    <span class="glass px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">⚡ Automatizace</span>
+                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0s;">📷 Fotografie</span>
+                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0.5s;">🤖 AI Development</span>
+                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">⚡ Automatizace</span>
                 </div>
 
                 <h1 class="text-6xl md:text-8xl font-bold mb-4 gradient-text display-text">
@@ -744,10 +791,10 @@
                 </p>
 
                 <div class="flex gap-4 justify-center flex-wrap reveal reveal-delay-2">
-                    <a href="#portfolio" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition shadow-lg hover:shadow-xl btn-primary" aria-label="Prohlédnout portfolio">
+                    <a href="#portfolio" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition shadow-lg hover:shadow-xl btn-primary btn-outline-glow" aria-label="Prohlédnout portfolio">
                         Prohlédnout portfolio
                     </a>
-                    <a href="#kontakt" class="px-8 py-4 glass rounded-full font-semibold hover:bg-white/10 transition btn-secondary" aria-label="Domluvit konzultaci">
+                    <a href="#kontakt" class="px-8 py-4 glass rounded-full font-semibold hover:bg-white/10 transition btn-secondary btn-outline-glow" aria-label="Domluvit konzultaci">
                         Domluvit konzultaci
                     </a>
                 </div>
@@ -1478,6 +1525,25 @@
                     mobileMenu.classList.remove('active');
                     document.body.style.overflow = '';
                 });
+            });
+        }
+
+        const headerEl = document.querySelector('header');
+        if (headerEl) {
+            const onScrollHeader = () => {
+                headerEl.classList.toggle('is-scrolled', window.scrollY > 12);
+            };
+            onScrollHeader();
+            window.addEventListener('scroll', onScrollHeader);
+        }
+
+        const heroAmbient = document.querySelector('.hero-ambient');
+        if (heroAmbient) {
+            document.addEventListener('mousemove', (e) => {
+                const x = (e.clientX / window.innerWidth - 0.5) * 20;
+                const y = (e.clientY / window.innerHeight - 0.5) * 20;
+                heroAmbient.style.setProperty('--hero-x', `${x}px`);
+                heroAmbient.style.setProperty('--hero-y', `${y}px`);
             });
         }
 
