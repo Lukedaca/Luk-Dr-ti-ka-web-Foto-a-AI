@@ -989,7 +989,7 @@
                     <button id="adminLoginBtn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-semibold hover:opacity-90 transition">
                         Přihlásit se
                     </button>
-                    <p class="text-xs text-gray-400">Demo heslo: admin123</p>
+                    <p class="text-xs text-gray-400">Přístup jen pro majitele webu.</p>
                 </div>
             </div>
 
@@ -1189,6 +1189,10 @@
 
     <div id="lightbox" class="lightbox">
         <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10">&times;</button>
+        <div id="lightboxControls" class="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
+            <button id="lightboxPrev" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Předchozí fotka">‹</button>
+            <button id="lightboxNext" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Další fotka">›</button>
+        </div>
         <img id="lightboxImg" src="" alt="">
     </div>
 
@@ -1947,6 +1951,9 @@
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightboxImg');
         const closeLightboxBtn = document.getElementById('closeLightbox');
+        const lightboxControls = document.getElementById('lightboxControls');
+        const lightboxPrev = document.getElementById('lightboxPrev');
+        const lightboxNext = document.getElementById('lightboxNext');
         let activeFilter = 'all';
         let galleryKeyHandler = null;
 
@@ -1954,9 +1961,15 @@
             return Array.from(document.querySelectorAll('.portfolio-item'));
         }
 
+        function setLightboxControls(visible) {
+            if (!lightboxControls) return;
+            lightboxControls.classList.toggle('hidden', !visible);
+        }
+
         function closeLightboxModal() {
             if (!lightbox) return;
             lightbox.classList.remove('active');
+            setLightboxControls(false);
             if (galleryKeyHandler) {
                 document.removeEventListener('keydown', galleryKeyHandler);
                 galleryKeyHandler = null;
@@ -1971,6 +1984,7 @@
             }
             lightboxImg.src = src;
             lightbox.classList.add('active');
+            setLightboxControls(false);
         }
 
         if (closeLightboxBtn) {
@@ -2169,8 +2183,22 @@
         const adminLoginBtn = document.getElementById('adminLoginBtn');
 
         const adminElementsReady = adminBtn && adminBtnMobile && adminPanel && adminOverlay && closeAdminPanel && adminAuth && adminContent && adminPassword && adminLoginBtn;
+        const ADMIN_ACCESS_PARAM = 'admin';
+        const ADMIN_ACCESS_TOKEN = 'CHANGE_ME_LONG_SECRET';
+        const ADMIN_PASSWORD = 'CHANGE_ME_STRONG_PASSWORD';
+        const adminAccessStored = localStorage.getItem('admin_access_granted') === 'true';
+        const adminAccessViaUrl = new URLSearchParams(window.location.search).get(ADMIN_ACCESS_PARAM) === ADMIN_ACCESS_TOKEN;
+        const adminAccessGranted = adminAccessStored || adminAccessViaUrl;
+
+        if (adminAccessViaUrl) {
+            localStorage.setItem('admin_access_granted', 'true');
+        }
+
+        if (adminBtn && !adminAccessGranted) adminBtn.classList.add('hidden');
+        if (adminBtnMobile && !adminAccessGranted) adminBtnMobile.classList.add('hidden');
 
         function openAdminPanel() {
+            if (!adminAccessGranted) return;
             if (!adminElementsReady) return;
             adminPanel.classList.add('active');
             adminOverlay.style.opacity = '1';
@@ -2204,7 +2232,7 @@
             adminOverlay.addEventListener('click', closeAdminPanelFunc);
 
             adminLoginBtn.addEventListener('click', () => {
-                if (adminPassword.value === 'admin123') {
+                if (adminPassword.value === ADMIN_PASSWORD) {
                     localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
                     adminAuth.classList.add('hidden');
                     adminContent.classList.remove('hidden');
@@ -2283,6 +2311,31 @@
             }
         }
 
+        const MAX_IMAGE_DIMENSION = 1600;
+        const IMAGE_QUALITY = 0.85;
+
+        function prepareImageForStorage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(img.width, img.height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', IMAGE_QUALITY));
+                    };
+                    img.onerror = () => reject(new Error('Nepodařilo se načíst obrázek.'));
+                    img.src = reader.result;
+                };
+                reader.onerror = () => reject(new Error('Nepodařilo se načíst soubor.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
         function displayImagePreviews() {
             imagePreviewGrid.innerHTML = '';
             imagePreviewGrid.classList.remove('hidden');
@@ -2326,21 +2379,34 @@
         class PortfolioManager {
             loadProjects() {
                 const data = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
-                return data ? JSON.parse(data) : [];
+                if (!data) return [];
+                try {
+                    return JSON.parse(data);
+                } catch (e) {
+                    console.warn('Neplatná data v úložišti, mažu portfolio.', e);
+                    localStorage.removeItem(STORAGE_KEYS.PORTFOLIO);
+                    return [];
+                }
             }
             saveProjects(projects) {
-                localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify(projects));
+                try {
+                    localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify(projects));
+                    return true;
+                } catch (e) {
+                    console.warn('Ukládání do úložiště selhalo.', e);
+                    return false;
+                }
             }
             addProject(project) {
                 const projects = this.loadProjects();
                 project.id = Date.now();
                 projects.push(project);
-                this.saveProjects(projects);
+                return this.saveProjects(projects);
             }
             deleteProject(id) {
                 let projects = this.loadProjects();
                 projects = projects.filter(p => p.id !== id);
-                this.saveProjects(projects);
+                return this.saveProjects(projects);
             }
             exportData() {
                 return JSON.stringify(this.loadProjects(), null, 2);
@@ -2370,13 +2436,15 @@
                 return;
             }
 
-            const images = await Promise.all(uploadedFiles.map(file => {
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-            }));
+            let images = [];
+            try {
+                images = await Promise.all(uploadedFiles.map(file => prepareImageForStorage(file)));
+            } catch (e) {
+                alert('Nepodařilo se zpracovat fotky. Zkuste menší soubory.');
+                return;
+            }
+
+            const mainIndex = projectType === 'gallery' ? parseInt(mainImageSelect?.value || '0', 10) : 0;
 
             const project = {
                 name: projectName,
@@ -2384,10 +2452,13 @@
                 description: projectDescription,
                 type: projectType,
                 images: images,
-                mainImageIndex: projectType === 'gallery' ? parseInt(mainImageSelect.value) : 0
+                mainImageIndex: Number.isNaN(mainIndex) ? 0 : mainIndex
             };
 
-            portfolioManager.addProject(project);
+            if (!portfolioManager.addProject(project)) {
+                alert('Uložení selhalo. Zkuste méně fotek nebo menší velikost.');
+                return;
+            }
             alert('Projekt uložen!');
 
             document.getElementById('projectName').value = '';
@@ -2519,14 +2590,23 @@
             const setImage = () => {
                 lightboxImg.src = images[currentIndex];
             };
+            const updateControls = () => {
+                if (!lightboxPrev || !lightboxNext) return;
+                lightboxPrev.classList.toggle('opacity-40', currentIndex === 0);
+                lightboxPrev.classList.toggle('pointer-events-none', currentIndex === 0);
+                lightboxNext.classList.toggle('opacity-40', currentIndex === images.length - 1);
+                lightboxNext.classList.toggle('pointer-events-none', currentIndex === images.length - 1);
+            };
 
             const handleKeyboard = (e) => {
                 if (e.key === 'ArrowLeft' && currentIndex > 0) {
                     currentIndex--;
                     setImage();
+                    updateControls();
                 } else if (e.key === 'ArrowRight' && currentIndex < images.length - 1) {
                     currentIndex++;
                     setImage();
+                    updateControls();
                 }
             };
 
@@ -2535,8 +2615,26 @@
             }
             galleryKeyHandler = handleKeyboard;
             document.addEventListener('keydown', handleKeyboard);
+            if (lightboxPrev && lightboxNext) {
+                lightboxPrev.onclick = () => {
+                    if (currentIndex > 0) {
+                        currentIndex--;
+                        setImage();
+                        updateControls();
+                    }
+                };
+                lightboxNext.onclick = () => {
+                    if (currentIndex < images.length - 1) {
+                        currentIndex++;
+                        setImage();
+                        updateControls();
+                    }
+                };
+            }
             setImage();
             lightbox.classList.add('active');
+            setLightboxControls(images.length > 1);
+            updateControls();
         }
 
         renderPortfolio();
