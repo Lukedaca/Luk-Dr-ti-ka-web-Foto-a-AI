@@ -153,6 +153,10 @@
             opacity: 0.4;
         }
 
+        #cursorSpotlight {
+            will-change: transform, opacity;
+        }
+
         main {
             position: relative;
             z-index: 1;
@@ -221,6 +225,7 @@
             z-index: 0;
             transform: translate3d(var(--hero-x, 0px), var(--hero-y, 0px), 0);
             transition: transform 0.2s ease;
+            will-change: transform;
         }
 
         .hero-orb {
@@ -1546,78 +1551,79 @@
             function isAdminAuthenticated() {
                 return storage.get(STORAGE_KEYS.ADMIN_AUTH) === 'true';
             }
-
             const scrollProgress = document.getElementById('scrollProgress');
-            if (scrollProgress) {
-                window.addEventListener('scroll', () => {
+            const headerEl = document.querySelector('header');
+            let scrollTicking = false;
+
+            const updateScrollUI = () => {
+                if (scrollProgress) {
                     const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                    const scrolled = (window.scrollY / windowHeight) * 100;
+                    const scrolled = windowHeight > 0 ? (window.scrollY / windowHeight) * 100 : 0;
                     scrollProgress.style.width = scrolled + '%';
-            });
-        }
-
-        const cursorSpotlight = document.getElementById('cursorSpotlight');
-        if (cursorSpotlight) {
-            document.addEventListener('mousemove', (e) => {
-                cursorSpotlight.style.left = e.clientX + 'px';
-                cursorSpotlight.style.top = e.clientY + 'px';
-                cursorSpotlight.style.opacity = '1';
-            });
-        }
-
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const mobileMenu = document.getElementById('mobileMenu');
-        if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', () => {
-                mobileMenuBtn.classList.toggle('active');
-                mobileMenu.classList.toggle('active');
-                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
-            });
-            document.querySelectorAll('.mobile-menu-link').forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenuBtn.classList.remove('active');
-                    mobileMenu.classList.remove('active');
-                    document.body.style.overflow = '';
-                });
-            });
-        }
-
-        const headerEl = document.querySelector('header');
-        if (headerEl) {
-            const onScrollHeader = () => {
-                headerEl.classList.toggle('is-scrolled', window.scrollY > 12);
+                }
+                if (headerEl) {
+                    headerEl.classList.toggle('is-scrolled', window.scrollY > 12);
+                }
+                scrollTicking = false;
             };
-            onScrollHeader();
-            window.addEventListener('scroll', onScrollHeader);
-        }
 
-        const heroAmbient = document.querySelector('.hero-ambient');
-        if (heroAmbient) {
-            document.addEventListener('mousemove', (e) => {
-                const x = (e.clientX / window.innerWidth - 0.5) * 20;
-                const y = (e.clientY / window.innerHeight - 0.5) * 20;
-                heroAmbient.style.setProperty('--hero-x', `${x}px`);
-                heroAmbient.style.setProperty('--hero-y', `${y}px`);
-            });
-        }
-
-        function setupRevealAnimations() {
-            const revealElements = document.querySelectorAll('.reveal');
-            if (!revealElements.length) return;
-
-            const observer = new IntersectionObserver((entries, obs) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        obs.unobserve(entry.target);
+            if (scrollProgress || headerEl) {
+                updateScrollUI();
+                window.addEventListener('scroll', () => {
+                    if (!scrollTicking) {
+                        scrollTicking = true;
+                        requestAnimationFrame(updateScrollUI);
                     }
-                });
-            }, { threshold: 0.15 });
+                }, { passive: true });
+            }
 
-            revealElements.forEach(el => observer.observe(el));
-        }
+            const cursorSpotlight = document.getElementById('cursorSpotlight');
+            const heroAmbient = document.querySelector('.hero-ambient');
+            let mouseX = 0;
+            let mouseY = 0;
+            let mouseTicking = false;
 
-        setupRevealAnimations();
+            const updateMouseEffects = () => {
+                if (cursorSpotlight) {
+                    cursorSpotlight.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+                    cursorSpotlight.style.opacity = '1';
+                }
+                if (heroAmbient) {
+                    const x = (mouseX / window.innerWidth - 0.5) * 20;
+                    const y = (mouseY / window.innerHeight - 0.5) * 20;
+                    heroAmbient.style.setProperty('--hero-x', `${x}px`);
+                    heroAmbient.style.setProperty('--hero-y', `${y}px`);
+                }
+                mouseTicking = false;
+            };
+
+            if (cursorSpotlight || heroAmbient) {
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    if (!mouseTicking) {
+                        mouseTicking = true;
+                        requestAnimationFrame(updateMouseEffects);
+                    }
+                }, { passive: true });
+            }
+            function setupRevealAnimations() {
+                const revealElements = document.querySelectorAll('.reveal');
+                if (!revealElements.length) return;
+
+                const observer = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                            obs.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15 });
+
+                revealElements.forEach(el => observer.observe(el));
+            }
+
+            setupRevealAnimations();
 
         const typingText = document.getElementById('typingText');
         if (typingText) {
@@ -1715,7 +1721,6 @@
                 e.target.reset();
             });
         }
-
         class NeuralNetworkVisualization {
             constructor(canvas) {
                 this.canvas = canvas;
@@ -1723,19 +1728,32 @@
                 this.neurons = [];
                 this.connections = [];
                 this.mouse = { x: 0, y: 0 };
+                this.pointer = { x: 0, y: 0 };
+                this.pointerDirty = false;
                 this.activityLevel = 0;
                 this.lastFrameTime = 0;
-                this.frameInterval = 1000 / 60;
+                this.frameInterval = 1000 / 45;
                 this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                this.isPaused = false;
+                this.width = 0;
+                this.height = 0;
                 
                 this.resize();
-                this.init();
                 this.animate();
                 
                 window.addEventListener('resize', () => this.resize());
                 document.addEventListener('mousemove', (e) => {
-                    this.mouse.x = e.clientX;
-                    this.mouse.y = e.clientY;
+                    this.pointer.x = e.clientX;
+                    this.pointer.y = e.clientY;
+                    this.pointerDirty = true;
+                }, { passive: true });
+                
+                document.addEventListener('visibilitychange', () => {
+                    this.isPaused = document.hidden;
+                    if (!this.isPaused) {
+                        this.lastFrameTime = 0;
+                        this.animate();
+                    }
                 });
                 
                 document.addEventListener('click', () => {
@@ -1744,16 +1762,27 @@
             }
             
             resize() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+
+                const scale = Math.min(window.devicePixelRatio || 1, 1.25);
+                this.canvas.width = Math.floor(this.width * scale);
+                this.canvas.height = Math.floor(this.height * scale);
+                this.canvas.style.width = `${this.width}px`;
+                this.canvas.style.height = `${this.height}px`;
+                this.ctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+                this.neurons = [];
+                this.connections = [];
+                this.init();
             }
 
             init() {
                 const layers = [7, 12, 10, 7];
-                const spacing = this.canvas.width / (layers.length + 1);
+                const spacing = this.width / (layers.length + 1);
                 
                 layers.forEach((count, layerIndex) => {
-                    const layerHeight = this.canvas.height / (count + 1);
+                    const layerHeight = this.height / (count + 1);
                     
                     for (let i = 0; i < count; i++) {
                         this.neurons.push({
@@ -1785,7 +1814,13 @@
             }
             
             animate(timestamp = 0) {
-                if (this.reduceMotion) return;
+                if (this.reduceMotion || this.isPaused) return;
+
+                if (this.pointerDirty) {
+                    this.mouse.x = this.pointer.x;
+                    this.mouse.y = this.pointer.y;
+                    this.pointerDirty = false;
+                }
 
                 if (!this.lastFrameTime) {
                     this.lastFrameTime = timestamp;
@@ -1798,7 +1833,7 @@
                 }
 
                 this.lastFrameTime = timestamp;
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.clearRect(0, 0, this.width, this.height);
                 
                 this.activityLevel *= 0.95;
                 
@@ -1866,7 +1901,7 @@
                 requestAnimationFrame((next) => this.animate(next));
             }
         }
-        
+
         const neuralCanvas = document.getElementById('neuralCanvas');
         const neuralViz = neuralCanvas ? new NeuralNetworkVisualization(neuralCanvas) : null;
 
