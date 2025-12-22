@@ -1171,20 +1171,20 @@
                             <span class="text-sm text-blue-400">(s AI asistentem)</span>
                         </h3>
                         
-                        <form id="contactForm" class="space-y-4">
+                        <form id="contactForm" class="space-y-4" action="https://formspree.io/f/movlrlzj" method="POST">
                             <div>
                                 <label class="block text-sm text-gray-300 mb-2">Jméno</label>
-                                <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Vaše jméno">
+                                <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Vaše jméno" name="name" required>
                             </div>
                             
                             <div>
                                 <label class="block text-sm text-gray-300 mb-2">Email</label>
-                                <input type="email" id="contactEmail" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="vas@email.cz">
+                                <input type="email" id="contactEmail" name="email" required class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="vas@email.cz">
                             </div>
 
                             <div>
                                 <label class="block text-sm text-gray-300 mb-2">Typ služby</label>
-                                <select id="contactService" class="w-full glass rounded-xl p-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select id="contactService" name="service" class="w-full glass rounded-xl p-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="fotografie">Fotografie</option>
                                     <option value="ai">AI chatbot</option>
                                     <option value="automatizace">Automatizace</option>
@@ -1197,13 +1197,15 @@
                                     <span>Zpráva</span>
                                     <span class="text-xs text-blue-400">🤖 AI vám pomůže</span>
                                 </label>
-                                <textarea id="contactMessage" class="w-full contact-textarea glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Popište svůj projekt..."></textarea>
+                                <textarea id="contactMessage" class="w-full contact-textarea glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Popište svůj projekt..." name="message" required></textarea>
                                 <div id="aiSuggestions"></div>
                             </div>
                             
                             <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-3 rounded-xl hover:opacity-90 transition font-semibold">
                                 Odeslat zprávu
                             </button>
+                            <p id="contactStatus" class="text-sm text-gray-400" role="status" aria-live="polite"></p>
+                            <input type="hidden" name="_subject" value="Nova zprava z webu">
                         </form>
                     </div>
                 </div>
@@ -2093,12 +2095,41 @@
         }
         
         const writingAssistant = new AIWritingAssistant();
-
         const contactForm = document.getElementById('contactForm');
         if (contactForm) {
-            contactForm.addEventListener('submit', (e) => {
+            const statusEl = document.getElementById('contactStatus');
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+
+            contactForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                alert('Demo: Zpráva by se odeslala na email.');
+
+                if (!contactForm.action) return;
+
+                if (statusEl) statusEl.textContent = 'Odesilam...';
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const formData = new FormData(contactForm);
+                    const response = await fetch(contactForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        if (statusEl) statusEl.textContent = 'Dekuji! Zprava byla odeslana.';
+                        contactForm.reset();
+                    } else {
+                        if (statusEl) statusEl.textContent = 'Odeslani se nepodarilo. Zkuste to prosim znovu.';
+                    }
+                } catch (err) {
+                    console.error('Contact form submit failed.', err);
+                    if (statusEl) statusEl.textContent = 'Odeslani se nepodarilo. Zkuste to prosim znovu.';
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
             });
         }
 
