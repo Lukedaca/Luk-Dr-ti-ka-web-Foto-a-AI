@@ -674,89 +674,6 @@
         .float-animation {
             animation: float 6s ease-in-out infinite;
         }
-
-        /* Admin Panel Styles */
-        .admin-panel {
-            position: fixed;
-            right: -100%;
-            top: 0;
-            width: 100%;
-            max-width: 600px;
-            height: 100vh;
-            background: rgba(10, 14, 39, 0.98);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 9998;
-            overflow-y: auto;
-        }
-
-        .admin-panel.active {
-            right: 0;
-        }
-
-        .drag-drop-zone {
-            border: 2px dashed rgba(59, 130, 246, 0.5);
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .drag-drop-zone.dragging {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.1);
-            transform: scale(1.02);
-        }
-
-        .drag-drop-zone:hover {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.05);
-        }
-
-        .image-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
-        }
-
-        .image-preview-item {
-            position: relative;
-            aspect-ratio: 1;
-            border-radius: 8px;
-            overflow: hidden;
-            cursor: move;
-        }
-
-        .image-preview-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .image-preview-item .remove-btn {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .image-preview-item:hover .remove-btn {
-            opacity: 1;
-        }
-
         .theme-light .text-gray-200 { color: #26344a; }
         .theme-light .text-gray-300 { color: #324258; }
         .theme-light .text-gray-400 { color: #3e5168; }
@@ -796,11 +713,6 @@
                 <button id="themeToggle" class="px-4 py-2 glass rounded-full text-sm font-semibold hover:bg-white/10 transition" aria-label="Přepnout režim">
                     🌙 / ☀️
                 </button>
-
-                <!-- Admin Button -->
-                <button id="adminBtn" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full text-sm font-semibold hover:opacity-90 transition" aria-label="Admin panel">
-                    🔐 Admin
-                </button>
             </nav>
 
             <!-- Mobile Menu Button -->
@@ -818,9 +730,6 @@
                 <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
                 <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
                 <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
-                <button id="adminBtnMobile" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-semibold hover:opacity-90 transition">
-                    🔐 Admin Panel
-                </button>
             </nav>
         </div>
     </header>
@@ -885,7 +794,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolioGrid">
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Portret+1" alt="Portrét" class="w-full h-80 object-cover" loading="lazy" width="800" height="600">
+                        <img src="assets/portfolio/portret-1.jpg" alt="Portrét" class="w-full h-80 object-cover" loading="lazy" width="800" height="600" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Portrét</div>
@@ -894,7 +803,7 @@
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Sport+1" alt="Sport" class="w-full h-80 object-cover" loading="lazy" width="800" height="600">
+                        <img src="assets/portfolio/sport-1.jpg" alt="Sport" class="w-full h-80 object-cover" loading="lazy" width="800" height="600" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Sport</div>
@@ -903,7 +812,7 @@
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=AI+Chatbot" alt="AI Projekt" class="w-full h-80 object-cover" loading="lazy" width="800" height="600">
+                        <img src="assets/portfolio/ai-chatbot.jpg" alt="AI Projekt" class="w-full h-80 object-cover" loading="lazy" width="800" height="600" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">AI Chatbot</div>
@@ -912,7 +821,7 @@
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Produkt+1" alt="Produktová fotografie" class="w-full h-80 object-cover" loading="lazy" width="800" height="600">
+                        <img src="assets/portfolio/produkt-1.jpg" alt="Produktová fotografie" class="w-full h-80 object-cover" loading="lazy" width="800" height="600" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Produktová fotografie</div>
@@ -921,7 +830,7 @@
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Automatizace" alt="Automatizace" class="w-full h-80 object-cover" loading="lazy" width="800" height="600">
+                        <img src="assets/portfolio/automatizace.jpg" alt="Automatizace" class="w-full h-80 object-cover" loading="lazy" width="800" height="600" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Automatizace</div>
@@ -930,7 +839,7 @@
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="https://placehold.co/800x600/1a202c/ffffff?text=Portret+2" alt="Portrét 2" class="w-full h-80 object-cover" loading="lazy" width="800" height="600">
+                        <img src="assets/portfolio/portret-2.jpg" alt="Portrét 2" class="w-full h-80 object-cover" loading="lazy" width="800" height="600" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Portrét</div>
@@ -1223,124 +1132,6 @@
         </script>
     </main>
 
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="admin-panel">
-        <div class="p-8">
-            <!-- Admin Header -->
-            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                <h2 class="text-3xl font-bold gradient-text">🔐 Admin Panel</h2>
-                <button id="closeAdminPanel" class="text-3xl hover:text-gray-300 transition">&times;</button>
-            </div>
-
-            <!-- Auth Section (if not logged in) -->
-            <div id="adminAuth" class="mb-8">
-                <h3 class="text-xl font-semibold mb-4">Přihlášení</h3>
-                <div class="space-y-4">
-                    <input type="password" id="adminPassword" placeholder="Heslo..." class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <button id="adminLoginBtn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-xl font-semibold hover:opacity-90 transition">
-                        Přihlásit se
-                    </button>
-                    <p class="text-xs text-gray-400">Přístup jen pro majitele webu.</p>
-                </div>
-            </div>
-
-            <!-- Admin Content (visible after login) -->
-            <div id="adminContent" class="hidden">
-                <!-- Upload Section -->
-                <div class="mb-8">
-                    <h3 class="text-xl font-semibold mb-4">📤 Přidat projekt</h3>
-
-                    <!-- Project Type Selection -->
-                    <div class="mb-4">
-                        <label class="block text-sm text-gray-300 mb-2">Typ projektu</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center glass px-4 py-3 rounded-xl cursor-pointer hover:bg-white/10 transition">
-                                <input type="radio" name="projectType" value="single" checked class="mr-2">
-                                <span>📷 Jednotlivá fotka</span>
-                            </label>
-                            <label class="flex items-center glass px-4 py-3 rounded-xl cursor-pointer hover:bg-white/10 transition">
-                                <input type="radio" name="projectType" value="gallery" class="mr-2">
-                                <span>🖼️ Galerie (více fotek)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Project Details -->
-                    <div class="space-y-4 mb-4">
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-2">Název projektu</label>
-                            <input type="text" id="projectName" placeholder="Např. Portrétní focení" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-2">Kategorie</label>
-                            <select id="projectCategory" class="w-full glass rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                <option value="foto">📷 Fotografie</option>
-                                <option value="ai">🤖 AI Projekt</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm text-gray-300 mb-2">Popis (volitelný)</label>
-                            <textarea id="projectDescription" placeholder="Krátký popis projektu..." class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" rows="2"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Drag & Drop Upload Zone -->
-                    <div id="dropZone" class="drag-drop-zone">
-                        <div class="text-5xl mb-4">📤</div>
-                        <p class="text-lg font-semibold mb-2">Přetáhněte fotky sem</p>
-                        <p class="text-sm text-gray-400 mb-4">nebo klikněte pro výběr</p>
-                        <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
-                        <button onclick="document.getElementById('fileInput').click()" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition">
-                            Vybrat soubory
-                        </button>
-                    </div>
-
-                    <!-- Image Preview Grid -->
-                    <div id="imagePreviewGrid" class="image-preview-grid mt-4 hidden"></div>
-
-                    <!-- Main Image Selector (for galleries) -->
-                    <div id="mainImageSelector" class="hidden mt-4">
-                        <label class="block text-sm text-gray-300 mb-2">Hlavní náhledová fotka</label>
-                        <select id="mainImageSelect" class="w-full glass rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                            <option value="0">První fotka</option>
-                        </select>
-                    </div>
-
-                    <!-- Save Button -->
-                    <button id="saveProjectBtn" class="w-full mt-4 bg-gradient-to-r from-green-600 to-emerald-600 py-3 rounded-xl font-semibold hover:opacity-90 transition">
-                        💾 Uložit projekt
-                    </button>
-                </div>
-
-                <!-- Existing Projects -->
-                <div class="mb-8">
-                    <h3 class="text-xl font-semibold mb-4">📁 Existující projekty</h3>
-                    <div id="existingProjects" class="space-y-3">
-                        <p class="text-gray-400 text-sm">Zatím žádné projekty...</p>
-                    </div>
-                </div>
-
-                <!-- Export/Import -->
-                <div>
-                    <h3 class="text-xl font-semibold mb-4">💾 Záloha dat</h3>
-                    <div class="flex gap-3">
-                        <button id="exportDataBtn" class="flex-1 glass py-3 rounded-xl font-semibold hover:bg-white/10 transition">
-                            📥 Export JSON
-                        </button>
-                        <button id="importDataBtn" class="flex-1 glass py-3 rounded-xl font-semibold hover:bg-white/10 transition">
-                            📤 Import JSON
-                        </button>
-                        <input type="file" id="importFileInput" accept=".json" class="hidden">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Overlay for Admin Panel -->
-    <div id="adminOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm opacity-0 invisible transition-all duration-300 z-[9997]"></div>
 
     <footer class="glass border-t border-white/10 py-16 mt-24 relative z-10">
         <div class="container mx-auto px-6 max-w-6xl">
@@ -1499,11 +1290,6 @@
             }
 
             cleanConflictMarkers();
-
-            const STORAGE_KEYS = {
-                PORTFOLIO: 'portfolio_projects',
-                ADMIN_AUTH: 'admin_authenticated'
-            };
             const storage = {
                 get(key) {
                     try {
@@ -1551,10 +1337,6 @@
                     const nextTheme = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light';
                     applyTheme(nextTheme);
                 });
-            }
-
-            function isAdminAuthenticated() {
-                return storage.get(STORAGE_KEYS.ADMIN_AUTH) === 'true';
             }
             const scrollProgress = document.getElementById('scrollProgress');
             const headerEl = document.querySelector('header');
@@ -2631,397 +2413,55 @@
                 unreadBadge.classList.add('hidden');
             }
         }
-
         safeInitChatbot();
 
-        const adminBtn = document.getElementById('adminBtn');
-        const adminBtnMobile = document.getElementById('adminBtnMobile');
-        const adminPanel = document.getElementById('adminPanel');
-        const adminOverlay = document.getElementById('adminOverlay');
-        const closeAdminPanel = document.getElementById('closeAdminPanel');
-        const adminAuth = document.getElementById('adminAuth');
-        const adminContent = document.getElementById('adminContent');
-        const adminPassword = document.getElementById('adminPassword');
-        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const PORTFOLIO_DATA_URL = 'data/portfolio.json';
+        const PORTFOLIO_FALLBACK_IMAGE = 'assets/fallback.jpg';
+        let portfolioProjects = [];
 
-        const adminElementsReady = adminBtn && adminBtnMobile && adminPanel && adminOverlay && closeAdminPanel && adminAuth && adminContent && adminPassword && adminLoginBtn;
-        const ADMIN_ACCESS_PARAM = 'admin';
-        const ADMIN_ACCESS_TOKEN = 'admin123';
-        const ADMIN_PASSWORD = 'admin123';
-        const adminAccessStored = storage.get('admin_access_granted') === 'true';
-        const adminAccessViaUrl = new URLSearchParams(window.location.search).get(ADMIN_ACCESS_PARAM) === ADMIN_ACCESS_TOKEN;
-        const adminAccessGranted = adminAccessStored || adminAccessViaUrl;
-
-        if (adminAccessViaUrl) {
-            storage.set('admin_access_granted', 'true');
-        }
-
-        if (adminBtn && !adminAccessGranted) adminBtn.classList.add('hidden');
-        if (adminBtnMobile && !adminAccessGranted) adminBtnMobile.classList.add('hidden');
-
-        function openAdminPanel() {
-            if (!adminAccessGranted) return;
-            if (!adminElementsReady) return;
-            adminPanel.classList.add('active');
-            adminOverlay.style.opacity = '1';
-            adminOverlay.style.visibility = 'visible';
-            document.body.style.overflow = 'hidden';
-            if (isAdminAuthenticated()) {
-                adminAuth.classList.add('hidden');
-                adminContent.classList.remove('hidden');
-                loadExistingProjects();
-            }
-        }
-
-        function closeAdminPanelFunc() {
-            if (!adminElementsReady) return;
-            adminPanel.classList.remove('active');
-            adminOverlay.style.opacity = '0';
-            adminOverlay.style.visibility = 'invisible';
-            document.body.style.overflow = '';
-        }
-
-        if (adminElementsReady) {
-            adminBtn.addEventListener('click', openAdminPanel);
-            adminBtnMobile.addEventListener('click', () => {
-                openAdminPanel();
-                if (mobileMenuBtn && mobileMenu) {
-                    mobileMenuBtn.classList.remove('active');
-                    mobileMenu.classList.remove('active');
-                }
-            });
-            closeAdminPanel.addEventListener('click', closeAdminPanelFunc);
-            adminOverlay.addEventListener('click', closeAdminPanelFunc);
-
-            adminLoginBtn.addEventListener('click', () => {
-                if (adminPassword.value === ADMIN_PASSWORD) {
-                    storage.set(STORAGE_KEYS.ADMIN_AUTH, 'true');
-                    adminAuth.classList.add('hidden');
-                    adminContent.classList.remove('hidden');
-                    loadExistingProjects();
-                } else {
-                    alert('Nesprávné heslo!');
-                }
-            });
-
-            adminPassword.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') adminLoginBtn.click();
-            });
-        }
-
-        let uploadedFiles = [];
-
-        // Get elements (will be used in multiple functions)
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const imagePreviewGrid = document.getElementById('imagePreviewGrid');
-        const mainImageSelector = document.getElementById('mainImageSelector');
-        const mainImageSelect = document.getElementById('mainImageSelect');
-
-        function initializeUpload() {
-
-            if (!dropZone || !fileInput || !imagePreviewGrid || !mainImageSelector || !mainImageSelect) {
-                console.warn('Upload prvky nebyly nalezeny, inicializace přeskočena.');
-                return;
-            }
-
-            // Click on drop zone to open file dialog
-            dropZone.addEventListener('click', (e) => {
-                if (e.target.tagName !== 'BUTTON') {
-                    fileInput.click();
-                }
-            });
-
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.classList.add('dragging');
-            });
-
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.classList.remove('dragging');
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('dragging');
-                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-                if (files.length > 0) {
-                    handleFiles(files);
-                } else {
-                    alert('Prosím nahrajte pouze obrázky (JPG, PNG, GIF, atd.)');
-                }
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                const files = Array.from(e.target.files);
-                if (files.length > 0) {
-                    handleFiles(files);
-                }
-            });
-        }
-
-        // Initialize upload functionality
-        initializeUpload();
-
-        function handleFiles(files) {
-            uploadedFiles = [...uploadedFiles, ...files];
-            displayImagePreviews();
-            updateMainImageSelector();
-            const isGallery = document.querySelector('input[name="projectType"]:checked').value === 'gallery';
-            if (isGallery && uploadedFiles.length > 1) {
-                mainImageSelector.classList.remove('hidden');
-            }
-        }
-
-        const MAX_IMAGE_DIMENSION = 1600;
-        const IMAGE_QUALITY = 0.85;
-
-        function prepareImageForStorage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(img.width, img.height));
-                        const canvas = document.createElement('canvas');
-                        canvas.width = Math.round(img.width * scale);
-                        canvas.height = Math.round(img.height * scale);
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', IMAGE_QUALITY));
-                    };
-                    img.onerror = () => reject(new Error('Nepodařilo se načíst obrázek.'));
-                    img.src = reader.result;
-                };
-                reader.onerror = () => reject(new Error('Nepodařilo se načíst soubor.'));
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function displayImagePreviews() {
-            imagePreviewGrid.innerHTML = '';
-            imagePreviewGrid.classList.remove('hidden');
-            uploadedFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const div = document.createElement('div');
-                    div.className = 'image-preview-item';
-                    div.innerHTML = `<img src="${e.target.result}" alt="Preview"><button class="remove-btn" onclick="removeImage(${index})">×</button>`;
-                    imagePreviewGrid.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function updateMainImageSelector() {
-            mainImageSelect.innerHTML = uploadedFiles.map((file, index) => `<option value="${index}">Fotka ${index + 1}</option>`).join('');
-        }
-
-        window.removeImage = function(index) {
-            uploadedFiles.splice(index, 1);
-            displayImagePreviews();
-            updateMainImageSelector();
-            if (uploadedFiles.length === 0) {
-                imagePreviewGrid.classList.add('hidden');
-                mainImageSelector.classList.add('hidden');
-            }
-        };
-
-        document.querySelectorAll('input[name="projectType"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const isGallery = e.target.value === 'gallery';
-                if (isGallery && uploadedFiles.length > 1) {
-                    mainImageSelector.classList.remove('hidden');
-                } else {
-                    mainImageSelector.classList.add('hidden');
-                }
-            });
-        });
-
-        class PortfolioManager {
-            loadProjects() {
-                const data = storage.get(STORAGE_KEYS.PORTFOLIO);
-                if (!data) return [];
-                try {
-                    return JSON.parse(data);
-                } catch (e) {
-                    console.warn('Neplatná data v úložišti, mažu portfolio.', e);
-                    storage.remove(STORAGE_KEYS.PORTFOLIO);
-                    return [];
-                }
-            }
-            saveProjects(projects) {
-                try {
-                    return storage.set(STORAGE_KEYS.PORTFOLIO, JSON.stringify(projects));
-                } catch (e) {
-                    console.warn('Ukládání do úložiště selhalo.', e);
-                    return false;
-                }
-            }
-            addProject(project) {
-                const projects = this.loadProjects();
-                project.id = Date.now();
-                projects.push(project);
-                return this.saveProjects(projects);
-            }
-            deleteProject(id) {
-                let projects = this.loadProjects();
-                projects = projects.filter(p => p.id !== id);
-                return this.saveProjects(projects);
-            }
-            exportData() {
-                return JSON.stringify(this.loadProjects(), null, 2);
-            }
-            importData(jsonString) {
-                try {
-                    const data = JSON.parse(jsonString);
-                    this.saveProjects(data);
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            }
-        }
-
-        const portfolioManager = new PortfolioManager();
-
-        const saveProjectBtn = document.getElementById('saveProjectBtn');
-        if (saveProjectBtn) saveProjectBtn.addEventListener('click', async () => {
-            const projectName = document.getElementById('projectName').value;
-            const projectCategory = document.getElementById('projectCategory').value;
-            const projectDescription = document.getElementById('projectDescription').value;
-            const projectType = document.querySelector('input[name="projectType"]:checked').value;
-
-            if (!projectName || uploadedFiles.length === 0) {
-                alert('Vyplňte název a přidejte alespoň jednu fotku!');
-                return;
-            }
-
-            let images = [];
+        async function loadPortfolioData() {
             try {
-                images = await Promise.all(uploadedFiles.map(file => prepareImageForStorage(file)));
-            } catch (e) {
-                alert('Nepodařilo se zpracovat fotky. Zkuste menší soubory.');
-                return;
+                const response = await fetch(PORTFOLIO_DATA_URL, { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                portfolioProjects = Array.isArray(data) ? data : [];
+            } catch (err) {
+                console.warn('Nepodarilo se nacist portfolio data.', err);
+                portfolioProjects = [];
             }
-
-            const mainIndex = projectType === 'gallery' ? parseInt(mainImageSelect?.value || '0', 10) : 0;
-
-            const project = {
-                name: projectName,
-                category: projectCategory,
-                description: projectDescription,
-                type: projectType,
-                images: images,
-                mainImageIndex: Number.isNaN(mainIndex) ? 0 : mainIndex
-            };
-
-            if (!portfolioManager.addProject(project)) {
-                alert('Uložení selhalo. Zkuste méně fotek nebo menší velikost.');
-                return;
-            }
-            alert('Projekt uložen!');
-
-            document.getElementById('projectName').value = '';
-            document.getElementById('projectDescription').value = '';
-            uploadedFiles = [];
-            imagePreviewGrid.innerHTML = '';
-            imagePreviewGrid.classList.add('hidden');
-            mainImageSelector.classList.add('hidden');
-
-            loadExistingProjects();
             renderPortfolio();
-        });
-
-        function loadExistingProjects() {
-            const container = document.getElementById('existingProjects');
-            if (!container) return;
-            const projects = portfolioManager.loadProjects();
-            if (projects.length === 0) {
-                container.innerHTML = '<p class="text-gray-400 text-sm">Zatím žádné projekty...</p>';
-                return;
-            }
-            container.innerHTML = projects.map(project => `
-                <div class="glass rounded-xl p-4 flex justify-between items-center">
-                    <div>
-                        <div class="font-semibold">${project.name}</div>
-                        <div class="text-sm text-gray-400">${project.type === 'gallery' ? '🖼️ Galerie' : '📷 Jednotlivá'} | ${project.images.length} fotek</div>
-                    </div>
-                    <button onclick="deleteProject(${project.id})" class="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded-lg hover:bg-red-600/40 transition">🗑️</button>
-                </div>
-            `).join('');
-        }
-
-        window.deleteProject = function(id) {
-            if (confirm('Opravdu smazat?')) {
-                portfolioManager.deleteProject(id);
-                loadExistingProjects();
-                renderPortfolio();
-            }
-        };
-
-        const exportDataBtn = document.getElementById('exportDataBtn');
-        if (exportDataBtn) exportDataBtn.addEventListener('click', () => {
-            const data = portfolioManager.exportData();
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `portfolio-${Date.now()}.json`;
-            a.click();
-        });
-
-        const importDataBtn = document.getElementById('importDataBtn');
-        const importFileInput = document.getElementById('importFileInput');
-
-        if (importDataBtn && importFileInput) {
-            importDataBtn.addEventListener('click', () => {
-                importFileInput.click();
-            });
-
-            importFileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        if (portfolioManager.importData(e.target.result)) {
-                            alert('Import úspěšný!');
-                            loadExistingProjects();
-                            renderPortfolio();
-                        } else {
-                            alert('Chyba importu!');
-                        }
-                    };
-                    reader.readAsText(file);
-                }
-            });
         }
 
         function renderPortfolio() {
             const portfolioGrid = document.getElementById('portfolioGrid');
             if (!portfolioGrid) return;
 
-            const projects = portfolioManager.loadProjects();
+            const projects = Array.isArray(portfolioProjects) ? portfolioProjects : [];
 
             if (projects.length === 0) {
-                // Žádné custom projekty, ale musíme přidat eventy k placeholder položkám
                 attachPortfolioEvents();
                 applyPortfolioFilter(activeFilter);
                 return;
             }
 
-            portfolioGrid.innerHTML = projects.map(project => {
-                const mainImage = project.images[project.mainImageIndex] || project.images[0];
-                const categoryLabel = project.category === 'ai' ? 'AI Projekt' : 'Fotografie';
-                const metaText = project.type === 'gallery'
-                    ? `${categoryLabel} • ${project.images.length} fotek`
+            portfolioGrid.innerHTML = projects.map((project, index) => {
+                const images = Array.isArray(project.images) ? project.images : [];
+                const mainIndex = Number.isInteger(project.mainImageIndex) ? project.mainImageIndex : 0;
+                const mainImage = images[mainIndex] || images[0] || PORTFOLIO_FALLBACK_IMAGE;
+                const category = project.category === 'ai' ? 'ai' : 'foto';
+                const categoryLabel = category === 'ai' ? 'AI Projekt' : 'Fotografie';
+                const type = project.type === 'gallery' ? 'gallery' : 'single';
+                const metaText = type === 'gallery'
+                    ? `${categoryLabel} | ${images.length} fotek`
                     : categoryLabel;
+                const projectId = project.id ? String(project.id) : `portfolio-${index}`;
+
                 return `
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="${project.category}" data-project-id="${project.id}">
-                        <img src="${mainImage}" alt="${project.name}" class="w-full h-80 object-cover" loading="lazy">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="${category}" data-project-id="${projectId}" data-project-index="${index}">
+                        <img src="${mainImage}" alt="${project.name || 'Projekt'}" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='${PORTFOLIO_FALLBACK_IMAGE}';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
-                                <div class="portfolio-title">${project.name}</div>
+                                <div class="portfolio-title">${project.name || 'Projekt'}</div>
                                 <div class="portfolio-meta">${metaText}</div>
                             </div>
                         </div>
@@ -3039,18 +2479,24 @@
                 item.dataset.lightboxBound = 'true';
                 item.addEventListener('click', () => {
                     const projectId = item.getAttribute('data-project-id');
+                    const projectIndex = parseInt(item.getAttribute('data-project-index') || '-1', 10);
+                    let project = null;
+
                     if (projectId) {
-                        const projects = portfolioManager.loadProjects();
-                        const project = projects.find(p => String(p.id) === projectId);
-                        if (project && project.images?.length) {
-                            if (project.type === 'gallery') {
-                                openGalleryLightbox(project.images, 0);
-                            } else {
-                                const mainImage = project.images[project.mainImageIndex] || project.images[0];
-                                openSingleLightbox(mainImage);
-                            }
-                            return;
+                        project = portfolioProjects.find(p => String(p.id) === projectId);
+                    }
+                    if (!project && projectIndex >= 0) {
+                        project = portfolioProjects[projectIndex];
+                    }
+
+                    if (project && Array.isArray(project.images) && project.images.length) {
+                        if (project.type === 'gallery') {
+                            openGalleryLightbox(project.images, 0);
+                        } else {
+                            const mainImage = project.images[project.mainImageIndex] || project.images[0];
+                            openSingleLightbox(mainImage);
                         }
+                        return;
                     }
 
                     const galleryData = item.getAttribute('data-gallery');
@@ -3060,7 +2506,7 @@
                             openGalleryLightbox(images, 0);
                             return;
                         } catch (e) {
-                            console.warn('Neplatná galerie v atributu.', e);
+                            console.warn('Neplatna galerie v atributu.', e);
                         }
                     }
 
@@ -3069,6 +2515,7 @@
                 });
             });
         }
+
 
         function openGalleryLightbox(images, startIndex) {
             if (!(lightbox && lightboxImg) || !images.length) return;
@@ -3123,7 +2570,7 @@
             updateControls();
         }
 
-        renderPortfolio();
+        loadPortfolioData();
         });
     </script>
 </body>

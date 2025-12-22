@@ -49,6 +49,29 @@ Moderní portfolio web kombinující fotografii a AI development, vytvořený po
 ## 📁 Struktura projektu
 
 ```
+
+## ?? Sprava portfolia bez backendu (GitHub Pages)
+
+1) Nahraj fotku do `assets/portfolio/`
+   - GitHub UI: `Add file` -> `Upload files`
+2) Pridej polozku do `data/portfolio.json`
+   - Priklad:
+```json
+[
+  {
+    "id": "portret-1",
+    "name": "Portret",
+    "category": "foto",
+    "type": "single",
+    "images": ["assets/portfolio/portret-1.jpg"],
+    "mainImageIndex": 0
+  }
+]
+```
+3) Commit/Push -> GitHub Pages se aktualizuje
+
+Doporuceni: pouzivej kratke nazvy bez mezer (napr. `sport-1.jpg`), obrazky predem zkomprimuj (napr. 1600px na delsi strane).
+
 portfolio-web/
 ├── index.html          # Hlavní soubor webu
 ├── README.md           # Tento soubor

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "portret-1",
+    "name": "Portret",
+    "category": "foto",
+    "type": "single",
+    "images": [
+      "assets/portfolio/portret-1.jpg"
+    ],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "sport-1",
+    "name": "Sport",
+    "category": "foto",
+    "type": "single",
+    "images": [
+      "assets/portfolio/sport-1.jpg"
+    ],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "ai-chatbot",
+    "name": "AI Chatbot",
+    "category": "ai",
+    "type": "single",
+    "images": [
+      "assets/portfolio/ai-chatbot.jpg"
+    ],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "produkt-1",
+    "name": "Produktova fotografie",
+    "category": "foto",
+    "type": "single",
+    "images": [
+      "assets/portfolio/produkt-1.jpg"
+    ],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "automatizace",
+    "name": "Automatizace",
+    "category": "ai",
+    "type": "single",
+    "images": [
+      "assets/portfolio/automatizace.jpg"
+    ],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "portret-2",
+    "name": "Portret",
+    "category": "foto",
+    "type": "single",
+    "images": [
+      "assets/portfolio/portret-2.jpg"
+    ],
+    "mainImageIndex": 0
+  }
+]
