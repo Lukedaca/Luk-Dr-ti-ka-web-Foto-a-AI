@@ -1,0 +1,10 @@
+# robots.txt pro lukasdrsticka.cz
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://lukasdrsticka.cz/sitemap.xml
+
+# Blokovat citlive soubory
+Disallow: /.git/
+Disallow: /.gitkeep

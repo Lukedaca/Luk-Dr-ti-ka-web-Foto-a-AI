@@ -32,6 +32,20 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
+    <!-- Performance: Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://formspree.io">
+
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#0a0e27" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#b7c2d2" media="(prefers-color-scheme: light)">
+
+    <!-- Additional SEO -->
+    <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -1080,17 +1094,17 @@
                         
                         <form id="contactForm" class="space-y-4" action="https://formspree.io/f/movlrlzj" method="POST">
                             <div>
-                                <label class="block text-sm text-gray-300 mb-2">Jm&#xE9;no</label>
-                                <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Va&#x161;e jm&#xE9;no" name="name" required>
+                                <label for="contactName" class="block text-sm text-gray-300 mb-2">Jm&#xE9;no</label>
+                                <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Va&#x161;e jm&#xE9;no" name="name" required autocomplete="name">
                             </div>
                             
                             <div>
-                                <label class="block text-sm text-gray-300 mb-2">Email</label>
-                                <input type="email" id="contactEmail" name="email" required class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="vas@email.cz">
+                                <label for="contactEmail" class="block text-sm text-gray-300 mb-2">Email</label>
+                                <input type="email" id="contactEmail" name="email" required autocomplete="email" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="vas@email.cz">
                             </div>
 
                             <div>
-                                <label class="block text-sm text-gray-300 mb-2">Typ slu&#x17E;by</label>
+                                <label for="contactService" class="block text-sm text-gray-300 mb-2">Typ slu&#x17E;by</label>
                                 <select id="contactService" name="service" class="w-full glass rounded-xl p-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="fotografie">Fotografie</option>
                                     <option value="ai">AI chatbot</option>
@@ -1100,7 +1114,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm text-gray-300 mb-2 flex items-center gap-2">
+                                <label for="contactMessage" class="block text-sm text-gray-300 mb-2 flex items-center gap-2">
                                     <span>Zpr&#xE1;va</span>
                                     <span class="text-xs text-blue-400">&#x1F916; AI v&#xE1;m pom&#x16F;&#x17E;e</span>
                                 </label>
