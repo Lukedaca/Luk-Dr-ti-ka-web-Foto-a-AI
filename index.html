@@ -48,7 +48,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Crimson+Pro:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 
     <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
@@ -705,9 +705,9 @@
     <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
 
     <!-- Custom Cursor Spotlight -->
-    <div id="cursorSpotlight" class="pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
+    <div id="cursorSpotlight" class="hidden md:block pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
 
-    <canvas id="neuralCanvas"></canvas>
+    <canvas id="neuralCanvas" class="hidden md:block"></canvas>
 
     <header class="fixed top-0 w-full z-50 glass">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -764,7 +764,7 @@
                     <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">Automatizace</span>
                 </div>
 
-                <h1 class="text-6xl md:text-8xl font-bold mb-4 gradient-text display-text flex items-center justify-center gap-2" style="font-family: 'Crimson Pro', serif;">
+                <h1 class="text-6xl md:text-8xl font-bold mb-4 gradient-text display-text flex items-center justify-center gap-2" style="font-family: 'Space Grotesk', sans-serif;">
                     <span id="typingText" class="font-semibold"></span>
                     <span id="typingCursor" class="inline-block w-1 h-12 bg-blue-500 ml-1 animate-pulse"></span>
                 </h1>
@@ -1532,7 +1532,7 @@
                 this.pointerDirty = false;
                 this.activityLevel = 0;
                 this.lastFrameTime = 0;
-                this.frameInterval = 1000 / 45;
+                this.frameInterval = 1000 / 24;
                 this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 this.isPaused = false;
                 this.width = 0;
@@ -1578,7 +1578,7 @@
             }
 
             init() {
-                const layers = [7, 12, 10, 7];
+                const layers = [5, 8, 6, 5];
                 const spacing = this.width / (layers.length + 1);
                 
                 layers.forEach((count, layerIndex) => {
@@ -1703,7 +1703,7 @@
         }
 
         const neuralCanvas = document.getElementById('neuralCanvas');
-        const neuralViz = neuralCanvas ? new NeuralNetworkVisualization(neuralCanvas) : null;
+        let neuralViz = null; if (neuralCanvas) { setTimeout(() => { neuralViz = new NeuralNetworkVisualization(neuralCanvas); }, 1000); }
 
         // AI WRITING ASSISTANT
         class AIWritingAssistant {
