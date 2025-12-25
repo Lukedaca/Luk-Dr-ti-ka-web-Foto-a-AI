@@ -1,0 +1,27 @@
+{
+  "name": "Luk\u00e1\u0161 Dr\u0161ti\u010dka - Fotograf & AI Developer",
+  "short_name": "LD Portfolio",
+  "description": "Portfolio fotografa a AI developera z P\u0159erova. Profesion\u00e1ln\u00ed fotografie a AI \u0159e\u0161en\u00ed na m\u00edru.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0e27",
+  "theme_color": "#3b82f6",
+  "lang": "cs",
+  "categories": ["photography", "portfolio", "business"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
