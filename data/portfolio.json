@@ -5,7 +5,7 @@
     "category": "foto",
     "type": "single",
     "images": [
-      "assets/portfolio/portret-1.jpg"
+      "assets/fallback.jpg"
     ],
     "mainImageIndex": 0
   },
@@ -15,7 +15,7 @@
     "category": "foto",
     "type": "single",
     "images": [
-      "assets/portfolio/sport-1.jpg"
+      "assets/fallback.jpg"
     ],
     "mainImageIndex": 0
   },
@@ -25,7 +25,7 @@
     "category": "ai",
     "type": "single",
     "images": [
-      "assets/portfolio/ai-chatbot.jpg"
+      "assets/fallback.jpg"
     ],
     "mainImageIndex": 0
   },
@@ -35,7 +35,7 @@
     "category": "foto",
     "type": "single",
     "images": [
-      "assets/portfolio/produkt-1.jpg"
+      "assets/fallback.jpg"
     ],
     "mainImageIndex": 0
   },
@@ -45,7 +45,7 @@
     "category": "ai",
     "type": "single",
     "images": [
-      "assets/portfolio/automatizace.jpg"
+      "assets/fallback.jpg"
     ],
     "mainImageIndex": 0
   },
@@ -55,7 +55,7 @@
     "category": "foto",
     "type": "single",
     "images": [
-      "assets/portfolio/portret-2.jpg"
+      "assets/fallback.jpg"
     ],
     "mainImageIndex": 0
   }
