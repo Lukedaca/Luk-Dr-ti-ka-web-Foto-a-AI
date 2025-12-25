@@ -2107,6 +2107,8 @@
                     sentiment: 'neutral',
                     lastTopic: null
                 };
+                this.onOpenChat = null;
+                this.onCloseChat = null;
                 
                 this.knowledgeBase = this.buildKnowledgeBase();
                 this.synonyms = this.buildSynonyms();
@@ -2128,6 +2130,8 @@
                     { text: '\u2728 Fotograf AI', value: 'Jak funguje Fotograf AI?' },
                     { text: '\ud83d\udcb0 Ceny', value: 'Kolik to stoj\u00ed?' }
                 ];
+
+                this.init();
             }
 
             buildKnowledgeBase() {
@@ -2285,6 +2289,27 @@
                         ]
                     }
                 };
+            }
+
+            init() {
+                this.initScrollTriggers();
+                this.initExitIntent();
+                this.initIdlePrompt();
+            }
+
+            setChatHandlers(openHandler, closeHandler) {
+                this.onOpenChat = openHandler;
+                this.onCloseChat = closeHandler;
+            }
+
+            openChat() {
+                if (this.onOpenChat) this.onOpenChat();
+                this.isChatOpen = true;
+            }
+
+            closeChat() {
+                if (this.onCloseChat) this.onCloseChat();
+                this.isChatOpen = false;
             }
 
             normalizeText(text) {
@@ -2478,6 +2503,52 @@
                 });
             }
 
+            initScrollTriggers() {
+                const triggers = {
+                    'portfolio': 'L\u00edb\u00ed se v\u00e1m n\u011bco z portfolia? R\u00e1d zodpov\u00edm dotazy!',
+                    'kontakt': 'Pot\u0159ebujete pomoct s kontaktn\u00edm formul\u00e1\u0159em?',
+                    'skills': 'Zaj\u00edm\u00e1 v\u00e1s n\u011bkter\u00e1 z m\u00fdch dovednost\u00ed v\u00edce?'
+                };
+                const shown = {};
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const id = entry.target.id;
+                        if (entry.isIntersecting && !shown[id] && triggers[id]) {
+                            shown[id] = true;
+                            setTimeout(() => {
+                                if (this.isChatOpen) {
+                                    addMessage('bot', triggers[id], 0.9, 'proactive');
+                                    this.addBotMessage(triggers[id], 0.9, 'proactive');
+                                }
+                            }, 2000);
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                Object.keys(triggers).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) observer.observe(el);
+                });
+            }
+
+            initExitIntent() {
+                let shown = false;
+
+                document.addEventListener('mouseleave', (e) => {
+                    if (e.clientY < 10 && !shown) {
+                        shown = true;
+                        if (!this.isChatOpen) {
+                            this.openChat();
+                        }
+                        setTimeout(() => {
+                            addMessage('bot', 'Odch\u00e1z\u00edte? Pokud m\u00e1te dotaz, r\u00e1d pomohu!', 0.9, 'proactive');
+                            this.addBotMessage('Odch\u00e1z\u00edte? Pokud m\u00e1te dotaz, r\u00e1d pomohu!', 0.9, 'proactive');
+                        }, 500);
+                    }
+                });
+            }
+
             saveSession() {
                 localStorage.setItem('chatbot_session', JSON.stringify({
                     history: this.conversationHistory,
@@ -2498,12 +2569,20 @@
 
             initIdlePrompt() {
                 let timer;
+                let idleCount = 0;
+                const messages = [
+                    'St\u00e1le jsem tu, kdybyste n\u011bco pot\u0159ebovali!',
+                    'Tip: Zeptejte se m\u011b na focen\u00ed nebo AI slu\u017eby.',
+                    'Mohu v\u00e1m pomoci vybrat spr\u00e1vnou slu\u017ebu?'
+                ];
+
                 const reset = () => {
                     clearTimeout(timer);
                     timer = setTimeout(() => {
-                        if (this.isChatOpen) {
-                            addMessage('bot', 'St\u00e1le jsem tu, kdybyste n\u011bco pot\u0159ebovali!');
-                            this.addBotMessage('St\u00e1le jsem tu, kdybyste n\u011bco pot\u0159ebovali!', 0.4, 'idle');
+                        if (this.isChatOpen && idleCount < 2) {
+                            addMessage('bot', messages[idleCount], 0.8, 'proactive');
+                            this.addBotMessage(messages[idleCount], 0.8, 'proactive');
+                            idleCount++;
                         }
                     }, 45000);
                 };
@@ -2642,10 +2721,28 @@
                 });
             }
 
+            const setChatOpenState = (isOpen) => {
+                chatOpen = isOpen;
+                chatbot.isChatOpen = isOpen;
+            };
+            chatbot.setChatHandlers(
+                () => {
+                    chatWindow.classList.remove('hidden');
+                    setChatOpenState(true);
+                },
+                () => {
+                    chatWindow.classList.add('hidden');
+                    setChatOpenState(false);
+                }
+            );
+
             chatBtn.addEventListener('click', () => {
-                chatWindow.classList.toggle('hidden');
-                chatOpen = !chatOpen;
-                chatbot.isChatOpen = chatOpen;
+                const nextOpen = chatWindow.classList.contains('hidden');
+                if (nextOpen) {
+                    chatbot.openChat();
+                } else {
+                    chatbot.closeChat();
+                }
                 if (chatOpen) {
                     unreadCount = 0;
                     updateUnreadBadge();
@@ -2657,9 +2754,7 @@
             });
 
             closeChat.addEventListener('click', () => {
-                chatWindow.classList.add('hidden');
-                chatOpen = false;
-                chatbot.isChatOpen = false;
+                chatbot.closeChat();
             });
 
             clearChat.addEventListener('click', () => {
@@ -2680,8 +2775,7 @@
 
             // Pro jistotu resetujeme badge p\u0159i na\u010dten\u00ed
             updateUnreadBadge();
-            chatbot.isChatOpen = chatOpen;
-            chatbot.initIdlePrompt();
+            setChatOpenState(chatOpen);
         }
 
         function addMessage(sender, text, confidence = null, intent = null, isHistory = false) {
