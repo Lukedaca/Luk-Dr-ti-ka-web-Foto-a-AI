@@ -95,7 +95,7 @@
             --bg-primary: #0a0e27;
             --bg-secondary: #1a1f3a;
             --text-primary: #ffffff;
-            --text-secondary: #9ca3af;
+            --text-secondary: #6b7280;
             --accent-blue: #3b82f6;
             --accent-purple: #8b5cf6;
             --glass-bg: rgba(255, 255, 255, 0.05);
@@ -129,6 +129,38 @@
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: var(--accent-blue);
+            color: #ffffff;
+            font-weight: 600;
+            z-index: 200;
+            transform: translateY(-200%);
+            transition: transform 0.2s ease;
+        }
+
+        .skip-link:focus,
+        .skip-link:focus-visible {
+            transform: translateY(0);
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+        }
+
+        #themeToggle,
+        .quick-reply-btn,
+        #lightboxPrev,
+        #lightboxNext {
+            min-width: 44px;
+            min-height: 44px;
         }
 
         body::before,
@@ -701,6 +733,7 @@
     </style>
 </head>
 <body class="text-white">
+    <a href="#main-content" class="skip-link">Přeskočit na obsah</a>
     <!-- Scroll Progress Bar -->
     <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
 
@@ -749,7 +782,7 @@
         </div>
     </header>
 
-    <main class="pt-20">
+    <main id="main-content" class="pt-20">
         <!-- Hero Section -->
         <section class="min-h-screen flex items-center justify-center px-6 relative mesh-gradient">
             <div class="hero-ambient">
@@ -1227,27 +1260,27 @@
             &#x1F916;
             <span id="unreadBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">0</span>
         </button>
-        <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: 550px;">
+        <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: 550px;" role="dialog" aria-modal="true">
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex justify-between items-center rounded-t-2xl">
                 <h3 class="font-bold text-lg">&#x1F916; AI Asistent</h3>
                 <div class="flex gap-2">
-                    <button id="clearChat" class="text-xl hover:text-gray-200" title="Smazat historii">&#x1F5D1;&#xFE0F;</button>
-                    <button id="closeChat" class="text-2xl hover:text-gray-200">&times;</button>
+                    <button id="clearChat" class="text-xl hover:text-gray-200" title="Smazat historii" aria-label="Smazat historii">&#x1F5D1;&#xFE0F;</button>
+                    <button id="closeChat" class="text-2xl hover:text-gray-200" aria-label="Zavřít chat">&times;</button>
                 </div>
             </div>
-            <div id="messages" class="flex-1 p-4 overflow-y-auto"></div>
+            <div id="messages" class="flex-1 p-4 overflow-y-auto" aria-live="polite"></div>
             <div id="quickReplies" class="px-4 pb-2 hidden"></div>
             <div class="p-4 border-t border-white/10">
                 <div class="flex gap-2">
                     <input type="text" id="chatInput" placeholder="Napi&#x161;te zpr&#xE1;vu..." class="flex-1 glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button id="sendBtn" class="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold">&#x2191;</button>
+                    <button id="sendBtn" class="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold" aria-label="Odeslat zprávu">&#x2191;</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Galerie">
-        <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10">&times;</button>
+        <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10" aria-label="Zavřít galerii">&times;</button>
         <div id="lightboxControls" class="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
             <button id="lightboxPrev" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="P&#x159;edchoz&#xED; fotka">&#x2039;</button>
             <button id="lightboxNext" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Dal&#x161;&#xED; fotka">&#x203A;</button>
