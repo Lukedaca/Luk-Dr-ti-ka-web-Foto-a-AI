@@ -13,20 +13,20 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://lukasdrsticka.cz/">
+    <meta property="og:url" content="https://lukasdrsticka.netlify.app/">
     <meta property="og:title" content="Luk&#xE1;&#x161; Dr&#x161;ti&#x10D;ka - Fotograf & AI Developer">
     <meta property="og:description" content="Profesion&#xE1;ln&#xED; fotografie a AI &#x159;e&#x161;en&#xED; na m&#xED;ru. Propojuji kreativitu s technologi&#xED;.">
     <meta property="og:site_name" content="Luk&#xE1;&#x161; Dr&#x161;ti&#x10D;ka Portfolio">
-    <meta property="og:image" content="https://lukasdrsticka.cz/og-image.svg">
+    <meta property="og:image" content="https://lukasdrsticka.netlify.app/og-image.svg">
     <meta property="og:locale" content="cs_CZ">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://lukasdrsticka.cz/">
+    <meta name="twitter:url" content="https://lukasdrsticka.netlify.app/">
     <meta name="twitter:title" content="Luk&#xE1;&#x161; Dr&#x161;ti&#x10D;ka - Fotograf & AI Developer">
     <meta name="twitter:description" content="Profesion&#xE1;ln&#xED; fotografie a AI &#x159;e&#x161;en&#xED; na m&#xED;ru. Propojuji kreativitu s technologi&#xED;.">
-    <meta name="twitter:image" content="https://lukasdrsticka.cz/og-image.svg">
-    <link rel="canonical" href="https://lukasdrsticka.cz/">
+    <meta name="twitter:image" content="https://lukasdrsticka.netlify.app/og-image.svg">
+    <link rel="canonical" href="https://lukasdrsticka.netlify.app/">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -56,7 +56,7 @@
       "@context": "https://schema.org",
       "@type": "Person",
       "name": "Luk\u00e1\u0161 Dr\u0161ti\u010dka",
-      "url": "https://lukasdrsticka.cz",
+      "url": "https://lukasdrsticka.netlify.app",
       "email": "lukas.drsticka@gmail.com",
       "jobTitle": "Fotograf & AI Developer",
       "address": {
@@ -1165,11 +1165,12 @@
                     <div>
                         <h4 class="font-semibold mb-3">&#x1F4EC; Newsletter</h4>
                         <form id="newsletterForm" class="flex gap-2">
-                            <input type="email" placeholder="vas@email.cz" class="flex-1 glass rounded-xl px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="email" name="email" placeholder="vas@email.cz" autocomplete="email" required class="flex-1 glass rounded-xl px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsletterStatus">
                             <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-semibold hover:opacity-90 transition">
                                 Odeb&#xED;rat
                             </button>
                         </form>
+                        <p id="newsletterStatus" class="text-xs text-gray-400 mt-2" role="status" aria-live="polite"></p>
                     </div>
                 </div>
 
@@ -1245,7 +1246,7 @@
         </div>
     </div>
 
-    <div id="lightbox" class="lightbox">
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Galerie">
         <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10">&times;</button>
         <div id="lightboxControls" class="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
             <button id="lightboxPrev" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="P&#x159;edchoz&#xED; fotka">&#x2039;</button>
@@ -1516,8 +1517,14 @@
         if (newsletterForm) {
             newsletterForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const email = e.target.querySelector('input[type="email"]').value;
-                alert(`D\u011bkujeme! Newsletter bude zas\u00edl\u00e1n na: ${email}`);
+                const statusEl = document.getElementById('newsletterStatus');
+                const emailInput = e.target.querySelector('input[type="email"]');
+                const email = emailInput ? emailInput.value.trim() : '';
+                if (!email) {
+                    if (statusEl) statusEl.textContent = 'Zadejte prosim email.';
+                    return;
+                }
+                if (statusEl) statusEl.textContent = `Dekuji! Newsletter bude zaslan na: ${email}`;
                 e.target.reset();
             });
         }
@@ -2233,13 +2240,19 @@
             }
         }
 
-        function openSingleLightbox(src) {
+        function setLightboxImage(src, altText) {
+            if (!lightboxImg) return;
+            lightboxImg.src = src;
+            lightboxImg.alt = altText || 'Fotografie';
+        }
+
+        function openSingleLightbox(src, altText) {
             if (!(lightbox && lightboxImg)) return;
             if (galleryKeyHandler) {
                 document.removeEventListener('keydown', galleryKeyHandler);
                 galleryKeyHandler = null;
             }
-            lightboxImg.src = src;
+            setLightboxImage(src, altText);
             lightbox.classList.add('active');
             setLightboxControls(false);
         }
@@ -2491,6 +2504,7 @@
                 if (item.dataset.lightboxBound === 'true') return;
                 item.dataset.lightboxBound = 'true';
                 item.addEventListener('click', () => {
+                    const fallbackTitle = item.querySelector('.portfolio-title')?.textContent?.trim() || 'Portfolio';
                     const projectId = item.getAttribute('data-project-id');
                     const projectIndex = parseInt(item.getAttribute('data-project-index') || '-1', 10);
                     let project = null;
@@ -2503,11 +2517,12 @@
                     }
 
                     if (project && Array.isArray(project.images) && project.images.length) {
+                        const projectTitle = project.name || fallbackTitle;
                         if (project.type === 'gallery') {
-                            openGalleryLightbox(project.images, 0);
+                            openGalleryLightbox(project.images, 0, projectTitle);
                         } else {
                             const mainImage = project.images[project.mainImageIndex] || project.images[0];
-                            openSingleLightbox(mainImage);
+                            openSingleLightbox(mainImage, projectTitle);
                         }
                         return;
                     }
@@ -2516,25 +2531,29 @@
                     if (galleryData) {
                         try {
                             const images = JSON.parse(galleryData);
-                            openGalleryLightbox(images, 0);
+                            openGalleryLightbox(images, 0, fallbackTitle);
                             return;
                         } catch (e) {
                             console.warn('Neplatna galerie v atributu.', e);
                         }
                     }
 
-                    const img = item.querySelector('img')?.src;
-                    if (img) openSingleLightbox(img);
+                    const img = item.querySelector('img');
+                    if (img) openSingleLightbox(img.src, img.alt || fallbackTitle);
                 });
             });
         }
 
 
-        function openGalleryLightbox(images, startIndex) {
+        function openGalleryLightbox(images, startIndex, altText) {
             if (!(lightbox && lightboxImg) || !images.length) return;
             let currentIndex = startIndex;
+            const baseAlt = altText || 'Galerie';
             const setImage = () => {
-                lightboxImg.src = images[currentIndex];
+                setLightboxImage(
+                    images[currentIndex],
+                    images.length > 1 ? `${baseAlt} (${currentIndex + 1}/${images.length})` : baseAlt
+                );
             };
             const updateControls = () => {
                 if (!lightboxPrev || !lightboxNext) return;

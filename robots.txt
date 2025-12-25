@@ -1,9 +1,9 @@
-# robots.txt pro lukasdrsticka.cz
+# robots.txt pro lukasdrsticka.netlify.app
 User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://lukasdrsticka.cz/sitemap.xml
+Sitemap: https://lukasdrsticka.netlify.app/sitemap.xml
 
 # Blokovat citlive soubory
 Disallow: /.git/
