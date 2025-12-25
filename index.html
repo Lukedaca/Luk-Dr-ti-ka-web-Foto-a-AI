@@ -2100,6 +2100,7 @@
         class EnhancedChatbot {
             constructor() {
                 this.conversationHistory = [];
+                this.isChatOpen = false;
                 this.userContext = {
                     intent: null,
                     entities: {},
@@ -2110,6 +2111,23 @@
                 this.knowledgeBase = this.buildKnowledgeBase();
                 this.synonyms = this.buildSynonyms();
                 this.intents = this.buildIntents();
+                this.sentimentWords = {
+                    positive: ['skv\u011ble', 'super', 'd\u00edky', 'perfektn\u00ed', 'v\u00fdborn\u011b', 'ano'],
+                    negative: ['probl\u00e9m', 'nefunguje', '\u0161patn\u00e9', 'nel\u00edb\u00ed', 'bohu\u017eel', 'nejde']
+                };
+                this.faq = [
+                    { patterns: ['jak dlouho', 'trv\u00e1 focen\u00ed'], answer: 'Portr\u00e9tn\u00ed session 1-2 hodiny, sport dle akce.' },
+                    { patterns: ['kdy dostanu', 'dod\u00e1n\u00ed fotek'], answer: 'Fotky dod\u00e1v\u00e1m do 7-14 dn\u016f.' },
+                    { patterns: ['kde fot\u00edte', 'lokalita'], answer: 'S\u00eddl\u00edm v P\u0159erov\u011b, fot\u00edm po cel\u00e9 Morav\u011b.' },
+                    { patterns: ['co je fotograf ai'], answer: 'Moje autorsk\u00e1 aplikace pro AI postprodukci fotek.' },
+                    { patterns: ['form\u00e1t', 'raw', 'jpg'], answer: 'Standardn\u011b JPEG, RAW na vy\u017e\u00e1d\u00e1n\u00ed.' }
+                ];
+                this.defaultQuickReplies = [
+                    { text: '\ud83d\udcf7 Portr\u00e9ty', value: 'D\u011bl\u00e1\u0161 portr\u00e9tn\u00ed focen\u00ed?' },
+                    { text: '\ud83c\udfdf\ufe0f Sport', value: 'Fot\u00ed\u0161 sportovn\u00ed akce?' },
+                    { text: '\u2728 Fotograf AI', value: 'Jak funguje Fotograf AI?' },
+                    { text: '\ud83d\udcb0 Ceny', value: 'Kolik to stoj\u00ed?' }
+                ];
             }
 
             buildKnowledgeBase() {
@@ -2267,8 +2285,29 @@
                     .trim();
             }
 
+            levenshteinDistance(str1, str2) {
+                const m = str1.length, n = str2.length;
+                const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+                for (let i = 0; i <= m; i++) dp[i][0] = i;
+                for (let j = 0; j <= n; j++) dp[0][j] = j;
+                for (let i = 1; i <= m; i++) {
+                    for (let j = 1; j <= n; j++) {
+                        dp[i][j] = str1[i - 1] === str2[j - 1]
+                            ? dp[i - 1][j - 1]
+                            : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+                    }
+                }
+                return dp[m][n];
+            }
+
+            wordSimilarity(word1, word2) {
+                const distance = this.levenshteinDistance(word1.toLowerCase(), word2.toLowerCase());
+                return 1 - distance / Math.max(word1.length, word2.length);
+            }
+
             detectIntent(text) {
                 const normalized = this.normalizeText(text);
+                const normalizedWords = normalized.split(/\s+/).filter(Boolean);
                 let bestIntent = null;
                 let maxConfidence = 0;
 
@@ -2297,6 +2336,12 @@
                                 score = 0.75;
                             }
                         }
+
+                        normalizedWords.forEach(word => {
+                            if (this.wordSimilarity(word, normalizedPattern) > 0.75) {
+                                score += 0.8;
+                            }
+                        });
                         
                         if (score > maxScore) maxScore = score;
                     });
@@ -2327,6 +2372,52 @@
                 return entities;
             }
 
+            getConversationContext() {
+                const recent = this.conversationHistory.slice(-5);
+                const lastWithIntent = [...recent].reverse().find(m => m.intent);
+                return {
+                    lastIntent: lastWithIntent?.intent,
+                    mentionedServices: recent
+                        .filter(m => m.entities?.services)
+                        .flatMap(m => m.entities.services),
+                    messageCount: recent.length
+                };
+            }
+
+            analyzeSentiment(input) {
+                const normalized = this.normalizeText(input);
+                let score = 0;
+                this.sentimentWords.positive.forEach(w => normalized.includes(this.normalizeText(w)) && score++);
+                this.sentimentWords.negative.forEach(w => normalized.includes(this.normalizeText(w)) && score--);
+                return score > 0 ? 'positive' : score < 0 ? 'negative' : 'neutral';
+            }
+
+            getContextualQuickReplies() {
+                const ctx = this.getConversationContext();
+                const lastIntent = ctx.lastIntent || this.userContext.intent;
+                if (lastIntent === 'photography') {
+                    return [
+                        { text: ' \u23f0 Term\u00edny', value: 'Jak\u00e9 m\u00e1te term\u00edny?' },
+                        { text: ' \ud83d\udccd Kde fot\u00edte?', value: 'Kde fot\u00edte?' }
+                    ];
+                }
+                if (lastIntent === 'ai_services') {
+                    return [
+                        { text: ' \u2728 Fotograf AI', value: 'Co je Fotograf AI?' },
+                        { text: ' \ud83e\udd16 Chatboty', value: 'D\u011bl\u00e1te chatboty?' }
+                    ];
+                }
+                return this.defaultQuickReplies;
+            }
+
+            findFaqAnswer(input) {
+                const normalized = this.normalizeText(input);
+                for (const item of this.faq) {
+                    if (item.patterns.some(p => normalized.includes(this.normalizeText(p)))) return item.answer;
+                }
+                return null;
+            }
+
             generateResponse(userMessage) {
                 const intentResult = this.detectIntent(userMessage);
                 const entities = this.extractEntities(userMessage);
@@ -2334,6 +2425,7 @@
                 if (entities.services.length > 0) {
                     const service = entities.services[0];
                     this.userContext.lastTopic = service.service;
+                    console.debug('[Chatbot] Intent: service_info, Confidence: 0.85');
                     return {
                         response: `${service.data.description}. Chce\u0161 v\u011bd\u011bt v\u00edc o cen\u00e1ch nebo kontaktu?`,
                         confidence: 0.85,
@@ -2344,6 +2436,7 @@
                 if (intentResult.intent && intentResult.confidence > 0.6) {
                     const responses = this.intents[intentResult.intent].responses;
                     this.userContext.intent = intentResult.intent;
+                    console.debug(`[Chatbot] Intent: ${intentResult.intent}, Confidence: ${intentResult.confidence}`);
                     return {
                         response: responses[Math.floor(Math.random() * responses.length)],
                         confidence: intentResult.confidence,
@@ -2351,11 +2444,21 @@
                     };
                 }
 
+                console.debug(`[Chatbot] Intent: fallback, Confidence: 0.3`);
                 return {
                     response: 'Zaj\u00edmav\u00e1 ot\u00e1zka! M\u016f\u017eu poradit se sportovn\u00ed/portr\u00e9tn\u00ed fotkou, Fotograf AI nebo cenami. Co z toho je pro tebe nejd\u016fle\u017eit\u011bj\u0161\u00ed?',
                     confidence: 0.3,
                     intent: 'fallback'
                 };
+            }
+
+            addUserMessage(message, entities = {}) {
+                this.conversationHistory.push({
+                    role: 'user',
+                    message,
+                    entities,
+                    timestamp: Date.now()
+                });
             }
 
             addBotMessage(message, confidence, intent) {
@@ -2364,6 +2467,66 @@
                     message, confidence, intent,
                     timestamp: Date.now()
                 });
+            }
+
+            saveSession() {
+                localStorage.setItem('chatbot_session', JSON.stringify({
+                    history: this.conversationHistory,
+                    context: this.userContext,
+                    timestamp: Date.now()
+                }));
+            }
+
+            loadSession() {
+                const saved = JSON.parse(localStorage.getItem('chatbot_session'));
+                if (saved && Date.now() - saved.timestamp < 86400000) {
+                    this.conversationHistory = saved.history || [];
+                    this.userContext = saved.context || this.userContext;
+                    return true;
+                }
+                return false;
+            }
+
+            initIdlePrompt() {
+                let timer;
+                const reset = () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        if (this.isChatOpen) {
+                            addMessage('bot', 'St\u00e1le jsem tu, kdybyste n\u011bco pot\u0159ebovali!');
+                            this.addBotMessage('St\u00e1le jsem tu, kdybyste n\u011bco pot\u0159ebovali!', 0.4, 'idle');
+                        }
+                    }, 45000);
+                };
+                document.addEventListener('mousemove', reset);
+                document.addEventListener('keypress', reset);
+                reset();
+            }
+
+            processMessage(input, entitiesOverride = null) {
+                const sentiment = this.analyzeSentiment(input);
+                const entities = entitiesOverride || this.extractEntities(input);
+                const faqAnswer = this.findFaqAnswer(input);
+                this.userContext.sentiment = sentiment;
+                if (entities.services.length) {
+                    const categories = entities.services.map(s => s.category);
+                    if (categories.includes('photography')) this.userContext.intent = 'photography';
+                    if (categories.includes('ai')) this.userContext.intent = 'ai_services';
+                }
+
+                if (faqAnswer) {
+                    addMessage('bot', faqAnswer);
+                    this.addBotMessage(faqAnswer, 0.9, 'faq');
+                } else {
+                    let responseObj = this.generateResponse(input);
+                    let responseText = responseObj.response;
+                    if (sentiment === 'negative') responseText = 'Ch\u00e1pu. ' + responseText;
+                    addMessage('bot', responseText, responseObj.confidence, responseObj.intent);
+                    this.addBotMessage(responseText, responseObj.confidence, responseObj.intent);
+                }
+
+                renderQuickReplies();
+                this.saveSession();
             }
         }
 
@@ -2464,15 +2627,22 @@
                 return;
             }
 
+            if (chatbot.loadSession() && chatbot.conversationHistory.length) {
+                chatbot.conversationHistory.forEach((entry) => {
+                    addMessage(entry.role, entry.message, entry.confidence, entry.intent, true);
+                });
+            }
+
             chatBtn.addEventListener('click', () => {
                 chatWindow.classList.toggle('hidden');
                 chatOpen = !chatOpen;
+                chatbot.isChatOpen = chatOpen;
                 if (chatOpen) {
                     unreadCount = 0;
                     updateUnreadBadge();
                     if (messages.children.length === 0) {
                         addMessage('bot', 'Ahoj! Tady Luk\u00e1\u0161. M\u00e1m AI asistenta, kter\u00fd ti pom\u016f\u017ee. Na co se chce\u0161 zeptat?', 0.95, 'greeting');
-                        showQuickReplies();
+                        renderQuickReplies();
                     }
                 }
             });
@@ -2480,15 +2650,17 @@
             closeChat.addEventListener('click', () => {
                 chatWindow.classList.add('hidden');
                 chatOpen = false;
+                chatbot.isChatOpen = false;
             });
 
             clearChat.addEventListener('click', () => {
                 if (confirm('Smazat celou historii?')) {
                     messages.innerHTML = '';
                     storage.remove(CHAT_STORAGE_KEY);
+                    localStorage.removeItem('chatbot_session');
                     chatbot = new EnhancedChatbot();
                     addMessage('bot', 'Historie smaz\u00e1na. M\u016f\u017eeme za\u010d\u00edt znovu!', 1.0, 'system');
-                    showQuickReplies();
+                    renderQuickReplies();
                 }
             });
 
@@ -2499,9 +2671,11 @@
 
             // Pro jistotu resetujeme badge p\u0159i na\u010dten\u00ed
             updateUnreadBadge();
+            chatbot.isChatOpen = chatOpen;
+            chatbot.initIdlePrompt();
         }
 
-        function addMessage(sender, text, confidence = null, intent = null) {
+        function addMessage(sender, text, confidence = null, intent = null, isHistory = false) {
             const time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
             const div = document.createElement('div');
             div.className = `chat-message mb-4 flex gap-2 ${sender === 'user' ? 'flex-row-reverse' : ''}`;
@@ -2509,26 +2683,18 @@
             const avatar = sender === 'user' ? '\ud83d\udc64' : '\ud83e\udd16';
             const avatarBg = sender === 'user' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass';
 
-            let confidenceIndicator = '';
-            if (confidence !== null && sender === 'bot') {
-                const confidencePercent = Math.round(confidence * 100);
-                let color = confidence < 0.5 ? 'text-red-400' : confidence < 0.75 ? 'text-yellow-400' : 'text-green-400';
-                confidenceIndicator = `<div class="confidence-indicator ${color}">Jistota: ${confidencePercent}% | ${intent}</div>`;
-            }
-
             div.innerHTML = `
                 <div class="message-avatar ${avatarBg}">${avatar}</div>
                 <div class="flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'} max-w-xs">
                     <div class="p-3 rounded-xl ${sender === 'user' ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass'}">${text}</div>
                     <div class="message-time">${time}</div>
-                    ${confidenceIndicator}
                 </div>
             `;
 
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
 
-            if (sender === 'bot' && !chatOpen) {
+            if (!isHistory && sender === 'bot' && !chatOpen) {
                 unreadCount++;
                 updateUnreadBadge();
             }
@@ -2552,13 +2718,8 @@
             document.getElementById('typingIndicator')?.remove();
         }
 
-        function showQuickReplies() {
-            const replies = [
-                { text: '\ud83d\udcf7 Portr\u00e9ty', value: 'D\u011bl\u00e1\u0161 portr\u00e9tn\u00ed focen\u00ed?' },
-                { text: '\ud83c\udfdf\ufe0f Sport', value: 'Fot\u00ed\u0161 sportovn\u00ed akce?' },
-                { text: '\u2728 Fotograf AI', value: 'Jak funguje Fotograf AI?' },
-                { text: '\ud83d\udcb0 Ceny', value: 'Kolik to stoj\u00ed?' }
-            ];
+        function renderQuickReplies() {
+            const replies = chatbot.getContextualQuickReplies();
             
             quickReplies.innerHTML = replies.map(r =>
                 `<button class="quick-reply-btn glass px-4 py-2 rounded-full text-sm mr-2 mb-2" aria-label="Rychl\u00e1 odpov\u011b\u010f: ${r.text}">${r.text}</button>`
@@ -2581,14 +2742,14 @@
             quickReplies.classList.add('hidden');
             addMessage('user', text);
             chatInput.value = '';
+            const entities = chatbot.extractEntities(text);
+            chatbot.addUserMessage(text, entities);
 
             showTypingIndicator();
 
             setTimeout(() => {
                 removeTypingIndicator();
-                const result = chatbot.generateResponse(text);
-                addMessage('bot', result.response, result.confidence, result.intent);
-                chatbot.addBotMessage(result.response, result.confidence, result.intent);
+                chatbot.processMessage(text, entities);
             }, 1000);
         }
 
