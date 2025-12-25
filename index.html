@@ -173,16 +173,6 @@
             display: block;
         }
 
-        .pause-canvas {
-            position: fixed;
-            right: 16px;
-            bottom: 96px;
-            z-index: 60;
-            padding: 8px 12px;
-            border-radius: 999px;
-            font-size: 16px;
-        }
-
         :focus-visible {
             outline: 2px solid var(--accent-blue);
             outline-offset: 2px;
@@ -786,7 +776,6 @@
     <div id="cursorSpotlight" class="hidden md:block pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
 
     <canvas id="neuralCanvas" class="hidden md:block" aria-hidden="true"></canvas>
-    <button id="pauseCanvas" class="pause-canvas glass" aria-label="Pozastavit animaci pozad&#xED;" aria-pressed="false">&#x23F8;&#xFE0F;</button>
 
     <header class="fixed top-0 w-full z-50 glass">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -1613,6 +1602,20 @@
                 e.target.reset();
             });
         }
+        const isLowPowerDevice = () => {
+            const cores = navigator.hardwareConcurrency || 4;
+            const memory = navigator.deviceMemory || 4;
+            const connection = navigator.connection;
+            const saveData = connection && connection.saveData;
+            const effectiveType = connection && connection.effectiveType;
+            return Boolean(
+                saveData ||
+                memory <= 4 ||
+                cores <= 4 ||
+                (effectiveType && effectiveType.includes('2g'))
+            );
+        };
+
         class NeuralNetworkVisualization {
             constructor(canvas) {
                 this.canvas = canvas;
@@ -1625,10 +1628,15 @@
                 this.activityLevel = 0;
                 this.lastFrameTime = 0;
                 this.frameInterval = 1000 / 24;
+                this.lowPower = isLowPowerDevice();
                 this.reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 this.isPaused = false;
                 this.width = 0;
                 this.height = 0;
+
+                if (this.lowPower) {
+                    this.frameInterval = 1000 / 12;
+                }
                 
                 this.resize();
                 this.animate();
@@ -1670,7 +1678,7 @@
             }
 
             init() {
-                const layers = [5, 8, 6, 5];
+                const layers = this.lowPower ? [4, 6, 4] : [5, 8, 6, 5];
                 const spacing = this.width / (layers.length + 1);
                 
                 layers.forEach((count, layerIndex) => {
@@ -1795,46 +1803,11 @@
         }
 
         const neuralCanvas = document.getElementById('neuralCanvas');
-        const pauseCanvasBtn = document.getElementById('pauseCanvas');
         let neuralViz = null;
-
-        const updatePauseCanvasButton = (paused, isDisabled = false) => {
-            if (!pauseCanvasBtn) return;
-            pauseCanvasBtn.disabled = isDisabled;
-            pauseCanvasBtn.setAttribute('aria-pressed', String(paused));
-            pauseCanvasBtn.textContent = paused ? '\u25B6\uFE0F' : '\u23F8\uFE0F';
-            pauseCanvasBtn.setAttribute(
-                'aria-label',
-                isDisabled
-                    ? 'Animace pozad\u00ed je vypnuta'
-                    : paused
-                        ? 'Spustit animaci pozad\u00ed'
-                        : 'Pozastavit animaci pozad\u00ed'
-            );
-        };
-
         if (neuralCanvas) {
             setTimeout(() => {
                 neuralViz = new NeuralNetworkVisualization(neuralCanvas);
-                if (neuralViz.reduceMotion) {
-                    updatePauseCanvasButton(true, true);
-                }
             }, 1000);
-        } else if (pauseCanvasBtn) {
-            pauseCanvasBtn.disabled = true;
-        }
-
-        if (pauseCanvasBtn) {
-            pauseCanvasBtn.addEventListener('click', () => {
-                if (!neuralViz || pauseCanvasBtn.disabled) return;
-                const nextPaused = !neuralViz.isPaused;
-                neuralViz.isPaused = nextPaused;
-                updatePauseCanvasButton(nextPaused);
-                if (!nextPaused) {
-                    neuralViz.lastFrameTime = 0;
-                    neuralViz.animate();
-                }
-            });
         }
 
         // AI WRITING ASSISTANT
