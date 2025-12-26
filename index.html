@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Luk&#xE1;&#x161; Dr&#x161;ti&#x10D;ka - Fotograf & AI Developer | Portfolio</title>
 
     <!-- SEO Meta Tags -->
@@ -238,6 +238,116 @@
                 animation: none !important;
                 transform: none !important;
             }
+        /* iOS Safe Area */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .fixed.bottom-6 {
+                bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            }
+            #chatWindow {
+                max-height: calc(100dvh - 120px - env(safe-area-inset-bottom));
+            }
+            footer {
+                padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* iOS input zoom prevention */
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+
+        /* Lightbox na mobilu */
+        @media (max-width: 640px) {
+            .lightbox {
+                padding: 0.5rem !important;
+            }
+            #closeLightbox {
+                top: 1rem !important;
+                right: 1rem !important;
+                font-size: 2rem !important;
+            }
+            #lightboxControls {
+                bottom: 1rem !important;
+            }
+            #lightboxPrev, #lightboxNext {
+                width: 3rem !important;
+                height: 3rem !important;
+            }
+        }
+
+        /* Velmi male obrazovky */
+        @media (max-width: 360px) {
+            h1.text-4xl {
+                font-size: 1.75rem !important;
+            }
+            h2.text-4xl {
+                font-size: 1.5rem !important;
+            }
+            .px-8 {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .px-6 {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+            .gap-4 {
+                gap: 0.5rem !important;
+            }
+            .text-lg {
+                font-size: 1rem !important;
+            }
+        }
+
+        /* Stredne male obrazovky */
+        @media (max-width: 480px) {
+            #chatWindow {
+                width: calc(100vw - 1.5rem) !important;
+                right: -0.75rem !important;
+            }
+        }
+
+        /* Landscape mobily */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .min-h-screen {
+                min-height: auto !important;
+                padding: 2rem 0 !important;
+            }
+            #chatWindow {
+                height: 80vh !important;
+                max-height: 80vh !important;
+            }
+            .py-24 {
+                padding-top: 3rem !important;
+                padding-bottom: 3rem !important;
+            }
+        }
+
+        /* Vylepseny touch feedback */
+        @media (hover: none) and (pointer: coarse) {
+            .btn-primary:active,
+            .btn-secondary:active {
+                transform: scale(0.97);
+                opacity: 0.9;
+                transition: transform 0.1s, opacity 0.1s;
+            }
+            .portfolio-item:active {
+                transform: scale(0.98);
+            }
+            .filter-btn:active {
+                transform: scale(0.95);
+            }
+        }
+
+        /* Disable tap highlight */
+        html {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #messages, .overflow-y-auto {
+            overscroll-behavior: contain;
+        }
+
         }
 
         body::before,
@@ -874,7 +984,7 @@
                     <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">Automatizace</span>
                 </div>
 
-                <h1 class="text-6xl md:text-8xl font-bold mb-4 gradient-text display-text flex items-center justify-center gap-2" style="font-family: 'Space Grotesk', sans-serif;">
+                <h1 class="text-4xl sm:text-6xl md:text-8xl font-bold mb-4 gradient-text display-text flex items-center justify-center gap-2" style="font-family: 'Space Grotesk', sans-serif;">
                     <span id="typingText" class="font-semibold"></span>
                     <span id="typingCursor" class="inline-block w-1 h-12 bg-blue-500 ml-1 animate-pulse"></span>
                 </h1>
@@ -1355,7 +1465,7 @@
             <div id="quickReplies" class="px-4 pb-2 hidden"></div>
             <div class="p-4 border-t border-white/10">
                 <div class="flex gap-2">
-                    <input type="text" id="chatInput" placeholder="Napi&#x161;te zpr&#xE1;vu..." class="flex-1 glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="chatInput" placeholder="Napi&#x161;te zpr&#xE1;vu..." class="flex-1 glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off" autocorrect="off" autocapitalize="sentences" enterkeyhint="send">
                     <button id="sendBtn" class="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold" aria-label="Odeslat zprávu">&#x2191;</button>
                 </div>
             </div>
@@ -3119,6 +3229,30 @@
                     }
                 };
             }
+            // Swipe gestures for mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            lightbox.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            lightbox.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                const diff = touchStartX - touchEndX;
+                
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0 && currentIndex < images.length - 1) {
+                        currentIndex++;
+                        setImage();
+                        updateControls();
+                    } else if (diff < 0 && currentIndex > 0) {
+                        currentIndex--;
+                        setImage();
+                        updateControls();
+                    }
+                }
+            }, { passive: true });
             setImage();
             lightbox.classList.add('active');
             setLightboxControls(images.length > 1);
