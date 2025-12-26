@@ -238,7 +238,18 @@
                 animation: none !important;
                 transform: none !important;
             }
-        /* iOS Safe Area */
+        
+        /* Android backdrop-filter fallback */
+        @supports not (backdrop-filter: blur(1px)) {
+            #mobileMenu {
+                background: rgba(0, 0, 0, 0.98) !important;
+            }
+            .glass {
+                background: rgba(20, 25, 45, 0.95) !important;
+            }
+        }
+
+/* iOS Safe Area */
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .fixed.bottom-6 {
                 bottom: calc(1.5rem + env(safe-area-inset-bottom));
@@ -957,17 +968,17 @@
                 <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
             </button>
         </div>
-
-        <!-- Mobile Menu Overlay -->
-        <div id="mobileMenu" class="fixed inset-0 bg-black/95 backdrop-blur-xl opacity-0 invisible transition-all duration-300 md:hidden">
-            <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobiln&#xED; navigace">
-                <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
-                <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
-                <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mn&#x11B;</a>
-                <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
-            </nav>
-        </div>
     </header>
+
+    <!-- Mobile Menu Overlay (outside header for proper z-index) -->
+    <div id="mobileMenu" class="fixed inset-0 bg-black/[0.98] backdrop-blur-xl opacity-0 invisible transition-all duration-300 md:hidden z-[9999]">
+        <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobiln&#xED; navigace">
+            <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
+            <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
+            <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mn&#x11B;</a>
+            <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
+        </nav>
+    </div>
 
     <main id="main-content" class="pt-20">
         <!-- Hero Section -->
