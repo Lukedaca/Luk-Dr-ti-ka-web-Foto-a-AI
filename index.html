@@ -962,7 +962,7 @@
             </nav>
 
             <!-- Mobile Menu Button -->
-            <button id="mobileMenuBtn" class="md:hidden flex flex-col items-center justify-center w-10 h-10 space-y-1.5 z-50" aria-label="Toggle mobile menu">
+            <button id="mobileMenuBtn" class="md:hidden flex flex-col items-center justify-center w-10 h-10 space-y-1.5 z-[10000]" aria-label="Toggle mobile menu">
                 <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
                 <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
                 <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
@@ -972,6 +972,8 @@
 
     <!-- Mobile Menu Overlay (outside header for proper z-index) -->
     <div id="mobileMenu" class="fixed inset-0 bg-black/[0.98] backdrop-blur-xl opacity-0 invisible transition-all duration-300 md:hidden z-[9999]">
+        <!-- Close button -->
+        <button id="mobileMenuClose" class="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 transition" aria-label="Zavřít menu">&times;</button>
         <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobiln&#xED; navigace">
             <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
             <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
@@ -3017,6 +3019,8 @@
         safeInitChatbot();
 
         // Mobile Menu
+        const mobileMenuClose = document.getElementById('mobileMenuClose');
+
         if (mobileMenuBtn && mobileMenu) {
             mobileMenuBtn.addEventListener('click', () => {
                 mobileMenuBtn.classList.toggle('active');
