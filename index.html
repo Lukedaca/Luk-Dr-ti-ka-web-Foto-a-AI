@@ -2305,6 +2305,7 @@
             openChat() {
                 if (this.onOpenChat) this.onOpenChat();
                 this.isChatOpen = true;
+                if (this.resetIdleTimer) this.resetIdleTimer();
             }
 
             closeChat() {
@@ -2501,6 +2502,10 @@
                     message, confidence, intent,
                     timestamp: Date.now()
                 });
+
+                if (intent === 'proactive' && this.isChatOpen) {
+                    addMessage('bot', message, confidence, intent);
+                }
             }
 
             initScrollTriggers() {
@@ -2514,13 +2519,10 @@
                 const observer = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         const id = entry.target.id;
-                        if (entry.isIntersecting && !shown[id] && triggers[id]) {
+                        if (entry.isIntersecting && !shown[id] && triggers[id] && this.isChatOpen) {
                             shown[id] = true;
                             setTimeout(() => {
-                                if (this.isChatOpen) {
-                                    addMessage('bot', triggers[id], 0.9, 'proactive');
-                                    this.addBotMessage(triggers[id], 0.9, 'proactive');
-                                }
+                                this.addBotMessage(triggers[id], 0.9, 'proactive');
                             }, 2000);
                         }
                     });
@@ -2533,20 +2535,7 @@
             }
 
             initExitIntent() {
-                let shown = false;
-
-                document.addEventListener('mouseleave', (e) => {
-                    if (e.clientY < 10 && !shown) {
-                        shown = true;
-                        if (!this.isChatOpen) {
-                            this.openChat();
-                        }
-                        setTimeout(() => {
-                            addMessage('bot', 'Odch\u00e1z\u00edte? Pokud m\u00e1te dotaz, r\u00e1d pomohu!', 0.9, 'proactive');
-                            this.addBotMessage('Odch\u00e1z\u00edte? Pokud m\u00e1te dotaz, r\u00e1d pomohu!', 0.9, 'proactive');
-                        }, 500);
-                    }
-                });
+                // Odstraněno - příliš agresivní pro portfolio web
             }
 
             saveSession() {
@@ -2572,23 +2561,22 @@
                 let idleCount = 0;
                 const messages = [
                     'St\u00e1le jsem tu, kdybyste n\u011bco pot\u0159ebovali!',
-                    'Tip: Zeptejte se m\u011b na focen\u00ed nebo AI slu\u017eby.',
-                    'Mohu v\u00e1m pomoci vybrat spr\u00e1vnou slu\u017ebu?'
+                    'Tip: Zeptejte se m\u011b na focen\u00ed nebo AI slu\u017eby.'
                 ];
 
-                const reset = () => {
+                this.resetIdleTimer = () => {
                     clearTimeout(timer);
-                    timer = setTimeout(() => {
-                        if (this.isChatOpen && idleCount < 2) {
-                            addMessage('bot', messages[idleCount], 0.8, 'proactive');
-                            this.addBotMessage(messages[idleCount], 0.8, 'proactive');
-                            idleCount++;
-                        }
-                    }, 45000);
+                    if (this.isChatOpen) {
+                        timer = setTimeout(() => {
+                            if (this.isChatOpen && idleCount < 2) {
+                                this.addBotMessage(messages[idleCount], 0.8, 'proactive');
+                                idleCount++;
+                            }
+                        }, 45000);
+                    }
                 };
-                document.addEventListener('mousemove', reset);
-                document.addEventListener('keypress', reset);
-                reset();
+
+                this.resetIdleCount = () => { idleCount = 0; };
             }
 
             processMessage(input, entitiesOverride = null) {
@@ -2621,7 +2609,6 @@
         const CHAT_STORAGE_KEY = 'chatHistory';
         let chatbot = new EnhancedChatbot();
         let unreadCount = 0;
-        let chatOpen = false;
 
         const filterBtns = document.querySelectorAll('.filter-btn');
         const lightbox = document.getElementById('lightbox');
@@ -2721,18 +2708,14 @@
                 });
             }
 
-            const setChatOpenState = (isOpen) => {
-                chatOpen = isOpen;
-                chatbot.isChatOpen = isOpen;
-            };
             chatbot.setChatHandlers(
                 () => {
                     chatWindow.classList.remove('hidden');
-                    setChatOpenState(true);
+                    chatbot.isChatOpen = true;
                 },
                 () => {
                     chatWindow.classList.add('hidden');
-                    setChatOpenState(false);
+                    chatbot.isChatOpen = false;
                 }
             );
 
@@ -2743,7 +2726,7 @@
                 } else {
                     chatbot.closeChat();
                 }
-                if (chatOpen) {
+                if (chatbot.isChatOpen) {
                     unreadCount = 0;
                     updateUnreadBadge();
                     if (messages.children.length === 0) {
@@ -2775,7 +2758,7 @@
 
             // Pro jistotu resetujeme badge p\u0159i na\u010dten\u00ed
             updateUnreadBadge();
-            setChatOpenState(chatOpen);
+            chatbot.isChatOpen = false;
         }
 
         function addMessage(sender, text, confidence = null, intent = null, isHistory = false) {
@@ -2797,7 +2780,7 @@
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
 
-            if (!isHistory && sender === 'bot' && !chatOpen) {
+            if (!isHistory && sender === 'bot' && !chatbot.isChatOpen) {
                 unreadCount++;
                 updateUnreadBadge();
             }
@@ -2841,6 +2824,9 @@
         function sendMessage() {
             const text = chatInput.value.trim();
             if (!text) return;
+
+            if (chatbot.resetIdleCount) chatbot.resetIdleCount();
+            if (chatbot.resetIdleTimer) chatbot.resetIdleTimer();
 
             quickReplies.classList.add('hidden');
             addMessage('user', text);
