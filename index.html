@@ -187,6 +187,47 @@
             min-height: 44px;
         }
 
+        /* Mobile chat fallback */
+        @supports not (height: 100dvh) {
+            #chatWindow {
+                height: min(550px, calc(100vh - 120px)) !important;
+            }
+        }
+
+        /* Chat na úzkých obrazovkách */
+        @media (max-width: 400px) {
+            #chatWindow {
+                width: calc(100vw - 24px) !important;
+                right: -12px !important;
+            }
+        }
+
+        /* DVH fallback pro hero sekci */
+        .min-h-screen {
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        /* Touch feedback */
+        @media (hover: none) {
+            .btn-primary:active,
+            .glass:active,
+            button:active,
+            a:active {
+                transform: scale(0.97);
+                opacity: 0.9;
+            }
+
+            .quick-reply-btn:active {
+                transform: scale(0.95);
+            }
+        }
+
+        /* Lepší scroll na iOS */
+        #messages {
+            -webkit-overflow-scrolling: touch;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -1302,7 +1343,7 @@
             &#x1F916;
             <span id="unreadBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">0</span>
         </button>
-        <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: 550px;" role="dialog" aria-modal="true">
+        <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: min(550px, calc(100dvh - 120px));" role="dialog" aria-modal="true">
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex justify-between items-center rounded-t-2xl">
                 <h3 class="font-bold text-lg">&#x1F916; AI Asistent</h3>
                 <div class="flex gap-2">
@@ -2695,6 +2736,8 @@
         const sendBtn = document.getElementById('sendBtn');
         const unreadBadge = document.getElementById('unreadBadge');
         const quickReplies = document.getElementById('quickReplies');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
 
         function safeInitChatbot() {
             if (!(chatBtn && chatWindow && closeChat && clearChat && messages && chatInput && sendBtn && unreadBadge && quickReplies)) {
@@ -2851,6 +2894,48 @@
             }
         }
         safeInitChatbot();
+
+        // Mobile Menu
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenuBtn.classList.toggle('active');
+                mobileMenu.classList.toggle('active');
+                document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+            });
+
+            // Zav\u0159\u00edt menu po kliknut\u00ed na odkaz
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenuBtn.classList.remove('active');
+                    mobileMenu.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Zav\u0159\u00edt menu p\u0159i kliknut\u00ed na overlay
+            mobileMenu.addEventListener('click', (e) => {
+                if (e.target === mobileMenu) {
+                    mobileMenuBtn.classList.remove('active');
+                    mobileMenu.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                // Zav\u0159\u00edt mobiln\u00ed menu
+                if (mobileMenu && mobileMenu.classList.contains('active')) {
+                    if (mobileMenuBtn) mobileMenuBtn.classList.remove('active');
+                    mobileMenu.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+                // Zav\u0159\u00edt chat
+                if (chatbot.isChatOpen) {
+                    chatbot.closeChat();
+                }
+            }
+        });
 
         const announcer = document.getElementById('announcer');
         const announceSection = (label) => {
