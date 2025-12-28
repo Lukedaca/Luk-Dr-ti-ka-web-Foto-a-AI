@@ -316,6 +316,7 @@ main {
 header {
     z-index: 100;
 }
+header a.flex {    text-decoration: none;    color: inherit;    position: relative;    z-index: 101;}
 
 header.is-scrolled {
     box-shadow: 0 16px 40px rgba(6, 10, 24, 0.45);
