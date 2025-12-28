@@ -10,5 +10,5 @@
   {"id": "ai-3", "name": "Fotograf AI", "category": "ai", "type": "single", "images": ["assets/portfolio/ai-3.png"], "mainImageIndex": 0},
   {"id": "portret-1", "name": "Portrét s kouřem", "category": "foto", "type": "single", "images": ["assets/portfolio/portret-1.jpg"], "mainImageIndex": 0},
   {"id": "portret-2", "name": "Festival look", "category": "foto", "type": "single", "images": ["assets/portfolio/portret-2.jpg"], "mainImageIndex": 0},
-  {"id": "portret-3", "name": "Letní portrét", "category": "foto", "type": "single", "images": ["assets/portfolio/portret-3.jpg"], "mainImageIndex": 0}
+  {"id": "portret-3", "name": "Modrý kouř", "category": "foto", "type": "single", "images": ["assets/portfolio/portret-3.jpg"], "mainImageIndex": 0}
 ]
