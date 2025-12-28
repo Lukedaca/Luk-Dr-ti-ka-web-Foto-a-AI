@@ -1,62 +1,50 @@
 [
   {
-    "id": "portret-1",
-    "name": "Portret",
-    "category": "foto",
-    "type": "single",
-    "images": [
-      "assets/fallback.jpg"
-    ],
-    "mainImageIndex": 0
-  },
-  {
     "id": "sport-1",
-    "name": "Sport",
+    "name": "Hlavičkový souboj",
     "category": "foto",
     "type": "single",
-    "images": [
-      "assets/fallback.jpg"
-    ],
+    "images": ["assets/portfolio/sport-1.jpg"],
     "mainImageIndex": 0
   },
   {
-    "id": "ai-chatbot",
-    "name": "AI Chatbot",
-    "category": "ai",
-    "type": "single",
-    "images": [
-      "assets/fallback.jpg"
-    ],
-    "mainImageIndex": 0
-  },
-  {
-    "id": "produkt-1",
-    "name": "Produktova fotografie",
+    "id": "sport-2",
+    "name": "Souboj o míč",
     "category": "foto",
     "type": "single",
-    "images": [
-      "assets/fallback.jpg"
-    ],
+    "images": ["assets/portfolio/sport-2.jpg"],
     "mainImageIndex": 0
   },
   {
-    "id": "automatizace",
-    "name": "Automatizace",
-    "category": "ai",
-    "type": "single",
-    "images": [
-      "assets/fallback.jpg"
-    ],
-    "mainImageIndex": 0
-  },
-  {
-    "id": "portret-2",
-    "name": "Portret",
+    "id": "sport-3",
+    "name": "Oslava gólu",
     "category": "foto",
     "type": "single",
-    "images": [
-      "assets/fallback.jpg"
-    ],
+    "images": ["assets/portfolio/sport-3.jpg"],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "sport-4",
+    "name": "Akce před brankou",
+    "category": "foto",
+    "type": "single",
+    "images": ["assets/portfolio/sport-4.jpg"],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "sport-5",
+    "name": "První liga - akce",
+    "category": "foto",
+    "type": "single",
+    "images": ["assets/portfolio/sport-5.jpg"],
+    "mainImageIndex": 0
+  },
+  {
+    "id": "sport-6",
+    "name": "Sigma vs Slavia",
+    "category": "foto",
+    "type": "single",
+    "images": ["assets/portfolio/sport-6.jpg"],
     "mainImageIndex": 0
   }
 ]
