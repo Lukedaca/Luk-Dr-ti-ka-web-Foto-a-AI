@@ -145,6 +145,7 @@ body {
         transform: none !important;
     }
 
+}
 /* Android backdrop-filter fallback */
 @supports not (backdrop-filter: blur(1px)) {
     #mobileMenu {
@@ -265,7 +266,6 @@ html {
     overscroll-behavior: contain;
 }
 
-}
 
 body::before,
 body::after {
