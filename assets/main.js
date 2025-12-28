@@ -1817,5 +1817,3 @@ function openGalleryLightbox(images, startIndex, altText) {
 
 loadPortfolioData();
 });
-    </script>
-</body>
