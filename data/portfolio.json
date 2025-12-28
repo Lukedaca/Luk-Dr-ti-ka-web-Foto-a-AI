@@ -3,9 +3,12 @@
   {"id": "sport-2", "name": "Souboj o míč", "category": "foto", "type": "single", "images": ["assets/portfolio/sport-2.jpg"], "mainImageIndex": 0},
   {"id": "sport-3", "name": "Oslava gólu", "category": "foto", "type": "single", "images": ["assets/portfolio/sport-3.jpg"], "mainImageIndex": 0},
   {"id": "sport-4", "name": "Akce před brankou", "category": "foto", "type": "single", "images": ["assets/portfolio/sport-4.jpg"], "mainImageIndex": 0},
-  {"id": "sport-5", "name": "První liga - akce", "category": "foto", "type": "single", "images": ["assets/portfolio/sport-5.jpg"], "mainImageIndex": 0},
+  {"id": "sport-5", "name": "První liga", "category": "foto", "type": "single", "images": ["assets/portfolio/sport-5.jpg"], "mainImageIndex": 0},
   {"id": "sport-6", "name": "Sigma vs Slavia", "category": "foto", "type": "single", "images": ["assets/portfolio/sport-6.jpg"], "mainImageIndex": 0},
   {"id": "ai-1", "name": "AI Asistent", "category": "ai", "type": "single", "images": ["assets/portfolio/ai-1.png"], "mainImageIndex": 0},
   {"id": "ai-2", "name": "Zábavní chatbot", "category": "ai", "type": "single", "images": ["assets/portfolio/ai-2.png"], "mainImageIndex": 0},
-  {"id": "ai-3", "name": "Fotograf AI", "category": "ai", "type": "single", "images": ["assets/portfolio/ai-3.png"], "mainImageIndex": 0}
+  {"id": "ai-3", "name": "Fotograf AI", "category": "ai", "type": "single", "images": ["assets/portfolio/ai-3.png"], "mainImageIndex": 0},
+  {"id": "portret-1", "name": "Portrét s kouřem", "category": "foto", "type": "single", "images": ["assets/portfolio/portret-1.jpg"], "mainImageIndex": 0},
+  {"id": "portret-2", "name": "Festival look", "category": "foto", "type": "single", "images": ["assets/portfolio/portret-2.jpg"], "mainImageIndex": 0},
+  {"id": "portret-3", "name": "Letní portrét", "category": "foto", "type": "single", "images": ["assets/portfolio/portret-3.jpg"], "mainImageIndex": 0}
 ]
