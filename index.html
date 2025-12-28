@@ -238,7 +238,7 @@
                 animation: none !important;
                 transform: none !important;
             }
-        
+        }
         /* Android backdrop-filter fallback */
         @supports not (backdrop-filter: blur(1px)) {
             #mobileMenu {
@@ -359,7 +359,6 @@
             overscroll-behavior: contain;
         }
 
-        }
 
         body::before,
         body::after {
@@ -2158,7 +2157,6 @@
                 return div.innerHTML;
             }
         }
-        
         const writingAssistant = new AIWritingAssistant();
         const contactForm = document.getElementById('contactForm');
         if (contactForm) {
