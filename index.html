@@ -126,15 +126,60 @@ header {
 .display-text {
     font-family: var(--font-display);
 }
-    </style>
+
+/* Page Loading Overlay */
+#page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+#page-loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+#page-loader .loader-content {
+    text-align: center;
+}
+#page-loader .loader-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--glass-border);
+    border-top-color: var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+}
+#page-loader .loader-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+/* Prevent FOUC - hide content until loaded */
+body.loading > *:not(#page-loader) {
+    opacity: 0;
+}
+body:not(.loading) > * {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+        </style>
 
     <!-- Load Tailwind CSS asynchronously -->
-    <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
-    <script src="https://cdn.tailwindcss.com" defer></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Load main CSS asynchronously -->
-    <link rel="preload" href="/assets/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/assets/styles.css"></noscript>
+    <link rel="stylesheet" href="/assets/styles.css">
+    
 
     <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
@@ -177,7 +222,14 @@ header {
     </script>
 
 </head>
-<body class="text-white">
+<body class="text-white loading">
+    <!-- Page Loading Overlay -->
+    <div id="page-loader" aria-hidden="true">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Načítám...</div>
+        </div>
+    </div>
     <a href="#main-content" class="skip-link">P&#x159;esko&#x10D;it na obsah</a>
     <!-- Scroll Progress Bar -->
     <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
@@ -798,5 +850,30 @@ header {
     <!-- Main JavaScript with defer for optimal performance -->
     <script src="/assets/main.js" defer></script>
 
+
+    <!-- Page Loader Removal Script -->
+    <script>
+    (function() {
+        function hideLoader() {
+            var loader = document.getElementById('page-loader');
+            var body = document.body;
+            if (loader) loader.classList.add('hidden');
+            if (body) body.classList.remove('loading');
+        }
+        // Hide loader when DOM is ready and fonts are loaded
+        if (document.readyState === 'complete') {
+            hideLoader();
+        } else {
+            window.addEventListener('load', function() {
+                // Small delay to ensure all CSS is applied
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(hideLoader);
+                });
+            });
+        }
+        // Fallback: hide after 3 seconds max
+        setTimeout(hideLoader, 3000);
+    })();
+    </script>
 </body>
 </html>
