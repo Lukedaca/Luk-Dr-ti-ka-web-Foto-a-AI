@@ -175,7 +175,8 @@ body:not(.loading) > * {
 
     <!-- Load Tailwind CSS asynchronously -->
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Compiled Tailwind CSS -->
+    <link rel="stylesheet" href="/dist/css/styles.min.css">
 
     <!-- Load main CSS asynchronously -->
     <link rel="stylesheet" href="/assets/styles.css">
@@ -851,7 +852,8 @@ body:not(.loading) > * {
     </div>
 
     <!-- Main JavaScript with defer for optimal performance -->
-    <script src="/assets/main.js" defer></script>
+    <!-- Core module (lazy loads other modules) -->
+    <script src="/dist/js/core.min.js" defer></script>
 
 
     <!-- Page Loader Removal Script -->
