@@ -1,885 +1,536 @@
-﻿<!DOCTYPE html>
-<html lang="cs">
+<!DOCTYPE html>
+<html lang="cs" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Lukáš Drštička - Fotograf & AI Developer | Portfolio</title>
+    <title>Lukáš Drštička - Fotograf & AI Developer | Cinematic Portfolio</title>
 
-    <!-- SEO Meta Tags -->
+    <!-- SEO Meta Tags (Preserved) -->
     <meta name="description" content="Portfolio Lukáše Drštičky – fotograf a AI developer z Přerova. Portrétní, sportovní a produktová fotografie, tvorba AI chatbotů a automatizace na míru.">
     <meta name="keywords" content="fotograf Přerov, AI developer, portrétní fotografie, sportovní fotografie, AI chatbot, automatizace, Lukáš Drštička">
     <meta name="author" content="Lukáš Drštička">
     <meta name="robots" content="index, follow">
-
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://lukasdrsticka-ai-and-foto.com/">
     <meta property="og:title" content="Lukáš Drštička - Fotograf & AI Developer">
     <meta property="og:description" content="Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.">
-    <meta property="og:site_name" content="Lukáš Drštička Portfolio">
     <meta property="og:image" content="https://lukasdrsticka-ai-and-foto.com/og-image.svg">
     <meta property="og:locale" content="cs_CZ">
-
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://lukasdrsticka-ai-and-foto.com/">
-    <meta name="twitter:title" content="Lukáš Drštička - Fotograf & AI Developer">
-    <meta name="twitter:description" content="Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.">
-    <meta name="twitter:image" content="https://lukasdrsticka-ai-and-foto.com/og-image.svg">
-    <link rel="canonical" href="https://lukasdrsticka-ai-and-foto.com/">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg">
-    <link rel="manifest" href="/manifest.json">
-
-    <!-- Performance: Preconnect to external domains -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://formspree.io">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 
-    <!-- Theme color for mobile browsers -->
-    <meta name="theme-color" content="#0a0e27" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#b7c2d2" media="(prefers-color-scheme: light)">
-
-    <!-- Additional SEO -->
-    <meta name="format-detection" content="telephone=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <!-- Preload critical fonts -->
-    <link rel="preload" href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDI1apSCOBt_aeQQ7ftydoaeXYpj_EPk.woff2" as="font" type="font/woff2" crossorigin>
-
-    <!-- Optimized font loading with display=swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-
-    <!-- Critical CSS inline for above-the-fold content -->
-    <style>
-/* Critical CSS - Above the fold styles only */
-:root {
-    --bg-primary: #0a0e27;
-    --bg-secondary: #1a1f3a;
-    --text-primary: #ffffff;
-    --text-secondary: #6b7280;
-    --accent-blue: #3b82f6;
-    --accent-purple: #8b5cf6;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
-}
-
-.theme-light {
-    --bg-primary: #b7c2d2;
-    --bg-secondary: #9eacbf;
-    --text-primary: #0a101b;
-    --text-secondary: #151f33;
-    --glass-bg: rgba(10, 16, 27, 0.18);
-    --glass-border: rgba(10, 16, 27, 0.34);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: var(--font-sans);
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
-    color: var(--text-primary);
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-    line-height: 1.6;
-}
-
-.skip-link {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    padding: 10px 16px;
-    border-radius: 999px;
-    background: var(--accent-blue);
-    color: #ffffff;
-    font-weight: 600;
-    z-index: 200;
-    transform: translateY(-200%);
-}
-
-.skip-link:focus {
-    transform: translateY(0);
-}
-
-header {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 100;
-    backdrop-filter: blur(12px);
-}
-
-.min-h-screen {
-    min-height: 100vh;
-}
-
-.display-text {
-    font-family: var(--font-display);
-}
-
-/* Page Loading Overlay */
-#page-loader {
-    position: fixed;
-    inset: 0;
-    z-index: 99999;
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-#page-loader.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-#page-loader .loader-content {
-    text-align: center;
-}
-#page-loader .loader-spinner {
-    width: 48px;
-    height: 48px;
-    border: 3px solid var(--glass-border);
-    border-top-color: var(--accent-blue);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-}
-#page-loader .loader-text {
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-/* Prevent FOUC - hide content until loaded */
-body.loading > *:not(#page-loader) {
-    opacity: 0;
-}
-body:not(.loading) > * {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-        </style>
-
-    <!-- Load Tailwind CSS asynchronously -->
-    
-    <!-- Compiled Tailwind CSS -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css">
-
-    <!-- Load main CSS asynchronously -->
-    <link rel="stylesheet" href="/assets/styles.css">
-    
-
-    <!-- Schema.org Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "Lukáš Drštička",
-      "url": "https://lukasdrsticka-ai-and-foto.com",
-      "email": "lukas.drsticka@gmail.com",
-      "jobTitle": "Fotograf & AI Developer",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Přerov",
-        "addressCountry": "CZ"
-      },
-      "sameAs": [
-        "https://www.linkedin.com/in/lukas-drsticka",
-        "https://github.com/lukas-drsticka"
-      ],
-      "knowsAbout": ["Photography", "Artificial Intelligence", "Web Development", "Automation", "Chatbots"],
-      "offers": [
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Portrétní fotografie",
-            "description": "Profesionální portrétní fotografie v ateliéru i venku"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "AI Chatbot Development",
-            "description": "Vývoj AI chatbotů a automatizačních řešení"
-          }
+    <!-- Tailwind CSS (CDN for instant styling without build step issues) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: '#050507', // Void black
+                        card: 'rgba(255, 255, 255, 0.03)',
+                        border: 'rgba(255, 255, 255, 0.08)',
+                        primary: '#3b82f6', // Blue
+                        accent: '#8b5cf6', // Purple
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
         }
-      ]
-    }
     </script>
 
+    <style>
+        /* CINEMATIC CORE STYLES */
+        body {
+            background-color: #050507;
+            color: #ffffff;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        /* Film Noise Texture */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Spotlight Effect Utility */
+        .spotlight-group:hover .spotlight-card::before {
+            opacity: 1;
+        }
+        
+        .spotlight-card {
+            position: relative;
+            background: var(--card);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* The glowing border following mouse */
+        .spotlight-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: radial-gradient(
+                800px circle at var(--mouse-x) var(--mouse-y),
+                rgba(255, 255, 255, 0.4),
+                transparent 40%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        /* The glowing background following mouse */
+        .spotlight-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(
+                600px circle at var(--mouse-x) var(--mouse-y),
+                rgba(255, 255, 255, 0.06),
+                transparent 40%
+            );
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .spotlight-group:hover .spotlight-card::after {
+            opacity: 1;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050507; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* Typography Utilities */
+        .text-glow {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        .gradient-text-cinematic {
+            background: linear-gradient(to bottom right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Image Hover Zoom */
+        .img-zoom-container { overflow: hidden; }
+        .img-zoom-container img { transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .spotlight-card:hover .img-zoom-container img { transform: scale(1.05); }
+
+    </style>
 </head>
-<body class="text-white loading">
-    <!-- Page Loading Overlay -->
-    <div id="page-loader" aria-hidden="true">
-        <div class="loader-content">
-            <div class="loader-spinner"></div>
-            <div class="loader-text">Načítám...</div>
-        </div>
-    </div>
-    <a href="#main-content" class="skip-link">Přeskočit na obsah</a>
-    <!-- Scroll Progress Bar -->
-    <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
+<body id="top">
 
-    <!-- Custom Cursor Spotlight -->
-    <div id="cursorSpotlight" class="hidden md:block pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
+    <!-- Cinematic Noise Overlay -->
+    <div class="noise-overlay"></div>
 
-    <canvas id="neuralCanvas" class="hidden md:block" aria-hidden="true"></canvas>
-
-    <header class="fixed top-0 w-full z-50 glass">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" class="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer" aria-label="Zpět na úvodní stránku">
-                <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full h-10 w-10 flex flex-col justify-center items-center font-bold text-xs">
-                    <span>LD</span>
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 backdrop-blur-xl border-b border-white/5 bg-dark/80">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center font-bold text-xs shadow-[0_0_15px_rgba(59,130,246,0.5)] group-hover:shadow-[0_0_25px_rgba(139,92,246,0.8)] transition-all duration-500">
+                    LD
                 </div>
-                <span class="text-lg font-semibold">Lukáš Drštička</span>
+                <span class="font-medium tracking-tight text-sm text-gray-300 group-hover:text-white transition-colors">Lukáš Drštička</span>
             </a>
 
-            <!-- Desktop Navigation -->
-            <nav class="hidden md:flex items-center space-x-8" aria-label="Hlavní navigace">
-                <a href="#portfolio" class="nav-link hover:text-blue-400 transition">Portfolio</a>
-                <a href="#skills" class="nav-link hover:text-blue-400 transition">Dovednosti</a>
-                <a href="#o-mne" class="nav-link hover:text-blue-400 transition">O mně</a>
-                <a href="#kontakt" class="nav-link hover:text-blue-400 transition">Kontakt</a>
-
-                <button id="themeToggle" class="px-4 py-2 glass rounded-full text-sm font-semibold hover:bg-white/10 transition" aria-label="Přepnout režim">
-                    🌙 / ☀️
-                </button>
-            </nav>
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-400">
+                <a href="#portfolio" class="hover:text-white transition-colors">Portfolio</a>
+                <a href="#skills" class="hover:text-white transition-colors">Tech Stack</a>
+                <a href="#process" class="hover:text-white transition-colors">Proces</a>
+                <a href="#contact" class="px-4 py-2 rounded-full border border-white/10 hover:bg-white/5 hover:border-white/20 hover:text-white transition-all">Kontakt</a>
+            </div>
 
             <!-- Mobile Menu Button -->
-            <button id="mobileMenuBtn" class="md:hidden flex flex-col items-center justify-center w-10 h-10 space-y-1.5 z-[10000]" aria-label="Toggle mobile menu">
-                <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
-                <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
-                <span class="hamburger-line w-6 h-0.5 bg-white transition-all duration-300"></span>
+            <button id="mobileMenuBtn" class="md:hidden text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
         </div>
-    </header>
+    </nav>
 
-    <!-- Mobile Menu Overlay (outside header for proper z-index) -->
-    <div id="mobileMenu" class="fixed inset-0 bg-black/[0.98] backdrop-blur-xl opacity-0 invisible transition-all duration-300 md:hidden z-[9999]">
-        <!-- Close button -->
-        <button id="mobileMenuClose" class="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 transition" aria-label="Zavřít menu">&times;</button>
-        <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobilní navigace">
-            <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
-            <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
-            <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
-            <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
-        </nav>
+    <!-- Mobile Menu Overlay -->
+    <div id="mobileMenu" class="fixed inset-0 bg-dark z-40 transform translate-x-full transition-transform duration-300 md:hidden flex flex-col justify-center items-center gap-8">
+        <button id="mobileMenuClose" class="absolute top-6 right-6 text-gray-400 hover:text-white text-3xl">&times;</button>
+        <a href="#portfolio" class="text-2xl font-light tracking-tight hover:text-blue-400">Portfolio</a>
+        <a href="#skills" class="text-2xl font-light tracking-tight hover:text-blue-400">Tech Stack</a>
+        <a href="#process" class="text-2xl font-light tracking-tight hover:text-blue-400">Proces</a>
+        <a href="#contact" class="text-2xl font-light tracking-tight text-blue-400">Kontakt</a>
     </div>
 
-    <main id="main-content" class="pt-20">
-        <!-- Hero Section -->
-        <section class="min-h-screen flex items-center justify-center px-6 relative mesh-gradient">
-            <div class="hero-ambient">
-                <span class="hero-orb one" aria-hidden="true"></span>
-                <span class="hero-orb two" aria-hidden="true"></span>
-                <span class="hero-orb three" aria-hidden="true"></span>
+    <!-- HERO SECTION -->
+    <section class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
+        <!-- Background Ambient Glows -->
+        <div class="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+
+        <div class="relative z-10 text-center px-6 max-w-5xl">
+            <!-- Chip Badges -->
+            <div class="flex justify-center gap-3 mb-8 fade-in opacity-0" style="animation: fadeUp 1s forwards 0.2s;">
+                <span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] uppercase tracking-widest text-blue-300 backdrop-blur-md">Photography</span>
+                <span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] uppercase tracking-widest text-purple-300 backdrop-blur-md">AI Development</span>
             </div>
-            <div class="text-center max-w-5xl mx-auto relative z-10 reveal is-visible">
-                <div class="mb-6 flex justify-center gap-4 flex-wrap" aria-label="Hlavní zaměření">
-                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0s;">Fotografie</span>
-                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0.5s;">AI Development</span>
-                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">Automatizace</span>
+
+            <!-- Main Title -->
+            <h1 class="text-5xl md:text-8xl font-bold tracking-tighter mb-6 gradient-text-cinematic opacity-0" style="animation: fadeUp 1s forwards 0.4s;">
+                Lukáš Drštička
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-gray-400 font-light max-w-2xl mx-auto mb-12 opacity-0 leading-relaxed" style="animation: fadeUp 1s forwards 0.6s;">
+                Propojuji vizuální umění s umělou inteligencí. <br>
+                <span class="text-gray-500">Fotograf. Vývojář. Tvůrce.</span>
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center gap-4 opacity-0" style="animation: fadeUp 1s forwards 0.8s;">
+                <a href="#portfolio" class="px-8 py-4 bg-white text-black font-semibold rounded hover:bg-gray-200 transition shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                    Prohlédnout práci
+                </a>
+                <a href="#contact" class="px-8 py-4 border border-white/20 rounded text-white hover:bg-white/5 transition backdrop-blur-sm">
+                    Konzultace
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-50 animate-bounce">
+            <span class="text-[10px] uppercase tracking-widest mb-2">Scroll</span>
+            <div class="w-[1px] h-10 bg-gradient-to-b from-white to-transparent"></div>
+        </div>
+    </section>
+
+    <!-- PORTFOLIO GRID (Bento Style) -->
+    <section id="portfolio" class="py-32 relative spotlight-group" onmousemove="handleSpotlight(event)">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-end mb-16">
+                <div>
+                    <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-4">Vybraná práce</h2>
+                    <p class="text-gray-400 max-w-md">Kombinace precizní fotografie a generativního designu.</p>
+                </div>
+                <!-- Filter Tabs -->
+                <div class="hidden md:flex gap-2 p-1 border border-white/10 rounded-lg bg-white/5 backdrop-blur-sm">
+                    <button class="px-4 py-2 text-sm rounded hover:bg-white/10 transition active-filter bg-white/10" onclick="filterPortfolio('all')">Vše</button>
+                    <button class="px-4 py-2 text-sm rounded hover:bg-white/10 transition text-gray-400" onclick="filterPortfolio('foto')">Foto</button>
+                    <button class="px-4 py-2 text-sm rounded hover:bg-white/10 transition text-gray-400" onclick="filterPortfolio('ai')">AI</button>
+                </div>
+            </div>
+
+            <!-- The Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Item 1 (Large) -->
+                <div class="spotlight-card rounded-2xl md:col-span-2 md:row-span-2 aspect-video group cursor-pointer filter-item foto">
+                    <div class="img-zoom-container h-full w-full">
+                        <img src="assets/portfolio/sport-1.jpg" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.src='https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000&auto=format&fit=crop'">
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
+                        <div class="text-xs font-mono text-blue-400 mb-2">SPORT // ACTION</div>
+                        <h3 class="text-2xl font-bold">Hlavičkový souboj</h3>
+                    </div>
                 </div>
 
-                <h1 class="text-4xl sm:text-6xl md:text-8xl font-bold mb-4 gradient-text display-text flex items-center justify-center gap-2" style="font-family: 'Space Grotesk', sans-serif;">
-                    <span id="typingText" class="font-semibold"></span>
-                    <span id="typingCursor" class="inline-block w-1 h-12 bg-blue-500 ml-1 animate-pulse"></span>
-                </h1>
+                <!-- Item 2 -->
+                <div class="spotlight-card rounded-2xl aspect-square group cursor-pointer filter-item ai">
+                    <div class="img-zoom-container h-full w-full">
+                        <img src="assets/portfolio/ai-1.png" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.src='https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1000&auto=format&fit=crop'">
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+                         <div class="text-xs font-mono text-purple-400 mb-2">AI // CHATBOT</div>
+                        <h3 class="text-xl font-bold">AI Asistent</h3>
+                    </div>
+                </div>
 
-                <h2 class="text-2xl md:text-3xl font-semibold text-gray-200 mb-4">
-                    Lukáš Drštička
-                </h2>
+                <!-- Item 3 -->
+                <div class="spotlight-card rounded-2xl aspect-square group cursor-pointer filter-item foto">
+                    <div class="img-zoom-container h-full w-full">
+                        <img src="assets/portfolio/portret-1.jpg" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.src='https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=1000&auto=format&fit=crop'">
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+                         <div class="text-xs font-mono text-blue-400 mb-2">PORTRAIT // STUDIO</div>
+                        <h3 class="text-xl font-bold">Portrét s kouřem</h3>
+                    </div>
+                </div>
 
-                <p class="text-xl md:text-2xl text-gray-200 mb-4">Fotografie a AI řešení, která na sebe navazují.</p>
+                 <!-- Item 4 -->
+                <div class="spotlight-card rounded-2xl aspect-square group cursor-pointer filter-item foto">
+                    <div class="img-zoom-container h-full w-full">
+                        <img src="assets/portfolio/sport-2.jpg" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.src='https://images.unsplash.com/photo-1517466787929-bc90951d6dbb?q=80&w=1000&auto=format&fit=crop'">
+                    </div>
+                     <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+                         <div class="text-xs font-mono text-blue-400 mb-2">SPORT // LEAGUE</div>
+                        <h3 class="text-xl font-bold">První liga</h3>
+                    </div>
+                </div>
 
-                <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed reveal reveal-delay-1 is-visible">Jasný proces od konzultace po odevzdání dat. Fotím portréty, sport a produktové série a stavím chatboty či automatizace, které šetří čas.</p>
-
-                <div class="flex gap-4 justify-center flex-wrap reveal reveal-delay-2 is-visible">
-                    <a href="#portfolio" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold hover:opacity-90 transition shadow-lg hover:shadow-xl btn-primary btn-outline-glow" aria-label="Prohlédnout portfolio">
-                        Prohlédnout portfolio
-                    </a>
-                    <a href="#kontakt" class="px-8 py-4 glass rounded-full font-semibold hover:bg-white/10 transition btn-secondary btn-outline-glow" aria-label="Domluvit konzultaci">
-                        Domluvit konzultaci
-                    </a>
+                 <!-- Item 5 (Wide) -->
+                 <div class="spotlight-card rounded-2xl md:col-span-2 aspect-[2/1] group cursor-pointer filter-item ai">
+                    <div class="img-zoom-container h-full w-full">
+                        <img src="assets/portfolio/ai-3.png" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" onerror="this.src='https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1000&auto=format&fit=crop'">
+                    </div>
+                     <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/80 to-transparent">
+                         <div class="text-xs font-mono text-purple-400 mb-2">AI // AUTOMATION</div>
+                        <h3 class="text-2xl font-bold">Fotograf AI Agent</h3>
+                        <p class="text-gray-400 text-sm mt-1">Automatizovaná postprodukce a třídění.</p>
+                    </div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <!-- Scroll Down Indicator -->
-            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
+    <!-- TECH STACK (Holographic Cards) -->
+    <section id="skills" class="py-32 bg-white/[0.02] border-y border-white/5 relative overflow-hidden spotlight-group" onmousemove="handleSpotlight(event)">
+        <div class="max-w-6xl mx-auto px-6 relative z-10">
+            <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-16 text-center">Tech & Gear</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Photography -->
+                <div class="spotlight-card p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-500">
+                    <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center text-2xl mb-6 border border-blue-500/20">📷</div>
+                    <h3 class="text-xl font-bold mb-4">Fotografie</h3>
+                    <ul class="space-y-3 text-gray-400 text-sm">
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Portrétní foto</span><span class="text-blue-400">Expert</span></li>
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Sport & Akce</span><span class="text-blue-400">Pro</span></li>
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Adobe Lightroom</span><span class="text-blue-400">Master</span></li>
+                        <li class="flex justify-between pt-1"><span>Photoshop</span><span class="text-blue-400">Advanced</span></li>
+                    </ul>
+                </div>
+
+                <!-- AI -->
+                <div class="spotlight-card p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-500">
+                    <div class="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center text-2xl mb-6 border border-purple-500/20">🤖</div>
+                    <h3 class="text-xl font-bold mb-4">AI & Dev</h3>
+                    <ul class="space-y-3 text-gray-400 text-sm">
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Vibecoding</span><span class="text-purple-400">Native</span></li>
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>LLM Integrace</span><span class="text-purple-400">Advanced</span></li>
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Python / Automation</span><span class="text-purple-400">Solid</span></li>
+                        <li class="flex justify-between pt-1"><span>Web (Tailwind/JS)</span><span class="text-purple-400">Modern</span></li>
+                    </ul>
+                </div>
+
+                <!-- Workflow -->
+                <div class="spotlight-card p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-500">
+                    <div class="w-12 h-12 bg-gray-500/10 rounded-lg flex items-center justify-center text-2xl mb-6 border border-gray-500/20">⚡</div>
+                    <h3 class="text-xl font-bold mb-4">Workflow</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 rounded bg-white/5 text-xs border border-white/10">Git</span>
+                        <span class="px-3 py-1 rounded bg-white/5 text-xs border border-white/10">Figma</span>
+                        <span class="px-3 py-1 rounded bg-white/5 text-xs border border-white/10">Gemini CLI</span>
+                        <span class="px-3 py-1 rounded bg-white/5 text-xs border border-white/10">Claude</span>
+                        <span class="px-3 py-1 rounded bg-white/5 text-xs border border-white/10">Automatizace</span>
+                    </div>
+                </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <section id="portfolio" class="py-24 reveal is-visible">
-            <div class="container mx-auto px-6 section-wrap">
-                <h2 class="text-4xl font-bold mb-12 text-center gradient-text section-title">Portfolio</h2>
+    <!-- PROCESS (Timeline) -->
+    <section id="process" class="py-32">
+        <div class="max-w-4xl mx-auto px-6">
+            <h2 class="text-3xl md:text-5xl font-bold tracking-tight mb-16 text-center">Jak pracuji</h2>
+            
+            <div class="relative border-l border-white/10 ml-6 md:ml-0 md:pl-0 space-y-12">
+                <!-- Step 1 -->
+                <div class="relative pl-12 md:pl-0 md:flex md:items-center group">
+                    <div class="absolute left-[-5px] top-2 md:left-1/2 md:-translate-x-1/2 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6] group-hover:scale-150 transition-transform"></div>
+                    <div class="md:w-1/2 md:pr-12 md:text-right">
+                        <div class="text-sm font-mono text-blue-400 mb-1">01 // INIT</div>
+                        <h3 class="text-xl font-bold mb-2">Konzultace</h3>
+                        <p class="text-gray-400 text-sm">Probereme vaše cíle. Ať už jde o focení nebo AI bota, musíme být na stejné vlně.</p>
+                    </div>
+                    <div class="hidden md:block md:w-1/2"></div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative pl-12 md:pl-0 md:flex md:items-center group">
+                    <div class="absolute left-[-5px] top-2 md:left-1/2 md:-translate-x-1/2 w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_10px_#8b5cf6] group-hover:scale-150 transition-transform"></div>
+                    <div class="hidden md:block md:w-1/2"></div>
+                    <div class="md:w-1/2 md:pl-12">
+                         <div class="text-sm font-mono text-purple-400 mb-1">02 // PLAN</div>
+                        <h3 class="text-xl font-bold mb-2">Strategie & Plán</h3>
+                        <p class="text-gray-400 text-sm">Vytvořím roadmapu. Žádné zbytečné kroky, jen přímá cesta k výsledku.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative pl-12 md:pl-0 md:flex md:items-center group">
+                    <div class="absolute left-[-5px] top-2 md:left-1/2 md:-translate-x-1/2 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6] group-hover:scale-150 transition-transform"></div>
+                    <div class="md:w-1/2 md:pr-12 md:text-right">
+                         <div class="text-sm font-mono text-blue-400 mb-1">03 // EXECUTE</div>
+                        <h3 class="text-xl font-bold mb-2">Realizace</h3>
+                        <p class="text-gray-400 text-sm">Fotografování nebo kódování. Používám nejmodernější nástroje pro maximální kvalitu.</p>
+                    </div>
+                     <div class="hidden md:block md:w-1/2"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="py-32 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-t from-blue-900/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-3xl mx-auto px-6 relative z-10">
+            <div class="spotlight-card rounded-3xl p-8 md:p-12 border border-white/10 bg-black/40 backdrop-blur-xl">
+                <h2 class="text-3xl font-bold mb-8 text-center">Zahájit spolupráci</h2>
                 
-                <div class="flex justify-center gap-4 mb-12 flex-wrap">
-                    <button class="filter-btn active glass px-6 py-2 rounded-full" data-filter="all">Vše</button>
-                    <button class="filter-btn glass px-6 py-2 rounded-full" data-filter="foto">Fotografie</button>
-                    <button class="filter-btn glass px-6 py-2 rounded-full" data-filter="ai">AI Projekty</button>
-                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolioGrid">
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="eager" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Hlavičkový souboj</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
+                <form action="https://formspree.io/f/movlrlzj" method="POST" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-2 uppercase">Jméno</label>
+                            <input type="text" name="name" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-2 uppercase">Email</label>
+                            <input type="email" name="email" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition" required>
                         </div>
                     </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="eager" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Souboj o míč</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="eager" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Oslava gólu</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Akce před brankou</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-5.jpg" alt="První liga" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">První liga</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-6.jpg" alt="Sigma vs Slavia" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Sigma vs Slavia</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="assets/portfolio/ai-1.png" alt="AI Asistent" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">AI Asistent</div>
-                                <div class="portfolio-meta">AI Projekt</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="assets/portfolio/ai-2.png" alt="Zábavní chatbot" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Zábavní chatbot</div>
-                                <div class="portfolio-meta">AI Projekt</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="assets/portfolio/ai-3.png" alt="Fotograf AI" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Fotograf AI</div>
-                                <div class="portfolio-meta">AI Projekt</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/portret-1.jpg" alt="Portrét s kouřem" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Portrét s kouřem</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/portret-2.jpg" alt="Festival look" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Festival look</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/portret-3.jpg" alt="Modrý kouř" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
-                        <div class="portfolio-overlay">
-                            <div class="text-center">
-                                <div class="portfolio-title">Modrý kouř</div>
-                                <div class="portfolio-meta">Fotografie</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Skills Section -->
-        <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent reveal">
-            <div class="container mx-auto px-6 max-w-6xl section-wrap">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Dovednosti & Technologie</h2>
-                <p class="text-center text-gray-400 mb-16 max-w-2xl mx-auto">
-                    Specializuji se na sportovní a portrétní fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI (semiagent).
-                </p>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Photography Skills -->
-                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                        <div class="text-5xl mb-4">📷</div>
-                        <h3 class="text-2xl font-bold mb-6">Fotografie</h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Portrétní foto</span>
-                                    <span class="text-sm text-blue-400">95%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="95" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Sportovní foto</span>
-                                    <span class="text-sm text-blue-400">92%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="92" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Akční sekvence</span>
-                                    <span class="text-sm text-blue-400">88%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="88" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">AI postprodukce (Fotograf AI)</span>
-                                    <span class="text-sm text-blue-400">94%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="94" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                    <!-- AI/Dev Skills -->
-                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                        <div class="text-5xl mb-4">🤖</div>
-                        <h3 class="text-2xl font-bold mb-6">AI & Tech</h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Vibecoding (Claude, Gemini)</span>
-                                    <span class="text-sm text-blue-400">92%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="92" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">ChatGPT & Codex</span>
-                                    <span class="text-sm text-blue-400">90%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="90" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Agentní kódování</span>
-                                    <span class="text-sm text-blue-400">88%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="88" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Automatizace workflow</span>
-                                    <span class="text-sm text-blue-400">86%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="86" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                    <!-- Tools -->
-                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                        <div class="text-5xl mb-4">🛠️</div>
-                        <h3 class="text-2xl font-bold mb-6">Nástroje</h3>
-
-                        <div class="flex flex-wrap gap-3">
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Adobe Lightroom</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Photoshop</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">VS Code</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Git/GitHub</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Fotograf AI (semiagent)</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Vibecoding</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Claude</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Gemini</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">ChatGPT</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Codex</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Agentní kódování</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Figma</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Tailwind CSS</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Timeline/Process Section -->
-        <section class="py-24 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent reveal">
-            <div class="container mx-auto px-6 max-w-5xl section-wrap">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Jak pracuji</h2>
-                <p class="text-center text-gray-400 mb-16">Jednoduchý proces od návrhu po realizaci</p>
-
-                <div class="relative">
-                    <!-- Vertical Line -->
-                    <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-blue-500 opacity-30"></div>
-
-                    <!-- Step 1 -->
-                    <div class="relative flex flex-col md:flex-row items-center mb-16">
-                        <div class="w-full md:w-1/2 px-4 md:pr-12 md:px-0 text-center md:text-right">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">1. Konzultace</h3>
-                                <p class="text-gray-300">Probereme vaše představy, cíle a požadavky projektu</p>
-                            </div>
-                        </div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            💬
-                        </div>
-                        <div class="hidden md:block md:w-1/2 md:pl-12"></div>
-                    </div>
-
-                    <!-- Step 2 -->
-                    <div class="relative flex flex-col md:flex-row items-center mb-16">
-                        <div class="hidden md:block md:w-1/2 md:pr-12"></div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            📋
-                        </div>
-                        <div class="w-full md:w-1/2 px-4 md:pl-12 md:px-0 text-center md:text-left order-1 md:order-none">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">2. Plánování</h3>
-                                <p class="text-gray-300">Vytvoříme detailní plán a časový harmonogram</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="relative flex flex-col md:flex-row items-center mb-16">
-                        <div class="w-full md:w-1/2 px-4 md:pr-12 md:px-0 text-center md:text-right">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">3. Realizace</h3>
-                                <p class="text-gray-300">Fotografie, kód nebo AI řešení podle plánu</p>
-                            </div>
-                        </div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            ⚡
-                        </div>
-                        <div class="hidden md:block md:w-1/2 md:pl-12"></div>
-                    </div>
-
-                    <!-- Step 4 -->
-                    <div class="relative flex flex-col md:flex-row items-center">
-                        <div class="hidden md:block md:w-1/2 md:pr-12"></div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            ✨
-                        </div>
-                        <div class="w-full md:w-1/2 px-4 md:pl-12 md:px-0 text-center md:text-left order-1 md:order-none">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">4. Dokončení</h3>
-                                <p class="text-gray-300">Finální úpravy a předání hotového projektu</p>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        </section>
-
-        <section id="o-mne" class="py-24 reveal">
-            <div class="container mx-auto px-6 max-w-4xl section-wrap">
-                <div class="glass card rounded-3xl p-12 text-center">
-                    <h2 class="text-4xl font-bold mb-8 gradient-text section-title">O mně</h2>
-                    <p class="text-xl text-gray-300 leading-relaxed">
-                        Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <section id="kontakt" class="py-24 reveal">
-            <div class="container mx-auto px-6 max-w-4xl section-wrap">
-                <div class="glass card rounded-3xl p-12">
-                    <h2 class="text-4xl font-bold mb-8 text-center gradient-text section-title">Kontakt</h2>
-
-                    <div class="mb-8 text-center">
-                        <a href="mailto:lukas.drsticka@gmail.com" class="text-2xl text-blue-400 hover:text-blue-300 transition">
-                            lukas.drsticka@gmail.com
-                        </a>
-                        <a href="tel:+420721624429" class="block text-2xl text-blue-400 hover:text-blue-300 transition mt-2">
-                            +420 721 624 429
-                        </a>
-                        <p class="text-gray-400 mt-4">Preferujete telefon? Zavolejte mi nebo napište e‑mail a ozvu se zpět.</p>
-                    </div>
-
-                    <div class="mt-12">
-                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 justify-center">
-                            <span>✉️</span>
-                            <span>Napište mi zprávu</span>
-                            <span class="text-sm text-blue-400">(s AI asistentem)</span>
-                        </h3>
-                        
-                        <form id="contactForm" class="space-y-4" action="https://formspree.io/f/movlrlzj" method="POST">
-                            <div>
-                                <label for="contactName" class="block text-sm text-gray-300 mb-2">Jméno</label>
-                                <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Vaše jméno" name="name" required autocomplete="name" aria-describedby="contactNameError">
-                                <span id="contactNameError" class="error-message" role="alert" aria-live="assertive">Toto pole je povinné</span>
-                            </div>
-                            
-                            <div>
-                                <label for="contactEmail" class="block text-sm text-gray-300 mb-2">Email</label>
-                                <input type="email" id="contactEmail" name="email" required autocomplete="email" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="vas@email.cz" aria-describedby="contactEmailError">
-                                <span id="contactEmailError" class="error-message" role="alert" aria-live="assertive">Toto pole je povinné</span>
-                            </div>
-
-                            <div>
-                                <label for="contactService" class="block text-sm text-gray-300 mb-2">Typ služby</label>
-                                <select id="contactService" name="service" class="w-full glass rounded-xl p-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required aria-describedby="contactServiceError">
-                                    <option value="fotografie">Fotografie</option>
-                                    <option value="ai">AI chatbot</option>
-                                    <option value="automatizace">Automatizace</option>
-                                    <option value="konzultace">Konzultace</option>
-                                </select>
-                                <span id="contactServiceError" class="error-message" role="alert" aria-live="assertive">Toto pole je povinné</span>
-                            </div>
-
-                            <div>
-                                <label for="contactMessage" class="block text-sm text-gray-300 mb-2 flex items-center gap-2">
-                                    <span>Zpráva</span>
-                                    <span class="text-xs text-blue-400">🤖 AI vám pomůže</span>
-                                </label>
-                                <textarea id="contactMessage" class="w-full contact-textarea glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Popište svůj projekt..." name="message" required aria-describedby="contactMessageError"></textarea>
-                                <span id="contactMessageError" class="error-message" role="alert" aria-live="assertive">Toto pole je povinné</span>
-                                <div id="aiSuggestions"></div>
-                            </div>
-                            
-                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-3 rounded-xl hover:opacity-90 transition font-semibold">
-                                Odeslat zprávu
-                            </button>
-                            <p id="contactStatus" class="text-sm text-gray-400" role="status" aria-live="polite"></p>
-                            <input type="hidden" name="_subject" value="Nova zprava z webu">
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "ContactPoint",
-          "email": "lukas.drsticka@gmail.com",
-          "contactType": "sales",
-          "availableLanguage": ["cs", "en"]
-        }
-        </script>
-    </main>
-
-    <div id="announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-
-    <footer class="glass border-t border-white/10 py-16 mt-24 relative z-10" role="contentinfo">
-        <div class="container mx-auto px-6 max-w-6xl">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <!-- Brand Column -->
-                <div class="md:col-span-2">
-                    <div class="flex items-center space-x-3 mb-4">
-                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full h-12 w-12 flex flex-col justify-center items-center font-bold text-sm">
-                            <span>LD</span>
-                        </div>
-                        <span class="text-xl font-semibold">Lukáš Drštička</span>
-                    </div>
-                    <p class="text-gray-400 mb-6 max-w-sm">
-                        Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.
-                    </p>
-
-                    <!-- Newsletter -->
+                    
                     <div>
-                        <h4 class="font-semibold mb-3">📬 Newsletter</h4>
-                        <form id="newsletterForm" class="flex gap-2">
-                            <label for="newsletterEmail" class="sr-only">Email pro newsletter</label>
-                            <input id="newsletterEmail" type="email" name="email" placeholder="vas@email.cz" autocomplete="email" required class="flex-1 glass rounded-xl px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsletterStatus">
-                            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-semibold hover:opacity-90 transition">
-                                Odebírat
-                            </button>
-                        </form>
-                        <p id="newsletterStatus" class="text-xs text-gray-400 mt-2" role="status" aria-live="polite"></p>
+                        <label class="block text-xs font-mono text-gray-500 mb-2 uppercase">Služba</label>
+                        <select name="service" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none transition">
+                            <option value="fotografie" class="bg-dark">Fotografie</option>
+                            <option value="ai" class="bg-dark">AI Chatbot / Vývoj</option>
+                            <option value="konzultace" class="bg-dark">Konzultace</option>
+                        </select>
                     </div>
-                </div>
 
-                <!-- Links Column -->
-                <div>
-                    <h4 class="font-semibold mb-4">Odkazy</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a></li>
-                        <li><a href="#skills" class="hover:text-blue-400 transition">Dovednosti</a></li>
-                        <li><a href="#o-mne" class="hover:text-blue-400 transition">O mně</a></li>
-                        <li><a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a></li>
-                    </ul>
-                </div>
-
-                <!-- Contact Column -->
-                <div>
-                    <h4 class="font-semibold mb-4">Kontakt</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li>
-                            <a href="mailto:lukas.drsticka@gmail.com" class="hover:text-blue-400 transition">
-                                lukas.drsticka@gmail.com
-                            </a>
-                        </li>
-                        <li>📍 Přerov, CZ</li>
-                    </ul>
-
-                    <!-- Social Links -->
-                    <div class="flex gap-3 mt-4">
-                        <a href="https://www.instagram.com/lukas_drsticka_foto/" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="Instagram"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                                <path fill="currentColor" d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm0 2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H7Zm5 3.5A5.5 5.5 0 1 1 6.5 12 5.5 5.5 0 0 1 12 8.5Zm0 2A3.5 3.5 0 1 0 15.5 12 3.5 3.5 0 0 0 12 10.5Zm5-3.1a1.1 1.1 0 1 1-1.1-1.1 1.1 1.1 0 0 1 1.1 1.1Z"/>
-                            </svg></a>
-                        <a href="https://www.facebook.com/luke.drsticka" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="Facebook"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                                <path fill="currentColor" d="M13 3h4v4h-3c-1.1 0-2 .9-2 2v3h5l-1 4h-4v8h-4v-8H5v-4h3V9a6 6 0 0 1 6-6Z"/>
-                            </svg></a>
-                        <a href="https://www.linkedin.com/in/luk%C3%A1%C5%A1-dr%C5%A1ti%C4%8Dka-573772110/" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="LinkedIn"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                                <path fill="currentColor" d="M4.98 3.5A2.5 2.5 0 1 1 2.5 6a2.5 2.5 0 0 1 2.48-2.5ZM3 9h4v12H3Zm7 0h3.8v1.7h.1a4.2 4.2 0 0 1 3.8-2.1c4.1 0 4.9 2.7 4.9 6.2V21h-4v-5.3c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21h-4Z"/>
-                            </svg></a>
-                        <a href="https://github.com/Lukedaca" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="GitHub"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                                <path fill="currentColor" d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.2-3.4-1.2a2.7 2.7 0 0 0-1.1-1.5c-.9-.6.1-.6.1-.6a2.1 2.1 0 0 1 1.6 1 2.1 2.1 0 0 0 2.9.8 2.1 2.1 0 0 1 .6-1.3c-2.2-.3-4.6-1.1-4.6-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.7s.8-.3 2.7 1a9.2 9.2 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1a3.6 3.6 0 0 1 .1 2.7 3.9 3.9 0 0 1 1 2.7c0 3.9-2.4 4.7-4.6 5a2.4 2.4 0 0 1 .7 1.8V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/>
-                            </svg></a>
+                    <div>
+                        <label class="block text-xs font-mono text-gray-500 mb-2 uppercase">Zpráva</label>
+                        <textarea name="message" rows="4" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition"></textarea>
                     </div>
+
+                    <button type="submit" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-bold tracking-wide hover:opacity-90 transition shadow-lg">
+                        ODESLAT POPTÁVKU
+                    </button>
+                </form>
+
+                <div class="mt-8 pt-8 border-t border-white/10 text-center text-sm text-gray-400">
+                    <p>lukas.drsticka@gmail.com • +420 721 624 429</p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="border-t border-white/10 pt-8 text-center">
-                <p class="text-gray-400 mb-2">© 2025 Lukáš Drštička. Všechna práva vyhrazena.</p>
-                <p class="text-gray-500 text-sm">Vytvořeno s ❤️ pomocí Claude, Gemini & Codex | Designed with modern web standards</p>
+    <!-- FOOTER -->
+    <footer class="py-12 border-t border-white/5 bg-black text-center relative">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-sm text-gray-500">
+                © 2025 Lukáš Drštička. Crafted with <span class="text-red-500">❤</span> & AI.
+            </div>
+            <div class="flex gap-4">
+                <a href="https://github.com/Lukedaca" target="_blank" class="text-gray-500 hover:text-white transition">GitHub</a>
+                <a href="https://www.instagram.com/lukas_drsticka_foto/" target="_blank" class="text-gray-500 hover:text-white transition">Instagram</a>
+                <a href="https://www.linkedin.com/in/lukas-drsticka" target="_blank" class="text-gray-500 hover:text-white transition">LinkedIn</a>
             </div>
         </div>
     </footer>
 
+    <!-- Chatbot Button (Preserved functionality visually upgraded) -->
     <div class="fixed bottom-6 right-6 z-50">
-        <button id="chatBtn" class="relative bg-gradient-to-br from-blue-600 to-purple-600 rounded-full h-16 w-16 flex items-center justify-center shadow-2xl hover:scale-110 transition text-3xl">
-            🤖
-            <span id="unreadBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">0</span>
+        <button id="chatBtn" class="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.5)] hover:scale-110 transition duration-300">
+            <span class="text-2xl">🤖</span>
         </button>
-        <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: min(550px, calc(100dvh - 120px));" role="dialog" aria-modal="true">
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex justify-between items-center rounded-t-2xl">
-                <h3 class="font-bold text-lg">🤖 AI Asistent</h3>
-                <div class="flex gap-2">
-                    <button id="clearChat" class="text-xl hover:text-gray-200" title="Smazat historii" aria-label="Smazat historii">🗑️</button>
-                    <button id="closeChat" class="text-2xl hover:text-gray-200" aria-label="Zavřít chat">&times;</button>
-                </div>
-            </div>
-            <div id="messages" class="flex-1 p-4 overflow-y-auto" aria-live="polite"></div>
-            <div id="quickReplies" class="px-4 pb-2 hidden"></div>
-            <div class="p-4 border-t border-white/10">
-                <div class="flex gap-2">
-                    <input type="text" id="chatInput" placeholder="Napište zprávu..." class="flex-1 glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off" autocorrect="off" autocapitalize="sentences" enterkeyhint="send">
-                    <button id="sendBtn" class="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold" aria-label="Odeslat zprávu">↑</button>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Galerie">
-        <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10" aria-label="Zavřít galerii">&times;</button>
-        <div id="lightboxControls" class="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
-            <button id="lightboxPrev" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Předchozí fotka">‹</button>
-            <button id="lightboxNext" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Další fotka">›</button>
-        </div>
-        <img id="lightboxImg" src="" alt="">
-    </div>
-
-    <!-- Main JavaScript with defer for optimal performance -->
-    <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/core.min.js" defer></script>
-
-
-    <!-- Page Loader Removal Script -->
+    <!-- SCRIPTS -->
     <script>
-    (function() {
-        function hideLoader() {
-            var loader = document.getElementById('page-loader');
-            var body = document.body;
-            if (loader) loader.classList.add('hidden');
-            if (body) body.classList.remove('loading');
+        // 1. SPOTLIGHT EFFECT
+        function handleSpotlight(e) {
+            const cards = document.querySelectorAll(".spotlight-card");
+            for(const card of cards) {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty("--mouse-x", `${x}px`);
+                card.style.setProperty("--mouse-y", `${y}px`);
+            }
         }
-        // Hide loader when DOM is ready and fonts are loaded
-        if (document.readyState === 'complete') {
-            hideLoader();
-        } else {
-            window.addEventListener('load', function() {
-                // Small delay to ensure all CSS is applied
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(hideLoader);
-                });
+
+        // 2. FADE UP ANIMATION OBSERVER
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = "1";
+                    entry.target.style.transform = "translateY(0)";
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // 3. PORTFOLIO FILTER
+        function filterPortfolio(category) {
+            const items = document.querySelectorAll('.filter-item');
+            const btns = document.querySelectorAll('.active-filter');
+            
+            // Highlight button (simple implementation)
+            event.target.parentElement.querySelectorAll('button').forEach(b => {
+                b.classList.remove('bg-white/10', 'text-white');
+                b.classList.add('text-gray-400');
+            });
+            event.target.classList.add('bg-white/10', 'text-white');
+            event.target.classList.remove('text-gray-400');
+
+            items.forEach(item => {
+                if(category === 'all' || item.classList.contains(category)) {
+                    item.style.display = 'block';
+                    setTimeout(() => item.style.opacity = '1', 50);
+                } else {
+                    item.style.opacity = '0';
+                    setTimeout(() => item.style.display = 'none', 300);
+                }
             });
         }
-        // Fallback: hide after 3 seconds max
-        setTimeout(hideLoader, 3000);
-    })();
+
+        // 4. MOBILE MENU
+        const menuBtn = document.getElementById('mobileMenuBtn');
+        const menuClose = document.getElementById('mobileMenuClose');
+        const menu = document.getElementById('mobileMenu');
+
+        menuBtn.addEventListener('click', () => {
+            menu.classList.remove('translate-x-full');
+        });
+
+        menuClose.addEventListener('click', () => {
+            menu.classList.add('translate-x-full');
+        });
+
+        document.querySelectorAll('#mobileMenu a').forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('translate-x-full');
+            });
+        });
+
     </script>
 </body>
 </html>
-
