@@ -184,7 +184,12 @@ function attachPortfolioEvents() {
                 const projectTitle = project.name || fallbackTitle;
                 const projectAlt = PORTFOLIO_ALT_TEXTS[String(project.id || '')] || projectTitle;
                 if (project.type === 'gallery') {
-                    openGalleryLightbox(project.images, 0, projectAlt);
+                    const galleryStartIndex = Number.isInteger(project.mainImageIndex)
+                        && project.mainImageIndex >= 0
+                        && project.mainImageIndex < project.images.length
+                        ? project.mainImageIndex
+                        : 0;
+                    openGalleryLightbox(project.images, galleryStartIndex, projectAlt);
                 } else {
                     const mainImage = project.images[project.mainImageIndex] || project.images[0];
                     openSingleLightbox(mainImage, projectAlt);
