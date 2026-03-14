@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Sigma Olomouc vs Mainz | Galerie | Lukas Drsticka</title>
-    <meta name="description" content="Samostatna galerie ze zapasu Sigma Olomouc vs Mainz. Sportovni fotografie od Lukase Drsticky.">
+    <title>Sigma Olomouc vs Mainz | Galerie | Lukáš Drštička</title>
+    <meta name="description" content="Samostatná galerie ze zápasu Sigma Olomouc vs Mainz. Sportovní fotografie od Lukáše Drštičky.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://lukasdrsticka-ai-and-foto.com/galerie/sigma-vs-mainz/">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://lukasdrsticka-ai-and-foto.com/galerie/sigma-vs-mainz/">
     <meta property="og:title" content="Sigma Olomouc vs Mainz | Galerie">
-    <meta property="og:description" content="Samostatna galerie ze zapasu Sigma Olomouc vs Mainz.">
+    <meta property="og:description" content="Samostatná galerie ze zápasu Sigma Olomouc vs Mainz.">
     <meta property="og:image" content="https://lukasdrsticka-ai-and-foto.com/assets/portfolio/sigma-mainz-01.jpg">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Sigma Olomouc vs Mainz | Galerie">
-    <meta name="twitter:description" content="Samostatna galerie ze zapasu Sigma Olomouc vs Mainz.">
+    <meta name="twitter:description" content="Samostatná galerie ze zápasu Sigma Olomouc vs Mainz.">
     <meta name="twitter:image" content="https://lukasdrsticka-ai-and-foto.com/assets/portfolio/sigma-mainz-01.jpg">
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -178,16 +178,16 @@
 <body>
     <main class="gallery-page">
         <section class="gallery-hero">
-            <span class="gallery-kicker">Sportovni fotografie</span>
+            <span class="gallery-kicker">Sportovní fotografie</span>
             <h1 class="gallery-title">Sigma Olomouc vs Mainz</h1>
-            <p class="gallery-copy">Samostatna galerie ze zapasu Sigma Olomouc vs Mainz. Odkaz vede primo na tenhle zapas, ne na cele portfolio.</p>
+            <p class="gallery-copy">Samostatná galerie ze zápasu Sigma Olomouc vs Mainz. Odkaz vede přímo na tenhle zápas, ne na celé portfolio.</p>
             <div class="gallery-meta">
-                <span>17 vybranych fotek</span>
+                <span>17 vybraných fotek</span>
                 <span>Olomouc</span>
-                <span>Lukas Drsticka</span>
+                <span>Lukáš Drštička</span>
             </div>
             <div class="gallery-actions">
-                <a class="gallery-link primary" href="/#portfolio">Zpet na portfolio</a>
+                <a class="gallery-link primary" href="/#portfolio">Zpět na portfolio</a>
                 <a class="gallery-link secondary" href="mailto:lukas.drsticka@gmail.com?subject=Sigma%20Olomouc%20vs%20Mainz">Chci podobnou galerii</a>
             </div>
         </section>
@@ -195,11 +195,11 @@
         <section class="gallery-grid" id="matchGallery" aria-label="Galerie Sigma Olomouc vs Mainz"></section>
     </main>
 
-    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Galerie zapasu Sigma Olomouc vs Mainz">
-        <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10" aria-label="Zavrit galerii">&times;</button>
+    <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Galerie zápasu Sigma Olomouc vs Mainz">
+        <button id="closeLightbox" class="absolute top-8 right-8 text-white text-4xl hover:text-gray-300 z-10" aria-label="Zavřít galerii">&times;</button>
         <div id="lightboxControls" class="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
-            <button id="lightboxPrev" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Predchozi fotka">&lsaquo;</button>
-            <button id="lightboxNext" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Dalsi fotka">&rsaquo;</button>
+            <button id="lightboxPrev" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Předchozí fotka">&lsaquo;</button>
+            <button id="lightboxNext" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Další fotka">&rsaquo;</button>
         </div>
         <img id="lightboxImg" src="" alt="">
     </div>
@@ -225,7 +225,7 @@
 
         function renderGallery() {
             galleryRoot.innerHTML = galleryImages.map((image, index) => `
-                <button class="gallery-card" type="button" data-index="${index}" aria-label="Otevrit fotku ${index + 1}">
+                <button class="gallery-card" type="button" data-index="${index}" aria-label="Otevřít fotku ${index + 1}">
                     <img src="${image.src}" alt="${image.alt}" loading="${index < 4 ? 'eager' : 'lazy'}">
                     <span>Fotka ${index + 1}</span>
                 </button>
