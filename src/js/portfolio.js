@@ -5,6 +5,8 @@
 
 const PORTFOLIO_DATA_URL = 'data/portfolio.json';
 const PORTFOLIO_FALLBACK_IMAGE = 'assets/fallback.jpg';
+const PORTFOLIO_ROUTE_PARAM = 'gallery';
+const PORTFOLIO_SECTION_HASH = '#portfolio';
 const PORTFOLIO_ALT_TEXTS = {
     'portret-1': 'Portrétní fotografie v přirozeném světle',
     'sport-1': 'Sportovní fotografie - akční záběr',
@@ -17,6 +19,8 @@ const PORTFOLIO_ALT_TEXTS = {
 let portfolioProjects = [];
 let activeFilter = 'all';
 let galleryKeyHandler = null;
+let galleryTouchStartHandler = null;
+let galleryTouchEndHandler = null;
 
 const filterBtns = document.querySelectorAll('.filter-btn');
 const lightbox = document.getElementById('lightbox');
@@ -35,13 +39,130 @@ function setLightboxControls(visible) {
     lightboxControls.classList.toggle('hidden', !visible);
 }
 
-function closeLightboxModal() {
+function slugifyPortfolioValue(value) {
+    return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+function getProjectSlug(project, index = 0) {
+    if (project && typeof project.slug === 'string' && project.slug.trim()) {
+        return slugifyPortfolioValue(project.slug);
+    }
+
+    const nameSlug = slugifyPortfolioValue(project?.name);
+    if (nameSlug) return nameSlug;
+
+    const idSlug = slugifyPortfolioValue(project?.id);
+    if (idSlug) return idSlug;
+
+    return `portfolio-${index}`;
+}
+
+function getGalleryStartIndex(project) {
+    return Number.isInteger(project?.mainImageIndex)
+        && project.mainImageIndex >= 0
+        && project.mainImageIndex < project.images.length
+        ? project.mainImageIndex
+        : 0;
+}
+
+function updatePortfolioUrl(project = null, options = {}) {
+    const { replace = false } = options;
+    if (!(window.history && window.location)) return;
+
+    const url = new URL(window.location.href);
+
+    if (project) {
+        url.searchParams.set(PORTFOLIO_ROUTE_PARAM, getProjectSlug(project));
+    } else {
+        url.searchParams.delete(PORTFOLIO_ROUTE_PARAM);
+    }
+
+    url.hash = PORTFOLIO_SECTION_HASH;
+
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    const method = replace ? 'replaceState' : 'pushState';
+    window.history[method](window.history.state, '', nextUrl);
+}
+
+function getRequestedGallerySlug() {
+    return slugifyPortfolioValue(new URLSearchParams(window.location.search).get(PORTFOLIO_ROUTE_PARAM));
+}
+
+function findProjectBySlug(slug) {
+    return portfolioProjects.find((project, index) => getProjectSlug(project, index) === slug) || null;
+}
+
+function openProjectLightbox(project, fallbackTitle, options = {}) {
+    const { syncUrl = false, replaceUrl = false } = options;
+    if (!(project && Array.isArray(project.images) && project.images.length)) return false;
+
+    const projectTitle = project.name || fallbackTitle || 'Portfolio';
+    const projectAlt = PORTFOLIO_ALT_TEXTS[String(project.id || '')] || projectTitle;
+
+    if (project.type === 'gallery') {
+        openGalleryLightbox(project.images, getGalleryStartIndex(project), projectAlt);
+        if (syncUrl) {
+            updatePortfolioUrl(project, { replace: replaceUrl });
+        }
+        return true;
+    }
+
+    const mainImage = project.images[getGalleryStartIndex(project)] || project.images[0];
+    openSingleLightbox(mainImage, projectAlt);
+    return true;
+}
+
+function syncPortfolioFilterButtons(filter) {
+    filterBtns.forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+}
+
+function handlePortfolioRouteChange() {
+    const requestedSlug = getRequestedGallerySlug();
+    if (!requestedSlug) {
+        if (lightbox?.classList.contains('active')) {
+            closeLightboxModal({ syncUrl: false });
+        }
+        return;
+    }
+
+    const requestedProject = findProjectBySlug(requestedSlug);
+    if (!requestedProject) return;
+
+    if (activeFilter !== 'all' && activeFilter !== requestedProject.category) {
+        activeFilter = requestedProject.category;
+        syncPortfolioFilterButtons(activeFilter);
+        applyPortfolioFilter(activeFilter);
+    }
+
+    openProjectLightbox(requestedProject, requestedProject.name, { syncUrl: false });
+}
+
+function closeLightboxModal(options = {}) {
+    const { syncUrl = true, replaceUrl = true } = options;
     if (!lightbox) return;
     lightbox.classList.remove('active');
     setLightboxControls(false);
     if (galleryKeyHandler) {
         document.removeEventListener('keydown', galleryKeyHandler);
         galleryKeyHandler = null;
+    }
+    if (galleryTouchStartHandler) {
+        lightbox.removeEventListener('touchstart', galleryTouchStartHandler);
+        galleryTouchStartHandler = null;
+    }
+    if (galleryTouchEndHandler) {
+        lightbox.removeEventListener('touchend', galleryTouchEndHandler);
+        galleryTouchEndHandler = null;
+    }
+    if (syncUrl) {
+        updatePortfolioUrl(null, { replace: replaceUrl });
     }
 }
 
@@ -153,6 +274,7 @@ function renderPortfolio() {
 
     attachPortfolioEvents();
     applyPortfolioFilter(activeFilter);
+    handlePortfolioRouteChange();
 }
 
 function attachPortfolioEvents() {
@@ -173,19 +295,9 @@ function attachPortfolioEvents() {
             }
 
             if (project && Array.isArray(project.images) && project.images.length) {
-                const projectTitle = project.name || fallbackTitle;
-                const projectAlt = PORTFOLIO_ALT_TEXTS[String(project.id || '')] || projectTitle;
-                if (project.type === 'gallery') {
-                    const galleryStartIndex = Number.isInteger(project.mainImageIndex)
-                        && project.mainImageIndex >= 0
-                        && project.mainImageIndex < project.images.length
-                        ? project.mainImageIndex
-                        : 0;
-                    openGalleryLightbox(project.images, galleryStartIndex, projectAlt);
-                } else {
-                    const mainImage = project.images[project.mainImageIndex] || project.images[0];
-                    openSingleLightbox(mainImage, projectAlt);
-                }
+                openProjectLightbox(project, fallbackTitle, {
+                    syncUrl: project.type === 'gallery'
+                });
                 return;
             }
 
@@ -261,16 +373,22 @@ function openGalleryLightbox(images, startIndex, altText) {
         };
     }
 
+    if (galleryTouchStartHandler) {
+        lightbox.removeEventListener('touchstart', galleryTouchStartHandler);
+    }
+    if (galleryTouchEndHandler) {
+        lightbox.removeEventListener('touchend', galleryTouchEndHandler);
+    }
+
     // Swipe gestures for mobile
     let touchStartX = 0;
-    let touchEndX = 0;
 
-    lightbox.addEventListener('touchstart', (e) => {
+    galleryTouchStartHandler = (e) => {
         touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
+    };
 
-    lightbox.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
+    galleryTouchEndHandler = (e) => {
+        const touchEndX = e.changedTouches[0].screenX;
         const diff = touchStartX - touchEndX;
 
         if (Math.abs(diff) > 50) {
@@ -284,13 +402,18 @@ function openGalleryLightbox(images, startIndex, altText) {
                 updateControls();
             }
         }
-    }, { passive: true });
+    };
+
+    lightbox.addEventListener('touchstart', galleryTouchStartHandler, { passive: true });
+    lightbox.addEventListener('touchend', galleryTouchEndHandler, { passive: true });
 
     setImage();
     lightbox.classList.add('active');
     setLightboxControls(images.length > 1);
     updateControls();
 }
+
+window.addEventListener('popstate', handlePortfolioRouteChange);
 
 // Initialize portfolio
 loadPortfolioData();
