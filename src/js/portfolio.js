@@ -5,23 +5,18 @@
 
 const PORTFOLIO_DATA_URL = 'data/portfolio.json';
 const PORTFOLIO_FALLBACK_IMAGE = 'assets/fallback.jpg';
-const PORTFOLIO_ROUTE_PREFIX = '/galerie/';
-const PORTFOLIO_ROUTE_PARAM = 'gallery';
-const PORTFOLIO_SECTION_HASH = '#portfolio';
 const PORTFOLIO_ALT_TEXTS = {
-    'portret-1': 'Portrétní fotografie v přirozeném světle',
-    'sport-1': 'Sportovní fotografie - akční záběr',
-    'ai-chatbot': 'AI chatbot rozhraní',
-    'produkt-1': 'Produktová fotografie v ateliéru',
+    'portret-1': 'Portretni fotografie v prirozenem svetle',
+    'sport-1': 'Sportovni fotografie - akcni zaber',
+    'ai-chatbot': 'AI chatbot rozhrani',
+    'produkt-1': 'Produktova fotografie v atelieru',
     'automatizace': 'Automatizace procesu s AI',
-    'portret-2': 'Portrétní fotografie s dramatickým světlem'
+    'portret-2': 'Portretni fotografie s dramatickym svetlem'
 };
 
 let portfolioProjects = [];
 let activeFilter = 'all';
 let galleryKeyHandler = null;
-let galleryTouchStartHandler = null;
-let galleryTouchEndHandler = null;
 
 const filterBtns = document.querySelectorAll('.filter-btn');
 const lightbox = document.getElementById('lightbox');
@@ -40,146 +35,13 @@ function setLightboxControls(visible) {
     lightboxControls.classList.toggle('hidden', !visible);
 }
 
-function slugifyPortfolioValue(value) {
-    return String(value || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-function getProjectSlug(project, index = 0) {
-    if (project && typeof project.slug === 'string' && project.slug.trim()) {
-        return slugifyPortfolioValue(project.slug);
-    }
-
-    const nameSlug = slugifyPortfolioValue(project?.name);
-    if (nameSlug) return nameSlug;
-
-    const idSlug = slugifyPortfolioValue(project?.id);
-    if (idSlug) return idSlug;
-
-    return `portfolio-${index}`;
-}
-
-function getGalleryStartIndex(project) {
-    return Number.isInteger(project?.mainImageIndex)
-        && project.mainImageIndex >= 0
-        && project.mainImageIndex < project.images.length
-        ? project.mainImageIndex
-        : 0;
-}
-
-function updatePortfolioUrl(project = null, options = {}) {
-    const { replace = false } = options;
-    if (!(window.history && window.location)) return;
-
-    const url = new URL(window.location.href);
-
-    if (project) {
-        url.pathname = `${PORTFOLIO_ROUTE_PREFIX}${getProjectSlug(project)}/`;
-        url.searchParams.delete(PORTFOLIO_ROUTE_PARAM);
-        url.hash = '';
-    } else {
-        url.pathname = '/';
-        url.searchParams.delete(PORTFOLIO_ROUTE_PARAM);
-        url.hash = PORTFOLIO_SECTION_HASH;
-    }
-
-    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
-    const method = replace ? 'replaceState' : 'pushState';
-    window.history[method](window.history.state, '', nextUrl);
-}
-
-function getRequestedGallerySlug() {
-    const currentPath = window.location.pathname.replace(/\/+$/, '/');
-
-    if (currentPath.startsWith(PORTFOLIO_ROUTE_PREFIX)) {
-        const routeSlug = currentPath.slice(PORTFOLIO_ROUTE_PREFIX.length).split('/')[0];
-        if (routeSlug) {
-            return slugifyPortfolioValue(routeSlug);
-        }
-    }
-
-    return slugifyPortfolioValue(new URLSearchParams(window.location.search).get(PORTFOLIO_ROUTE_PARAM));
-}
-
-function findProjectBySlug(slug) {
-    return portfolioProjects.find((project, index) => getProjectSlug(project, index) === slug) || null;
-}
-
-function openProjectLightbox(project, fallbackTitle, options = {}) {
-    const { syncUrl = false, replaceUrl = false } = options;
-    if (!(project && Array.isArray(project.images) && project.images.length)) return false;
-
-    const projectTitle = project.name || fallbackTitle || 'Portfolio';
-    const projectAlt = PORTFOLIO_ALT_TEXTS[String(project.id || '')] || projectTitle;
-
-    if (project.type === 'gallery') {
-        openGalleryLightbox(project.images, getGalleryStartIndex(project), projectAlt);
-        if (syncUrl) {
-            updatePortfolioUrl(project, { replace: replaceUrl });
-        }
-        return true;
-    }
-
-    const mainImage = project.images[getGalleryStartIndex(project)] || project.images[0];
-    openSingleLightbox(mainImage, projectAlt);
-    return true;
-}
-
-function syncPortfolioFilterButtons(filter) {
-    filterBtns.forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.filter === filter);
-    });
-}
-
-function handlePortfolioRouteChange() {
-    const requestedSlug = getRequestedGallerySlug();
-    if (!requestedSlug) {
-        if (lightbox?.classList.contains('active')) {
-            closeLightboxModal({ syncUrl: false });
-        }
-        return;
-    }
-
-    const requestedProject = findProjectBySlug(requestedSlug);
-    if (!requestedProject) return;
-    document.getElementById('portfolio')?.scrollIntoView({ block: 'start' });
-
-    if (activeFilter !== 'all' && activeFilter !== requestedProject.category) {
-        activeFilter = requestedProject.category;
-        syncPortfolioFilterButtons(activeFilter);
-        applyPortfolioFilter(activeFilter);
-    }
-
-    openProjectLightbox(requestedProject, requestedProject.name, { syncUrl: false });
-}
-
-function closeLightboxModal(options = {}) {
-    const { syncUrl = true, replaceUrl = true } = options;
+function closeLightboxModal() {
     if (!lightbox) return;
-    const hadDedicatedGalleryRoute = window.location.pathname.replace(/\/+$/, '/').startsWith(PORTFOLIO_ROUTE_PREFIX);
     lightbox.classList.remove('active');
     setLightboxControls(false);
     if (galleryKeyHandler) {
         document.removeEventListener('keydown', galleryKeyHandler);
         galleryKeyHandler = null;
-    }
-    if (galleryTouchStartHandler) {
-        lightbox.removeEventListener('touchstart', galleryTouchStartHandler);
-        galleryTouchStartHandler = null;
-    }
-    if (galleryTouchEndHandler) {
-        lightbox.removeEventListener('touchend', galleryTouchEndHandler);
-        galleryTouchEndHandler = null;
-    }
-    if (syncUrl) {
-        updatePortfolioUrl(null, { replace: replaceUrl });
-        if (hadDedicatedGalleryRoute) {
-            document.getElementById('portfolio')?.scrollIntoView({ block: 'start' });
-        }
     }
 }
 
@@ -208,7 +70,6 @@ if (lightbox) {
         if (e.target === lightbox) closeLightboxModal();
     });
 
-    // Escape key to close
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && lightbox.classList.contains('active')) {
             closeLightboxModal();
@@ -217,15 +78,15 @@ if (lightbox) {
 }
 
 function applyPortfolioFilter(filter) {
-    getPortfolioItems().forEach(item => {
+    getPortfolioItems().forEach((item) => {
         item.style.display = (filter === 'all' || item.dataset.category === filter) ? 'block' : 'none';
     });
 }
 
 if (filterBtns.length) {
-    filterBtns.forEach(btn => {
+    filterBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active'));
+            filterBtns.forEach((button) => button.classList.remove('active'));
             btn.classList.add('active');
             activeFilter = btn.dataset.filter;
             applyPortfolioFilter(activeFilter);
@@ -245,7 +106,7 @@ async function loadPortfolioData() {
         const data = await response.json();
         portfolioProjects = Array.isArray(data) ? data : [];
     } catch (err) {
-        console.warn('Nepodařilo se načíst portfolio data.', err);
+        console.warn('Nepodarilo se nacist portfolio data.', err);
         portfolioProjects = [];
     }
     renderPortfolio();
@@ -275,9 +136,10 @@ function renderPortfolio() {
             : categoryLabel;
         const projectId = project.id ? String(project.id) : `portfolio-${index}`;
         const altText = PORTFOLIO_ALT_TEXTS[projectId] || project.name || 'Portfolio';
+        const hrefAttr = project.pageUrl ? ` data-project-link="${project.pageUrl}"` : '';
 
         return `
-            <div class="portfolio-item rounded-xl overflow-hidden" data-category="${category}" data-project-id="${projectId}" data-project-index="${index}">
+            <div class="portfolio-item rounded-xl overflow-hidden" data-category="${category}" data-project-id="${projectId}" data-project-index="${index}"${hrefAttr}>
                 <img src="${mainImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='${PORTFOLIO_FALLBACK_IMAGE}';">
                 <div class="portfolio-overlay">
                     <div class="text-center">
@@ -291,11 +153,18 @@ function renderPortfolio() {
 
     attachPortfolioEvents();
     applyPortfolioFilter(activeFilter);
-    handlePortfolioRouteChange();
+}
+
+function getGalleryStartIndex(project) {
+    return Number.isInteger(project?.mainImageIndex)
+        && project.mainImageIndex >= 0
+        && project.mainImageIndex < project.images.length
+        ? project.mainImageIndex
+        : 0;
 }
 
 function attachPortfolioEvents() {
-    getPortfolioItems().forEach(item => {
+    getPortfolioItems().forEach((item) => {
         if (item.dataset.lightboxBound === 'true') return;
         item.dataset.lightboxBound = 'true';
         item.addEventListener('click', () => {
@@ -305,16 +174,26 @@ function attachPortfolioEvents() {
             let project = null;
 
             if (projectId) {
-                project = portfolioProjects.find(p => String(p.id) === projectId);
+                project = portfolioProjects.find((entry) => String(entry.id) === projectId);
             }
             if (!project && projectIndex >= 0) {
                 project = portfolioProjects[projectIndex];
             }
 
+            if (project?.pageUrl) {
+                window.location.href = project.pageUrl;
+                return;
+            }
+
             if (project && Array.isArray(project.images) && project.images.length) {
-                openProjectLightbox(project, fallbackTitle, {
-                    syncUrl: project.type === 'gallery'
-                });
+                const projectTitle = project.name || fallbackTitle;
+                const projectAlt = PORTFOLIO_ALT_TEXTS[String(project.id || '')] || projectTitle;
+                if (project.type === 'gallery') {
+                    openGalleryLightbox(project.images, getGalleryStartIndex(project), projectAlt);
+                } else {
+                    const mainImage = project.images[getGalleryStartIndex(project)] || project.images[0];
+                    openSingleLightbox(mainImage, projectAlt);
+                }
                 return;
             }
 
@@ -325,7 +204,7 @@ function attachPortfolioEvents() {
                     openGalleryLightbox(images, 0, fallbackTitle);
                     return;
                 } catch (e) {
-                    console.warn('Neplatná galerie v atributu.', e);
+                    console.warn('Neplatna galerie v atributu.', e);
                 }
             }
 
@@ -357,11 +236,11 @@ function openGalleryLightbox(images, startIndex, altText) {
 
     const handleKeyboard = (e) => {
         if (e.key === 'ArrowLeft' && currentIndex > 0) {
-            currentIndex--;
+            currentIndex -= 1;
             setImage();
             updateControls();
         } else if (e.key === 'ArrowRight' && currentIndex < images.length - 1) {
-            currentIndex++;
+            currentIndex += 1;
             setImage();
             updateControls();
         }
@@ -376,53 +255,43 @@ function openGalleryLightbox(images, startIndex, altText) {
     if (lightboxPrev && lightboxNext) {
         lightboxPrev.onclick = () => {
             if (currentIndex > 0) {
-                currentIndex--;
+                currentIndex -= 1;
                 setImage();
                 updateControls();
             }
         };
         lightboxNext.onclick = () => {
             if (currentIndex < images.length - 1) {
-                currentIndex++;
+                currentIndex += 1;
                 setImage();
                 updateControls();
             }
         };
     }
 
-    if (galleryTouchStartHandler) {
-        lightbox.removeEventListener('touchstart', galleryTouchStartHandler);
-    }
-    if (galleryTouchEndHandler) {
-        lightbox.removeEventListener('touchend', galleryTouchEndHandler);
-    }
-
-    // Swipe gestures for mobile
     let touchStartX = 0;
+    let touchEndX = 0;
 
-    galleryTouchStartHandler = (e) => {
+    lightbox.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
-    };
+    }, { passive: true });
 
-    galleryTouchEndHandler = (e) => {
-        const touchEndX = e.changedTouches[0].screenX;
+    lightbox.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
         const diff = touchStartX - touchEndX;
 
         if (Math.abs(diff) > 50) {
             if (diff > 0 && currentIndex < images.length - 1) {
-                currentIndex++;
+                currentIndex += 1;
                 setImage();
                 updateControls();
             } else if (diff < 0 && currentIndex > 0) {
-                currentIndex--;
+                currentIndex -= 1;
                 setImage();
                 updateControls();
             }
         }
-    };
-
-    lightbox.addEventListener('touchstart', galleryTouchStartHandler, { passive: true });
-    lightbox.addEventListener('touchend', galleryTouchEndHandler, { passive: true });
+    }, { passive: true });
 
     setImage();
     lightbox.classList.add('active');
@@ -430,7 +299,4 @@ function openGalleryLightbox(images, startIndex, altText) {
     updateControls();
 }
 
-window.addEventListener('popstate', handlePortfolioRouteChange);
-
-// Initialize portfolio
 loadPortfolioData();
