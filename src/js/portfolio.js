@@ -119,14 +119,6 @@ function renderPortfolio() {
 
     const projects = Array.isArray(portfolioProjects) ? portfolioProjects : [];
 
-    // Skip re-rendering if HTML already has real images (not fallback)
-    const existingImages = portfolioGrid.querySelectorAll('img[src*="portfolio/"]');
-    if (existingImages.length > 0 && !existingImages[0].src.includes('fallback')) {
-        attachPortfolioEvents();
-        applyPortfolioFilter(activeFilter);
-        return;
-    }
-
     if (projects.length === 0) {
         attachPortfolioEvents();
         applyPortfolioFilter(activeFilter);
