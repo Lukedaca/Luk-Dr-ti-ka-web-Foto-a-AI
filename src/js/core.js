@@ -350,6 +350,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
+    const currentPath = window.location.pathname.replace(/\/+$/, '/') || '/';
+    const shouldLoadPortfolioImmediately = currentPath.startsWith('/galerie/')
+        || new URLSearchParams(window.location.search).has('gallery');
+
     // Load neural network visualization after 2 seconds (deferred, not critical)
     const neuralCanvas = document.getElementById('neuralCanvas');
     if (neuralCanvas) {
@@ -363,11 +367,22 @@ function lazyLoadModules() {
     // Load portfolio module when portfolio section is visible
     const portfolioSection = document.getElementById('portfolio');
     if (portfolioSection) {
+        let portfolioModuleRequested = false;
+        const requestPortfolioModule = () => {
+            if (portfolioModuleRequested) return;
+            portfolioModuleRequested = true;
+            loadModule('/dist/js/portfolio.min.js', () => {
+                console.log('Portfolio module loaded');
+            });
+        };
+
+        if (shouldLoadPortfolioImmediately) {
+            requestPortfolioModule();
+        }
+
         const portfolioObserver = new IntersectionObserver((entries, obs) => {
             if (entries[0].isIntersecting) {
-                loadModule('/dist/js/portfolio.min.js', () => {
-                    console.log('Portfolio module loaded');
-                });
+                requestPortfolioModule();
                 obs.disconnect();
             }
         }, { rootMargin: '200px' });

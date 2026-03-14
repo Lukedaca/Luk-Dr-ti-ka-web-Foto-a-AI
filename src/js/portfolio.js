@@ -5,6 +5,7 @@
 
 const PORTFOLIO_DATA_URL = 'data/portfolio.json';
 const PORTFOLIO_FALLBACK_IMAGE = 'assets/fallback.jpg';
+const PORTFOLIO_ROUTE_PREFIX = '/galerie/';
 const PORTFOLIO_ROUTE_PARAM = 'gallery';
 const PORTFOLIO_SECTION_HASH = '#portfolio';
 const PORTFOLIO_ALT_TEXTS = {
@@ -77,12 +78,14 @@ function updatePortfolioUrl(project = null, options = {}) {
     const url = new URL(window.location.href);
 
     if (project) {
-        url.searchParams.set(PORTFOLIO_ROUTE_PARAM, getProjectSlug(project));
-    } else {
+        url.pathname = `${PORTFOLIO_ROUTE_PREFIX}${getProjectSlug(project)}/`;
         url.searchParams.delete(PORTFOLIO_ROUTE_PARAM);
+        url.hash = '';
+    } else {
+        url.pathname = '/';
+        url.searchParams.delete(PORTFOLIO_ROUTE_PARAM);
+        url.hash = PORTFOLIO_SECTION_HASH;
     }
-
-    url.hash = PORTFOLIO_SECTION_HASH;
 
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
     const method = replace ? 'replaceState' : 'pushState';
@@ -90,6 +93,15 @@ function updatePortfolioUrl(project = null, options = {}) {
 }
 
 function getRequestedGallerySlug() {
+    const currentPath = window.location.pathname.replace(/\/+$/, '/');
+
+    if (currentPath.startsWith(PORTFOLIO_ROUTE_PREFIX)) {
+        const routeSlug = currentPath.slice(PORTFOLIO_ROUTE_PREFIX.length).split('/')[0];
+        if (routeSlug) {
+            return slugifyPortfolioValue(routeSlug);
+        }
+    }
+
     return slugifyPortfolioValue(new URLSearchParams(window.location.search).get(PORTFOLIO_ROUTE_PARAM));
 }
 
@@ -134,6 +146,7 @@ function handlePortfolioRouteChange() {
 
     const requestedProject = findProjectBySlug(requestedSlug);
     if (!requestedProject) return;
+    document.getElementById('portfolio')?.scrollIntoView({ block: 'start' });
 
     if (activeFilter !== 'all' && activeFilter !== requestedProject.category) {
         activeFilter = requestedProject.category;
@@ -147,6 +160,7 @@ function handlePortfolioRouteChange() {
 function closeLightboxModal(options = {}) {
     const { syncUrl = true, replaceUrl = true } = options;
     if (!lightbox) return;
+    const hadDedicatedGalleryRoute = window.location.pathname.replace(/\/+$/, '/').startsWith(PORTFOLIO_ROUTE_PREFIX);
     lightbox.classList.remove('active');
     setLightboxControls(false);
     if (galleryKeyHandler) {
@@ -163,6 +177,9 @@ function closeLightboxModal(options = {}) {
     }
     if (syncUrl) {
         updatePortfolioUrl(null, { replace: replaceUrl });
+        if (hadDedicatedGalleryRoute) {
+            document.getElementById('portfolio')?.scrollIntoView({ block: 'start' });
+        }
     }
 }
 
