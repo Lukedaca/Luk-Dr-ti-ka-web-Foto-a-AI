@@ -254,6 +254,7 @@ body:not(.loading) > * {
                 <a href="#portfolio" class="nav-link hover:text-blue-400 transition">Portfolio</a>
                 <a href="#skills" class="nav-link hover:text-blue-400 transition">Dovednosti</a>
                 <a href="#o-mne" class="nav-link hover:text-blue-400 transition">O mně</a>
+                <a href="#spoluprace" class="nav-link hover:text-blue-400 transition">Spolupráce</a>
                 <a href="#kontakt" class="nav-link hover:text-blue-400 transition">Kontakt</a>
 
                 <button id="themeToggle" class="px-4 py-2 glass rounded-full text-sm font-semibold hover:bg-white/10 transition" aria-label="Přepnout režim">
@@ -278,6 +279,7 @@ body:not(.loading) > * {
             <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
             <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
             <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
+            <a href="#spoluprace" class="mobile-menu-link hover:text-blue-400 transition">Spolupráce</a>
             <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
         </nav>
     </div>
@@ -670,6 +672,38 @@ body:not(.loading) > * {
             </div>
         </section>
 
+        <!-- Spolupráce Section -->
+        <section id="spoluprace" class="py-24 reveal">
+            <div class="container mx-auto px-6 max-w-5xl section-wrap">
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Spolupráce</h2>
+                <p class="text-center text-gray-400 mb-12 max-w-2xl mx-auto">Spolupracuji s těmito subjekty</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- FC Přerov -->
+                    <a href="https://www.fcprerov.cz/" target="_blank" rel="noopener noreferrer" class="glass card rounded-3xl p-8 flex flex-col items-center text-center hover:border-blue-500/40 transition-all duration-300 group">
+                        <div class="h-24 w-24 mb-6 rounded-2xl bg-white/10 p-3 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <img src="/assets/portfolio/fc-prerov-logo.png" alt="1. FC Viktorie Přerov" class="h-full w-full object-contain">
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">1. FC Viktorie Přerov</h3>
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-300 mb-4">Klubový fotograf</span>
+                        <p class="text-gray-400 text-sm">Sportovní fotografie ze zápasů a klubových akcí. Dokumentace týmu a fanouškovských momentů.</p>
+                    </a>
+
+                    <!-- eKultura -->
+                    <a href="https://ekultura.cz/" target="_blank" rel="noopener noreferrer" class="glass card rounded-3xl p-8 flex flex-col items-center text-center hover:border-purple-500/40 transition-all duration-300 group">
+                        <div class="h-24 w-24 mb-6 rounded-2xl bg-white/10 p-3 flex items-center justify-center group-hover:scale-105 transition-transform">
+                            <svg class="h-14 w-14 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5a17.92 17.92 0 0 1-8.716-2.247m0 0A8.966 8.966 0 0 1 3 12c0-1.264.26-2.466.732-3.558"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">eKultura</h3>
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-300 mb-4">AI specialista</span>
+                        <p class="text-gray-400 text-sm">Implementace AI řešení, automatizace procesů a technologické poradenství pro kulturní platformu.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
         <section id="kontakt" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-4xl section-wrap">
                 <div class="glass card rounded-3xl p-12">
@@ -786,6 +820,7 @@ body:not(.loading) > * {
                         <li><a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a></li>
                         <li><a href="#skills" class="hover:text-blue-400 transition">Dovednosti</a></li>
                         <li><a href="#o-mne" class="hover:text-blue-400 transition">O mně</a></li>
+                        <li><a href="#spoluprace" class="hover:text-blue-400 transition">Spolupráce</a></li>
                         <li><a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a></li>
                     </ul>
                 </div>
@@ -816,6 +851,9 @@ body:not(.loading) > * {
                         <a href="https://github.com/Lukedaca" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="GitHub"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path fill="currentColor" d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.2-3.4-1.2a2.7 2.7 0 0 0-1.1-1.5c-.9-.6.1-.6.1-.6a2.1 2.1 0 0 1 1.6 1 2.1 2.1 0 0 0 2.9.8 2.1 2.1 0 0 1 .6-1.3c-2.2-.3-4.6-1.1-4.6-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.7s.8-.3 2.7 1a9.2 9.2 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1a3.6 3.6 0 0 1 .1 2.7 3.9 3.9 0 0 1 1 2.7c0 3.9-2.4 4.7-4.6 5a2.4 2.4 0 0 1 .7 1.8V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/>
                             </svg></a>
+                        <a href="https://www.fcprerov.cz/" target="_blank" rel="noopener noreferrer" class="glass p-1.5 rounded-full hover:bg-white/10 transition" aria-label="1. FC Viktorie Přerov">
+                            <img src="/assets/portfolio/fc-prerov-logo.png" alt="FC Přerov" class="h-8 w-8 rounded-full object-contain">
+                        </a>
                     </div>
                 </div>
             </div>
