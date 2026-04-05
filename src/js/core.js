@@ -243,10 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const emailInput = e.target.querySelector('input[type="email"]');
             const email = emailInput ? emailInput.value.trim() : '';
             if (!email) {
-                if (statusEl) statusEl.textContent = 'Zadejte prosim email.';
+                if (statusEl) statusEl.textContent = 'Zadejte prosím email.';
                 return;
             }
-            if (statusEl) statusEl.textContent = `Dekuji! Newsletter bude zaslan na: ${email}`;
+            if (statusEl) statusEl.textContent = `Děkuji! Newsletter bude zaslán na: ${email}`;
             e.target.reset();
         });
     }

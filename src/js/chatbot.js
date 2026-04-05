@@ -15,14 +15,14 @@
 
   // ── Default quick replies ────────────────────────────────────────────────
   var CHATBOT_DEFAULT_REPLIES = [
-    { text: 'Portrety', value: 'Delas portretni foceni?' },
-    { text: 'Sport',    value: 'Fotis sportovni akce?' },
+    { text: 'Portréty', value: 'Děláš portrétní focení?' },
+    { text: 'Sport',    value: 'Fotíš sportovní akce?' },
     { text: 'Fotograf AI', value: 'Jak funguje Fotograf AI?' },
-    { text: 'Ceny',     value: 'Kolik to stoji?' }
+    { text: 'Ceny',     value: 'Kolik to stojí?' }
   ];
 
   // ── Welcome message ──────────────────────────────────────────────────────
-  var CHATBOT_WELCOME = 'Ahoj! Jsem AI asistent Lukase. Zeptej se me na foceni, ceny, Fotograf AI nebo cokoliv dalsiho.';
+  var CHATBOT_WELCOME = 'Ahoj! Jsem AI asistent Lukáše. Zeptej se mě na focení, ceny, Fotograf AI nebo cokoliv dalšího.';
 
   // ── Shared state ─────────────────────────────────────────────────────────
   var chatbotState = {
