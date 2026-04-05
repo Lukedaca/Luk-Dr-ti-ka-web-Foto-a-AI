@@ -348,8 +348,24 @@ body:not(.loading) > * {
                 <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">AI Asistent</h2>
                 <p class="text-gray-400 text-center mb-12 max-w-xl mx-auto">Zeptejte se mě na cokoliv — focení, ceny, AI projekty nebo spolupráci. Odpovídá Gemma 4 AI.</p>
 
-                <div id="hero-chat" class="glass rounded-2xl p-6 md:p-8 text-left max-w-2xl mx-auto">
-                    <div id="hero-messages" class="flex flex-col gap-3 max-h-96 overflow-y-auto mb-4 scroll-smooth"></div>
+<div class="max-w-5xl mx-auto grid gap-6 xl:grid-cols-3 items-start">
+                    <div class="xl:col-span-2">
+                        <div id="hero-chat" class="glass rounded-[2rem] p-6 md:p-8 text-left">
+                            <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between mb-6">
+                                <div>
+                                    <p class="text-sm uppercase tracking-[0.35em] text-white/45">Hybridni agent</p>
+                                    <h3 class="text-2xl font-bold mt-2">Mluv se mnou nebo mi dej ukol</h3>
+                                </div>
+                                <div id="agent-mode-badge" class="agent-status-badge">Talk / Public presence</div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-3 mb-6">
+                                <button type="button" class="agent-mode-btn is-active" data-agent-mode="talk">Talk</button>
+                                <button type="button" class="agent-mode-btn" data-agent-mode="think">Think</button>
+                                <button type="button" class="agent-mode-btn" data-agent-mode="build">Build</button>
+                            </div>
+
+                            <div id="hero-messages" class="flex flex-col gap-3 max-h-96 overflow-y-auto mb-4 scroll-smooth"></div>
 
                     <div class="flex gap-3 items-center">
                         <input id="hero-input" type="text" placeholder="Zeptej se mě na cokoliv..."
@@ -373,6 +389,38 @@ body:not(.loading) > * {
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Jak funguje Fotograf AI?">Fotograf AI</button>
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Kolik to stojí?">Ceny</button>
                     </div>
+                </div>
+                    </div>
+
+                    <aside class="agent-workbench glass rounded-[2rem] p-6 md:p-7">
+                        <div class="agent-panel">
+                            <p class="agent-panel-label">Co jsem pochopil</p>
+                            <p id="agent-summary" class="agent-panel-copy">Cekam na zadani a drzim verejny agentni kontext.</p>
+                        </div>
+
+                        <div class="agent-panel">
+                            <p class="agent-panel-label">Intent</p>
+                            <div id="agent-intent" class="agent-intent-badge">talk-mode</div>
+                        </div>
+
+                        <div class="agent-panel">
+                            <p class="agent-panel-label">Pracovni postup</p>
+                            <ol id="agent-steps" class="agent-step-list">
+                                <li class="agent-step-item">Navazu konverzaci</li>
+                                <li class="agent-step-item">Vyberu nejuzitecnejsi smer</li>
+                                <li class="agent-step-item">Navrhnu dalsi krok</li>
+                            </ol>
+                        </div>
+
+                        <div class="agent-artifact-card">
+                            <p class="agent-panel-label">Mini deliverable</p>
+                            <h3 id="agent-artifact-title" class="text-xl font-semibold text-white">Co tenhle rezim umi</h3>
+                            <p id="agent-artifact-body" class="agent-panel-copy mt-3">Muzu odpovedet, rozebrat zadani nebo pripravit konkretni navrh, ktery uz jde nekam poslat.</p>
+                        </div>
+
+                        <button id="agent-cta" type="button" class="agent-cta-btn mt-5">Chci videt konkretni navrh</button>
+                        <p class="agent-disclaimer mt-4">Verejny webovy rezim nepracuje s internimi daty, ale umi z navstevy udelat realny brief nebo pripravu na dalsi call.</p>
+                    </aside>
                 </div>
             </div>
         </section>
@@ -963,7 +1011,10 @@ body:not(.loading) > * {
         </button>
         <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: min(550px, calc(100dvh - 120px));" role="dialog" aria-modal="true">
             <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex justify-between items-center rounded-t-2xl">
-                <h3 class="font-bold text-lg">🤖 AI Asistent</h3>
+                <div>
+                    <h3 class="font-bold text-lg">Lukas AI</h3>
+                    <p id="chat-mode-badge" class="text-xs uppercase tracking-[0.28em] text-white/70 mt-1">Talk</p>
+                </div>
                 <div class="flex gap-2">
                     <button id="clearChat" class="text-xl hover:text-gray-200" title="Smazat historii" aria-label="Smazat historii">🗑️</button>
                     <button id="closeChat" class="text-2xl hover:text-gray-200" aria-label="Zavřít chat">&times;</button>

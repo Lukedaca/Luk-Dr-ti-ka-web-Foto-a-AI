@@ -1,185 +1,201 @@
 /**
- * chatbot.js — Gemma 4 AI chatbot
- * Shared state (window.aiChat) pro Hero chat i floating Widget.
- * Vsechny API requesty jdou pres /.netlify/functions/chat
+ * chatbot.js - Lukas AI public + agent workbench experience
+ * Shared state (window.aiChat) drives both hero chat and floating widget.
  */
 ;(function chatbotIIFE() {
   'use strict';
 
-  // ── Formspree ────────────────────────────────────────────────────────────
   var CHATBOT_FORMSPREE_URL = 'https://formspree.io/f/movlrlzj';
-  var CHATBOT_INACTIVITY_MS = 180000; // 3 min
-
-  // ── API endpoint ─────────────────────────────────────────────────────────
+  var CHATBOT_INACTIVITY_MS = 180000;
   var CHATBOT_API_URL = '/.netlify/functions/chat';
+  var CHATBOT_DEFAULT_MODE = 'talk';
 
-  // ── Default quick replies ────────────────────────────────────────────────
-  var CHATBOT_DEFAULT_REPLIES = [
-    { text: 'Portréty', value: 'Děláš portrétní focení?' },
-    { text: 'Sport',    value: 'Fotíš sportovní akce?' },
-    { text: 'Fotograf AI', value: 'Jak funguje Fotograf AI?' },
-    { text: 'Ceny',     value: 'Kolik to stojí?' }
-  ];
+  var CHATBOT_MODE_META = {
+    talk: {
+      label: 'Talk',
+      badge: 'Public presence',
+      helper: 'Povidej si se mnou jako s digitalni verzi Lukase.',
+      replies: [
+        { text: 'Co presne delas?', value: 'Co presne delas a s cim lidem pomahas?' },
+        { text: 'Ukaz portfolio', value: 'Ukaz mi portfolio a co je na nem nejzajimavejsi.' },
+        { text: 'Fotograf AI', value: 'Vysvetli mi lidsky, co je Fotograf AI.' }
+      ]
+    },
+    think: {
+      label: 'Think',
+      badge: 'Agent reasoning',
+      helper: 'Rozeberu zadani, navrhnu smer a upozornim na slabiny.',
+      replies: [
+        { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro mensi firmu, ktery by delal realnou praci.' },
+        { text: 'Automatizace webu', value: 'Jak bys zautomatizoval lead flow a komunikaci na webu?' },
+        { text: 'Strategie pilotu', value: 'Navrhni rozumny pilot pro nasazeni AI asistenta.' }
+      ]
+    },
+    build: {
+      label: 'Build',
+      badge: 'Mini deliverable',
+      helper: 'Pripravuju vystup, ktery uz jde nekam poslat nebo podle nej jednat.',
+      replies: [
+        { text: 'Mini brief', value: 'Vytvor mi mini brief spoluprace na AI agentovi pro web.' },
+        { text: 'Navrh scope', value: 'Sepis scope pro prvni verzi osobniho AI agenta.' },
+        { text: 'Roadmapa', value: 'Priprav kratkou roadmapu pro launch takoveho agenta.' }
+      ]
+    }
+  };
 
-  // ── Welcome message ──────────────────────────────────────────────────────
-  var CHATBOT_WELCOME = 'Ahoj! Jsem AI asistent Lukáše. Zeptej se mě na focení, ceny, Fotograf AI nebo cokoliv dalšího.';
+  var CHATBOT_WELCOME = 'Ahoj, jsem Lukas AI. Umim si s tebou povidat, promyslet zadani a rovnou pripravit mini vystup. Vyber si rezim nebo mi rovnou napis.';
 
-  // ── Shared state ─────────────────────────────────────────────────────────
+  function chatbotDefaultWorkbench(mode) {
+    var meta = CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk;
+    return {
+      summary: meta.helper,
+      intent: mode + '-mode',
+      steps: mode === 'build'
+        ? ['Pochopim cil', 'Pripravim mini vystup', 'Navrhnu dalsi krok']
+        : mode === 'think'
+          ? ['Pochopim kontext', 'Vyberu nejlepsi smer', 'Ukazu doporuceni']
+          : ['Navazu konverzaci', 'Vyberu uzitecny smer', 'Posunu to dal'],
+      artifactTitle: mode === 'build' ? 'Co z toho muze vzniknout' : 'Co tenhle rezim umi',
+      artifactBody: mode === 'build'
+        ? 'Muzu pripravit mini brief, scope automatizace, navrh AI agenta nebo call summary.'
+        : mode === 'think'
+          ? 'Muzu rozebrat napad, ukazat rizika, navrhnout architekturu a doporucit prvni pilot.'
+          : 'Muzu mluvit o Lukasovi, projektech, portfoliu a pri spravne chvili se prepnout do agentniho rezimu.',
+      ctaLabel: mode === 'build' ? 'Zkusit build mode' : 'Chci videt konkretni navrh',
+      ctaValue: mode === 'build'
+        ? 'Vytvor mi konkretni navrh spoluprace na AI agentovi.'
+        : 'Prepneme to do build mode a priprav mi konkretni navrh.'
+    };
+  }
+
+  function chatbotNormalizeWorkbench(workbench, mode, message) {
+    var fallback = chatbotDefaultWorkbench(mode);
+    var data = workbench && typeof workbench === 'object' ? workbench : {};
+
+    return {
+      summary: typeof data.summary === 'string' && data.summary.trim() ? data.summary.trim() : fallback.summary,
+      intent: typeof data.intent === 'string' && data.intent.trim() ? data.intent.trim() : fallback.intent,
+      steps: Array.isArray(data.steps) && data.steps.length
+        ? data.steps.filter(function(step) { return typeof step === 'string' && step.trim(); }).slice(0, 4)
+        : fallback.steps,
+      artifactTitle: typeof data.artifactTitle === 'string' && data.artifactTitle.trim() ? data.artifactTitle.trim() : fallback.artifactTitle,
+      artifactBody: typeof data.artifactBody === 'string' && data.artifactBody.trim() ? data.artifactBody.trim() : (message || fallback.artifactBody),
+      ctaLabel: typeof data.ctaLabel === 'string' && data.ctaLabel.trim() ? data.ctaLabel.trim() : fallback.ctaLabel,
+      ctaValue: typeof data.ctaValue === 'string' && data.ctaValue.trim() ? data.ctaValue.trim() : fallback.ctaValue
+    };
+  }
+
+  function chatbotNormalizeReplies(replies, mode) {
+    if (!Array.isArray(replies) || !replies.length) {
+      return (CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk).replies;
+    }
+
+    var normalized = replies
+      .map(function(reply) {
+        return {
+          text: typeof reply.text === 'string' ? reply.text.trim().slice(0, 32) : '',
+          value: typeof reply.value === 'string' ? reply.value.trim().slice(0, 180) : ''
+        };
+      })
+      .filter(function(reply) { return reply.text && reply.value; })
+      .slice(0, 3);
+
+    return normalized.length ? normalized : (CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk).replies;
+  }
+
   var chatbotState = {
-    messages: [],           // {role:'user'|'assistant', content:string}
+    messages: [],
     isWidgetOpen: false,
     isHeroVisible: true,
     inactivityTimer: null,
     notificationSent: false,
-    isProcessing: false
+    isProcessing: false,
+    mode: CHATBOT_DEFAULT_MODE,
+    workbench: chatbotDefaultWorkbench(CHATBOT_DEFAULT_MODE)
   };
 
-  // ── DOM cache (populated in init) ────────────────────────────────────────
   var chatbotDOM = {
-    // Widget
-    chatBtn: null, chatWindow: null, chatInput: null, sendBtn: null,
-    closeChat: null, clearChat: null, messages: null, quickReplies: null,
+    chatBtn: null,
+    chatWindow: null,
+    chatInput: null,
+    sendBtn: null,
+    closeChat: null,
+    clearChat: null,
+    messages: null,
+    quickReplies: null,
     unreadBadge: null,
-    // Hero
-    heroInput: null, heroSend: null, heroMessages: null, heroQuickReplies: null
+    widgetModeBadge: null,
+    heroInput: null,
+    heroSend: null,
+    heroMessages: null,
+    heroQuickReplies: null,
+    modeButtons: [],
+    heroModeBadge: null,
+    workbenchSummary: null,
+    workbenchIntent: null,
+    workbenchSteps: null,
+    workbenchArtifactTitle: null,
+    workbenchArtifactBody: null,
+    workbenchCta: null
   };
 
   var chatbotUnreadCount = 0;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // API COMMUNICATION
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Send user message to Gemma 4 via Netlify function.
-   * Returns {message:string, action:object|null}
-   */
-  function chatbotSendToGemma(userMessage) {
-    if (chatbotState.isProcessing) return Promise.resolve(null);
-    chatbotState.isProcessing = true;
-
-    // Push user message to shared state
-    chatbotState.messages.push({ role: 'user', content: userMessage });
-
-    // Reset inactivity timer
-    chatbotResetInactivity();
-
-    // Build request payload — full conversation history
-    var payload = {
-      messages: chatbotState.messages.map(function(m) {
-        return { role: m.role, content: m.content };
-      })
-    };
-
-    return fetch(CHATBOT_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(function(res) {
-      if (!res.ok) {
-        return res.json().catch(function() { return {}; }).then(function(data) {
-          throw new Error(data.error || data.message || 'Chyba serveru (' + res.status + ')');
-        });
-      }
-      return res.json();
-    })
-    .then(function(data) {
-      var assistantMsg = data.message || 'Omlouvám se, něco se pokazilo.';
-      var action = data.action || null;
-
-      // Push assistant message to shared state
-      chatbotState.messages.push({ role: 'assistant', content: assistantMsg });
-      chatbotState.isProcessing = false;
-
-      return { message: assistantMsg, action: action };
-    })
-    .catch(function(err) {
-      console.error('Chatbot error:', err);
-      var errorMsg = 'Omlouvám se, momentálně nemohu odpovědět. Zkus to za chvíli.';
-      chatbotState.messages.push({ role: 'assistant', content: errorMsg });
-      chatbotState.isProcessing = false;
-
-      return { message: errorMsg, action: null };
-    });
+  function chatbotEscapeHTML(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PAGE ACTIONS
-  // ═══════════════════════════════════════════════════════════════════════════
+  function chatbotModeMeta(mode) {
+    return CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk;
+  }
 
-  function chatbotExecuteAction(action) {
-    if (!action || !action.type) return;
+  function chatbotSetMode(mode, syncReplies) {
+    if (!CHATBOT_MODE_META[mode]) mode = CHATBOT_DEFAULT_MODE;
+    chatbotState.mode = mode;
 
-    switch (action.type) {
-      case 'scroll':
-        var scrollTarget = document.getElementById(action.target);
-        if (scrollTarget) {
-          scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        break;
+    chatbotDOM.modeButtons.forEach(function(btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-agent-mode') === mode);
+    });
 
-      case 'filter':
-        var filterBtn = document.querySelector('[data-filter="' + action.target + '"]');
-        if (filterBtn) {
-          filterBtn.click();
-        }
-        break;
+    var meta = chatbotModeMeta(mode);
+    if (chatbotDOM.heroModeBadge) chatbotDOM.heroModeBadge.textContent = meta.label + ' / ' + meta.badge;
+    if (chatbotDOM.widgetModeBadge) chatbotDOM.widgetModeBadge.textContent = meta.label;
 
-      case 'highlight':
-        var highlightTarget = document.getElementById(action.target);
-        if (highlightTarget) {
-          highlightTarget.classList.add('ai-highlight');
-          setTimeout(function() {
-            highlightTarget.classList.remove('ai-highlight');
-          }, 3000);
-        }
-        break;
+    if (syncReplies !== false) {
+      chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, meta.replies);
+      chatbotRenderQuickReplies(chatbotDOM.quickReplies, meta.replies);
+    }
+
+    if (!chatbotState.messages.length) {
+      chatbotRenderWorkbench(chatbotDefaultWorkbench(mode));
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FORMSPREE NOTIFICATION
-  // ═══════════════════════════════════════════════════════════════════════════
+  function chatbotRenderWorkbench(workbench) {
+    chatbotState.workbench = chatbotNormalizeWorkbench(workbench, chatbotState.mode, '');
 
-  function chatbotSendTranscript() {
-    if (chatbotState.notificationSent) return;
-    if (chatbotState.messages.length < 2) return;
+    if (chatbotDOM.workbenchSummary) chatbotDOM.workbenchSummary.textContent = chatbotState.workbench.summary;
+    if (chatbotDOM.workbenchIntent) chatbotDOM.workbenchIntent.textContent = chatbotState.workbench.intent;
+    if (chatbotDOM.workbenchArtifactTitle) chatbotDOM.workbenchArtifactTitle.textContent = chatbotState.workbench.artifactTitle;
+    if (chatbotDOM.workbenchArtifactBody) chatbotDOM.workbenchArtifactBody.textContent = chatbotState.workbench.artifactBody;
 
-    chatbotState.notificationSent = true;
-
-    var transcript = chatbotState.messages.map(function(m) {
-      var label = m.role === 'user' ? 'Uzivatel' : 'Asistent';
-      return label + ': ' + m.content;
-    }).join('\n\n');
-
-    var msgCount = chatbotState.messages.length;
-
-    var formData = new FormData();
-    formData.append('_subject', 'AI Chat prepis (' + msgCount + ' zprav)');
-    formData.append('message', transcript);
-
-    fetch(CHATBOT_FORMSPREE_URL, {
-      method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
-    }).catch(function() {
-      // Silent fail — non-critical
-    });
-  }
-
-  function chatbotResetInactivity() {
-    if (chatbotState.inactivityTimer) {
-      clearTimeout(chatbotState.inactivityTimer);
+    if (chatbotDOM.workbenchSteps) {
+      chatbotDOM.workbenchSteps.innerHTML = '';
+      chatbotState.workbench.steps.forEach(function(step) {
+        var li = document.createElement('li');
+        li.className = 'agent-step-item';
+        li.textContent = step;
+        chatbotDOM.workbenchSteps.appendChild(li);
+      });
     }
-    chatbotState.inactivityTimer = setTimeout(function() {
-      chatbotSendTranscript();
-    }, CHATBOT_INACTIVITY_MS);
-  }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // RENDER HELPERS
-  // ═══════════════════════════════════════════════════════════════════════════
+    if (chatbotDOM.workbenchCta) {
+      chatbotDOM.workbenchCta.textContent = chatbotState.workbench.ctaLabel;
+      chatbotDOM.workbenchCta.setAttribute('data-value', chatbotState.workbench.ctaValue);
+    }
+  }
 
   function chatbotRenderBubble(container, role, text) {
     if (!container) return;
@@ -189,16 +205,10 @@
     var isUser = role === 'user';
 
     div.className = 'chat-message mb-4 flex gap-2' + (isUser ? ' flex-row-reverse' : '');
-
-    var avatarBg = isUser ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass';
-    var bubbleBg = isUser ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass';
-    var avatar = isUser ? '\u{1F464}' : '\u{1F916}';
-    var align = isUser ? 'items-end' : 'items-start';
-
     div.innerHTML =
-      '<div class="message-avatar ' + avatarBg + '">' + avatar + '</div>' +
-      '<div class="flex flex-col ' + align + ' max-w-xs">' +
-        '<div class="p-3 rounded-xl ' + bubbleBg + '">' + chatbotEscapeHTML(text) + '</div>' +
+      '<div class="message-avatar ' + (isUser ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass') + '">' + (isUser ? '\u{1F464}' : '\u{1F916}') + '</div>' +
+      '<div class="flex flex-col ' + (isUser ? 'items-end' : 'items-start') + ' max-w-xs">' +
+        '<div class="p-3 rounded-xl ' + (isUser ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass') + '">' + chatbotEscapeHTML(text) + '</div>' +
         '<div class="message-time">' + time + '</div>' +
       '</div>';
 
@@ -208,9 +218,8 @@
 
   function chatbotShowTyping(container) {
     if (!container) return;
-
     var existing = container.querySelector('.chatbot-typing');
-    if (existing) return; // already showing
+    if (existing) return;
 
     var div = document.createElement('div');
     div.className = 'chat-message mb-4 flex gap-2 chatbot-typing';
@@ -232,7 +241,6 @@
 
   function chatbotRenderQuickReplies(container, replies) {
     if (!container) return;
-
     container.innerHTML = '';
 
     if (!replies || !replies.length) {
@@ -242,80 +250,65 @@
 
     container.classList.remove('hidden');
 
-    replies.forEach(function(r) {
+    replies.forEach(function(reply) {
       var btn = document.createElement('button');
       btn.className = 'quick-reply-btn glass px-4 py-2 rounded-full text-sm mr-2 mb-2';
-      btn.setAttribute('data-value', r.value);
-      btn.setAttribute('aria-label', 'Rychla odpoved: ' + r.text);
-      btn.textContent = r.text;
+      btn.setAttribute('data-value', reply.value);
+      btn.setAttribute('aria-label', 'Rychla odpoved: ' + reply.text);
+      btn.textContent = reply.text;
       btn.addEventListener('click', function() {
-        chatbotHandleSend(r.value);
+        chatbotHandleSend(reply.value);
       });
       container.appendChild(btn);
     });
   }
 
-  function chatbotEscapeHTML(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
+  function chatbotExecuteAction(action) {
+    if (!action || !action.type) return;
+
+    switch (action.type) {
+      case 'scroll':
+        var scrollTarget = document.getElementById(action.target);
+        if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        break;
+      case 'filter':
+        var filterBtn = document.querySelector('[data-filter="' + action.target + '"]');
+        if (filterBtn) filterBtn.click();
+        break;
+      case 'highlight':
+        var highlightTarget = document.getElementById(action.target);
+        if (highlightTarget) {
+          highlightTarget.classList.add('ai-highlight');
+          setTimeout(function() { highlightTarget.classList.remove('ai-highlight'); }, 3000);
+        }
+        break;
+    }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // UNIFIED SEND HANDLER
-  // ═══════════════════════════════════════════════════════════════════════════
+  function chatbotSendTranscript() {
+    if (chatbotState.notificationSent || chatbotState.messages.length < 2) return;
+    chatbotState.notificationSent = true;
 
-  function chatbotHandleSend(text) {
-    if (!text || !text.trim()) return;
-    text = text.trim();
+    var transcript = chatbotState.messages.map(function(m) {
+      return (m.role === 'user' ? 'Uzivatel' : 'Asistent') + ': ' + m.content;
+    }).join('\n\n');
 
-    // Clear inputs
-    if (chatbotDOM.heroInput) chatbotDOM.heroInput.value = '';
-    if (chatbotDOM.chatInput) chatbotDOM.chatInput.value = '';
+    var formData = new FormData();
+    formData.append('_subject', 'Lukas AI transcript (' + chatbotState.messages.length + ' zprav)');
+    formData.append('message', transcript);
 
-    // Hide quick replies in both containers
-    chatbotHideQuickReplies();
+    fetch(CHATBOT_FORMSPREE_URL, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    }).catch(function() {});
+  }
 
-    // Render user bubble in both containers
-    chatbotRenderBubble(chatbotDOM.heroMessages, 'user', text);
-    chatbotRenderBubble(chatbotDOM.messages, 'user', text);
-
-    // Show typing in active container(s)
-    if (chatbotState.isHeroVisible && chatbotDOM.heroMessages) {
-      chatbotShowTyping(chatbotDOM.heroMessages);
-    }
-    if (chatbotState.isWidgetOpen && chatbotDOM.messages) {
-      chatbotShowTyping(chatbotDOM.messages);
-    }
-
-    // Send to Gemma
-    chatbotSendToGemma(text).then(function(result) {
-      if (!result) return;
-
-      // Hide typing
-      chatbotHideTyping(chatbotDOM.heroMessages);
-      chatbotHideTyping(chatbotDOM.messages);
-
-      // Render assistant bubble in both containers
-      chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', result.message);
-      chatbotRenderBubble(chatbotDOM.messages, 'assistant', result.message);
-
-      // Update unread if widget is closed
-      if (!chatbotState.isWidgetOpen) {
-        chatbotUnreadCount++;
-        chatbotUpdateUnreadBadge();
-      }
-
-      // Execute page action(s) with slight delay so user sees the message first
-      if (result.action) {
-        setTimeout(function() {
-          var actions = Array.isArray(result.action) ? result.action : [result.action];
-          actions.forEach(function(act, i) {
-            setTimeout(function() { chatbotExecuteAction(act); }, i * 300);
-          });
-        }, 800);
-      }
-    });
+  function chatbotResetInactivity() {
+    if (chatbotState.inactivityTimer) clearTimeout(chatbotState.inactivityTimer);
+    chatbotState.inactivityTimer = setTimeout(function() {
+      chatbotSendTranscript();
+    }, CHATBOT_INACTIVITY_MS);
   }
 
   function chatbotHideQuickReplies() {
@@ -333,60 +326,175 @@
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SYNC WIDGET — copy state messages into widget container
-  // ═══════════════════════════════════════════════════════════════════════════
+  function chatbotSendToAgent(userMessage) {
+    if (chatbotState.isProcessing) return Promise.resolve(null);
+    chatbotState.isProcessing = true;
+    chatbotState.messages.push({ role: 'user', content: userMessage });
+    chatbotResetInactivity();
+
+    var payload = {
+      mode: chatbotState.mode,
+      messages: chatbotState.messages.map(function(message) {
+        return { role: message.role, content: message.content };
+      })
+    };
+
+    return fetch(CHATBOT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(res) {
+      if (!res.ok) {
+        return res.json().catch(function() { return {}; }).then(function(data) {
+          throw new Error(data.error || data.message || 'Chyba serveru (' + res.status + ')');
+        });
+      }
+      return res.json();
+    })
+    .then(function(data) {
+      var mode = CHATBOT_MODE_META[data.mode] ? data.mode : chatbotState.mode;
+      var assistantMsg = data.message || 'Promyslim to s tebou a navrhnu dalsi krok.';
+      var result = {
+        message: assistantMsg,
+        action: data.action || null,
+        mode: mode,
+        workbench: chatbotNormalizeWorkbench(data.workbench, mode, assistantMsg),
+        suggestedReplies: chatbotNormalizeReplies(data.suggestedReplies, mode)
+      };
+
+      chatbotState.messages.push({ role: 'assistant', content: assistantMsg });
+      chatbotState.isProcessing = false;
+      return result;
+    })
+    .catch(function(err) {
+      console.error('Chatbot error:', err);
+      chatbotState.isProcessing = false;
+      var fallbackMessage = 'Ted zrovna nemuzu odpovedet tak, jak bych chtel. Zkus to za chvili nebo mi dej kratke zadani znovu.';
+      chatbotState.messages.push({ role: 'assistant', content: fallbackMessage });
+      return {
+        message: fallbackMessage,
+        action: null,
+        mode: chatbotState.mode,
+        workbench: chatbotNormalizeWorkbench(null, chatbotState.mode, fallbackMessage),
+        suggestedReplies: chatbotNormalizeReplies(null, chatbotState.mode)
+      };
+    });
+  }
+
+  function chatbotHandleSend(text) {
+    if (!text || !text.trim()) return;
+    text = text.trim();
+
+    if (chatbotDOM.heroInput) chatbotDOM.heroInput.value = '';
+    if (chatbotDOM.chatInput) chatbotDOM.chatInput.value = '';
+
+    chatbotHideQuickReplies();
+    chatbotRenderBubble(chatbotDOM.heroMessages, 'user', text);
+    chatbotRenderBubble(chatbotDOM.messages, 'user', text);
+
+    if (chatbotState.isHeroVisible) chatbotShowTyping(chatbotDOM.heroMessages);
+    if (chatbotState.isWidgetOpen) chatbotShowTyping(chatbotDOM.messages);
+
+    chatbotSendToAgent(text).then(function(result) {
+      if (!result) return;
+
+      chatbotHideTyping(chatbotDOM.heroMessages);
+      chatbotHideTyping(chatbotDOM.messages);
+
+      chatbotSetMode(result.mode, false);
+      chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', result.message);
+      chatbotRenderBubble(chatbotDOM.messages, 'assistant', result.message);
+      chatbotRenderWorkbench(result.workbench);
+      chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, result.suggestedReplies);
+      chatbotRenderQuickReplies(chatbotDOM.quickReplies, result.suggestedReplies);
+
+      if (!chatbotState.isWidgetOpen) {
+        chatbotUnreadCount++;
+        chatbotUpdateUnreadBadge();
+      }
+
+      if (result.action) {
+        setTimeout(function() {
+          var actions = Array.isArray(result.action) ? result.action : [result.action];
+          actions.forEach(function(action, index) {
+            setTimeout(function() { chatbotExecuteAction(action); }, index * 250);
+          });
+        }, 700);
+      }
+    });
+  }
 
   function chatbotSyncWidgetMessages() {
     if (!chatbotDOM.messages) return;
     chatbotDOM.messages.innerHTML = '';
-
-    chatbotState.messages.forEach(function(m) {
-      chatbotRenderBubble(chatbotDOM.messages, m.role, m.content);
+    chatbotState.messages.forEach(function(message) {
+      chatbotRenderBubble(chatbotDOM.messages, message.role, message.content);
     });
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // CLEAR / RESET
-  // ═══════════════════════════════════════════════════════════════════════════
 
   function chatbotClearState() {
     chatbotState.messages = [];
     chatbotState.notificationSent = false;
     chatbotState.isProcessing = false;
+    chatbotUnreadCount = 0;
+    chatbotUpdateUnreadBadge();
+
     if (chatbotState.inactivityTimer) {
       clearTimeout(chatbotState.inactivityTimer);
       chatbotState.inactivityTimer = null;
     }
 
-    // Clear both containers
     if (chatbotDOM.heroMessages) chatbotDOM.heroMessages.innerHTML = '';
     if (chatbotDOM.messages) chatbotDOM.messages.innerHTML = '';
 
-    // Show welcome + quick replies
     chatbotShowWelcome();
+    chatbotRenderWorkbench(chatbotDefaultWorkbench(chatbotState.mode));
+    chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, chatbotModeMeta(chatbotState.mode).replies);
+    chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
   }
 
   function chatbotShowWelcome() {
     chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', CHATBOT_WELCOME);
     chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
-    chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, CHATBOT_DEFAULT_REPLIES);
-    chatbotRenderQuickReplies(chatbotDOM.quickReplies, CHATBOT_DEFAULT_REPLIES);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HERO CHAT INIT
-  // ═══════════════════════════════════════════════════════════════════════════
+  function chatbotOpenWidget() {
+    if (!chatbotDOM.chatWindow) return;
+    chatbotDOM.chatWindow.classList.remove('hidden');
+    chatbotState.isWidgetOpen = true;
+    chatbotUnreadCount = 0;
+    chatbotUpdateUnreadBadge();
+    chatbotSyncWidgetMessages();
+
+    if (!chatbotState.messages.length && chatbotDOM.messages) {
+      chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
+      chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
+    }
+  }
+
+  function chatbotCloseWidget() {
+    if (!chatbotDOM.chatWindow) return;
+    chatbotDOM.chatWindow.classList.add('hidden');
+    chatbotState.isWidgetOpen = false;
+  }
 
   function chatbotInitHero() {
     chatbotDOM.heroInput = document.getElementById('hero-input');
     chatbotDOM.heroSend = document.getElementById('hero-send');
     chatbotDOM.heroMessages = document.getElementById('hero-messages');
     chatbotDOM.heroQuickReplies = document.getElementById('hero-quick-replies');
+    chatbotDOM.modeButtons = Array.prototype.slice.call(document.querySelectorAll('[data-agent-mode]'));
+    chatbotDOM.heroModeBadge = document.getElementById('agent-mode-badge');
+    chatbotDOM.workbenchSummary = document.getElementById('agent-summary');
+    chatbotDOM.workbenchIntent = document.getElementById('agent-intent');
+    chatbotDOM.workbenchSteps = document.getElementById('agent-steps');
+    chatbotDOM.workbenchArtifactTitle = document.getElementById('agent-artifact-title');
+    chatbotDOM.workbenchArtifactBody = document.getElementById('agent-artifact-body');
+    chatbotDOM.workbenchCta = document.getElementById('agent-cta');
 
-    if (!chatbotDOM.heroMessages) return; // Hero HTML not yet in DOM
+    if (!chatbotDOM.heroMessages) return;
 
-    // Enter key sends
     if (chatbotDOM.heroInput) {
       chatbotDOM.heroInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
@@ -396,32 +504,38 @@
       });
     }
 
-    // Send button
     if (chatbotDOM.heroSend) {
       chatbotDOM.heroSend.addEventListener('click', function() {
         chatbotHandleSend(chatbotDOM.heroInput ? chatbotDOM.heroInput.value : '');
       });
     }
 
-    // IntersectionObserver for hero visibility
-    var heroSection = document.getElementById('hero') || document.getElementById('hero-chat');
+    chatbotDOM.modeButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        chatbotSetMode(btn.getAttribute('data-agent-mode'));
+      });
+    });
+
+    if (chatbotDOM.workbenchCta) {
+      chatbotDOM.workbenchCta.addEventListener('click', function() {
+        chatbotHandleSend(chatbotDOM.workbenchCta.getAttribute('data-value') || '');
+      });
+    }
+
+    var heroSection = document.getElementById('ai-asistent');
     if (heroSection) {
-      var chatbotHeroObserver = new IntersectionObserver(function(entries) {
+      var observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
           chatbotState.isHeroVisible = entry.isIntersecting;
         });
       }, { threshold: 0.1 });
-      chatbotHeroObserver.observe(heroSection);
+      observer.observe(heroSection);
     }
 
-    // Render welcome + quick replies in hero
-    chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', CHATBOT_WELCOME);
-    chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, CHATBOT_DEFAULT_REPLIES);
+    chatbotShowWelcome();
+    chatbotRenderWorkbench(chatbotDefaultWorkbench(chatbotState.mode));
+    chatbotSetMode(chatbotState.mode);
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // WIDGET CHAT INIT
-  // ═══════════════════════════════════════════════════════════════════════════
 
   function chatbotInitWidget() {
     chatbotDOM.chatBtn = document.getElementById('chatBtn');
@@ -433,40 +547,29 @@
     chatbotDOM.messages = document.getElementById('messages');
     chatbotDOM.quickReplies = document.getElementById('quickReplies');
     chatbotDOM.unreadBadge = document.getElementById('unreadBadge');
+    chatbotDOM.widgetModeBadge = document.getElementById('chat-mode-badge');
 
-    if (!chatbotDOM.chatBtn) return; // Widget HTML not in DOM
+    if (!chatbotDOM.chatBtn) return;
 
-    // Toggle open/close
     chatbotDOM.chatBtn.addEventListener('click', function() {
-      if (chatbotState.isWidgetOpen) {
-        chatbotCloseWidget();
-      } else {
-        chatbotOpenWidget();
-      }
+      if (chatbotState.isWidgetOpen) chatbotCloseWidget();
+      else chatbotOpenWidget();
     });
 
-    // Close button
     if (chatbotDOM.closeChat) {
-      chatbotDOM.closeChat.addEventListener('click', function() {
-        chatbotCloseWidget();
-      });
+      chatbotDOM.closeChat.addEventListener('click', chatbotCloseWidget);
     }
 
-    // Clear button
     if (chatbotDOM.clearChat) {
-      chatbotDOM.clearChat.addEventListener('click', function() {
-        chatbotClearState();
-      });
+      chatbotDOM.clearChat.addEventListener('click', chatbotClearState);
     }
 
-    // Send button
     if (chatbotDOM.sendBtn) {
       chatbotDOM.sendBtn.addEventListener('click', function() {
         chatbotHandleSend(chatbotDOM.chatInput ? chatbotDOM.chatInput.value : '');
       });
     }
 
-    // Enter key
     if (chatbotDOM.chatInput) {
       chatbotDOM.chatInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
@@ -476,65 +579,26 @@
       });
     }
 
-    // Render welcome + quick replies in widget
-    if (chatbotDOM.messages) {
-      chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
-    }
-    chatbotRenderQuickReplies(chatbotDOM.quickReplies, CHATBOT_DEFAULT_REPLIES);
-
+    if (chatbotDOM.messages) chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
+    chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
+    chatbotSetMode(chatbotState.mode, false);
     chatbotUpdateUnreadBadge();
   }
-
-  function chatbotOpenWidget() {
-    if (!chatbotDOM.chatWindow) return;
-    chatbotDOM.chatWindow.classList.remove('hidden');
-    chatbotState.isWidgetOpen = true;
-    chatbotUnreadCount = 0;
-    chatbotUpdateUnreadBadge();
-
-    // Sync messages from shared state into widget container
-    chatbotSyncWidgetMessages();
-
-    // If no messages yet (only welcome was shown before clear), show welcome
-    if (chatbotState.messages.length === 0 && chatbotDOM.messages) {
-      chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
-      chatbotRenderQuickReplies(chatbotDOM.quickReplies, CHATBOT_DEFAULT_REPLIES);
-    }
-  }
-
-  function chatbotCloseWidget() {
-    if (!chatbotDOM.chatWindow) return;
-    chatbotDOM.chatWindow.classList.add('hidden');
-    chatbotState.isWidgetOpen = false;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BEFOREUNLOAD — send transcript if conversation exists
-  // ═══════════════════════════════════════════════════════════════════════════
 
   window.addEventListener('beforeunload', function() {
     chatbotSendTranscript();
   });
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // INITIALIZATION
-  // ═══════════════════════════════════════════════════════════════════════════
 
   function chatbotInit() {
     chatbotInitHero();
     chatbotInitWidget();
   }
 
-  // Run init when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', chatbotInit);
   } else {
     chatbotInit();
   }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PUBLIC API — window.aiChat
-  // ═══════════════════════════════════════════════════════════════════════════
 
   window.aiChat = {
     state: chatbotState,
@@ -542,7 +606,7 @@
     clear: chatbotClearState,
     openWidget: chatbotOpenWidget,
     closeWidget: chatbotCloseWidget,
+    setMode: chatbotSetMode,
     reinit: chatbotInit
   };
-
 })();
