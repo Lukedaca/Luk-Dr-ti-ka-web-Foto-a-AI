@@ -14,9 +14,10 @@
     talk: {
       label: 'Talk',
       badge: 'Public presence',
-      helper: 'Povidej si se mnou jako s digitalni verzi Lukase.',
+      helper: 'Povidej si se mnou jako s digitalni verzi Lukase. Czech by default, English when needed.',
       replies: [
         { text: 'Co presne delas?', value: 'Co presne delas a s cim lidem pomahas?' },
+        { text: 'Speak English', value: 'Please continue in English and tell me what you do.' },
         { text: 'Ukaz portfolio', value: 'Ukaz mi portfolio a co je na nem nejzajimavejsi.' },
         { text: 'Fotograf AI', value: 'Vysvetli mi lidsky, co je Fotograf AI.' }
       ]
@@ -43,7 +44,7 @@
     }
   };
 
-  var CHATBOT_WELCOME = 'Ahoj, jsem Lukas AI. Umim si s tebou povidat, promyslet zadani a rovnou pripravit mini vystup. Vyber si rezim nebo mi rovnou napis.';
+  var CHATBOT_WELCOME = 'Ahoj, jsem Lukas AI. Umim si s tebou povidat, promyslet zadani a rovnou pripravit mini vystup. Muzeš psat cesky i anglicky a muzes se mnou i mluvit hlasem.';
 
   function chatbotDefaultWorkbench(mode) {
     var meta = CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk;
