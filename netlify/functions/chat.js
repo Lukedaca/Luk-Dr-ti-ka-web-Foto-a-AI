@@ -1,5 +1,3 @@
-const { generateSpeechPayload } = require("./tts");
-
 const MODEL = "gemma-4-31b-it";
 const MAX_HISTORY = 20;
 const MAX_MSG_LENGTH = 700;
@@ -262,16 +260,6 @@ function convertToGeminiContents(messages) {
   }));
 }
 
-function resolveVoiceDirective(action) {
-  const actions = Array.isArray(action) ? action : (action ? [action] : []);
-  for (const item of actions) {
-    if (item && item.type === "voice_output") {
-      return item.target === "off" ? "off" : "on";
-    }
-  }
-  return null;
-}
-
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
@@ -311,18 +299,12 @@ exports.handler = async (event) => {
 
   let messages;
   let requestedMode = "talk";
-  let voiceOutputEnabled = false;
-  let speechLang = "cs-CZ";
 
   try {
     const body = JSON.parse(event.body);
     messages = body.messages;
     if (VALID_MODES.has(body.mode)) {
       requestedMode = body.mode;
-    }
-    voiceOutputEnabled = body.voiceOutputEnabled === true;
-    if (typeof body.speechLang === "string" && body.speechLang.trim()) {
-      speechLang = body.speechLang.trim();
     }
 
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -427,24 +409,12 @@ exports.handler = async (event) => {
     const textParts = parts.filter((part) => !part.thought);
     const rawContent = textParts.map((part) => part.text || "").join("") || "";
     const parsed = parseAssistantResponse(rawContent, requestedMode);
-    const voiceDirective = resolveVoiceDirective(parsed.action);
-    const shouldGenerateSpeech = voiceDirective !== "off" && (voiceOutputEnabled || voiceDirective === "on");
-    let speech = null;
-
-    if (shouldGenerateSpeech) {
-      try {
-        speech = await generateSpeechPayload(apiKey, parsed.message, speechLang);
-      } catch (speechErr) {
-        console.error("Inline speech generation error:", speechErr);
-      }
-    }
 
     return {
       statusCode: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({
         ...parsed,
-        speech,
         usage: data.usageMetadata || null,
       }),
     };

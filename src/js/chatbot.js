@@ -587,8 +587,6 @@
 
     var payload = {
       mode: CHATBOT_PUBLIC_MODE,
-      voiceOutputEnabled: chatbotState.voiceOutputEnabled,
-      speechLang: chatbotGuessSpeechLang(userMessage),
       messages: chatbotState.messages.map(function(message) {
         return { role: message.role, content: message.content };
       })
@@ -613,7 +611,6 @@
       var result = {
         message: assistantMsg,
         action: data.action || null,
-        speech: data.speech || null,
         mode: mode,
         workbench: chatbotNormalizeWorkbench(data.workbench, mode, assistantMsg),
         suggestedReplies: chatbotNormalizeReplies(data.suggestedReplies, mode)
@@ -679,11 +676,7 @@
       }
 
       if (chatbotState.voiceOutputEnabled && voiceDirective !== 'off') {
-        if (result.speech && result.speech.audio) {
-          chatbotSpeakAudioPayload(result.speech);
-        } else {
-          chatbotSpeakText(result.message, result.message);
-        }
+        chatbotSpeakText(result.message, result.message);
       }
 
       if (!chatbotState.isWidgetOpen) {
