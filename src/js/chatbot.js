@@ -8,10 +8,12 @@
   var CHATBOT_FORMSPREE_URL = 'https://formspree.io/f/movlrlzj';
   var CHATBOT_INACTIVITY_MS = 180000;
   var CHATBOT_API_URL = '/.netlify/functions/chat';
+  var CHATBOT_TTS_API_URL = '/.netlify/functions/tts';
   var CHATBOT_DEFAULT_MODE = 'talk';
   var CHATBOT_PUBLIC_MODE = 'talk';
   var CHATBOT_VOICE_OUTPUT_KEY = 'lukas_ai_voice_output';
-  var CHATBOT_CAN_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  var CHATBOT_CAN_SPEAK = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
+  var CHATBOT_TTS_SAMPLE_RATE = 24000;
 
   var CHATBOT_MODE_META = {
     talk: {
@@ -149,7 +151,9 @@
   };
 
   var chatbotUnreadCount = 0;
-  var chatbotSpeechVoices = [];
+  var chatbotPlaybackCtx = null;
+  var chatbotPlaybackSource = null;
+  var chatbotSpeechRequestId = 0;
 
   function chatbotEscapeHTML(str) {
     var div = document.createElement('div');
@@ -201,11 +205,6 @@
     }
   }
 
-  function chatbotLoadSpeechVoices() {
-    if (!CHATBOT_CAN_SPEAK) return;
-    chatbotSpeechVoices = window.speechSynthesis.getVoices();
-  }
-
   function chatbotGuessSpeechLang(text) {
     if (!text) return chatbotState.preferredSpeechLang || 'cs-CZ';
     if (/[áčďéěíňóřšťúůýž]/i.test(text) || /\b(jsem|můžu|můžeš|ahoj|fotka|fotky|spolupráce|portfolio|chci|prosím|mluv|hlasem)\b/i.test(text)) {
@@ -217,20 +216,97 @@
     return chatbotState.preferredSpeechLang || 'cs-CZ';
   }
 
-  function chatbotPickSpeechVoice(lang) {
-    if (!CHATBOT_CAN_SPEAK || !chatbotSpeechVoices.length) return null;
+  function chatbotBase64ToArrayBuffer(base64) {
+    var binary = atob(base64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  }
 
-    var exact = chatbotSpeechVoices.find(function(voice) {
-      return voice.lang && voice.lang.toLowerCase() === lang.toLowerCase();
+  function chatbotInt16ToFloat32(int16Array) {
+    var float32 = new Float32Array(int16Array.length);
+    for (var i = 0; i < int16Array.length; i++) {
+      float32[i] = int16Array[i] / 0x8000;
+    }
+    return float32;
+  }
+
+  function chatbotStopSpeech() {
+    chatbotSpeechRequestId++;
+    if (chatbotPlaybackSource) {
+      try {
+        chatbotPlaybackSource.stop(0);
+      } catch (err) {
+        // ignore stop errors for already-ended sources
+      }
+      try {
+        chatbotPlaybackSource.disconnect();
+      } catch (err) {
+        // ignore disconnect errors
+      }
+      chatbotPlaybackSource = null;
+    }
+  }
+
+  function chatbotEnsurePlaybackContext() {
+    if (!CHATBOT_CAN_SPEAK) return null;
+    if (!chatbotPlaybackCtx || chatbotPlaybackCtx.state === 'closed') {
+      var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      chatbotPlaybackCtx = new AudioContextCtor({ sampleRate: CHATBOT_TTS_SAMPLE_RATE });
+    }
+    if (chatbotPlaybackCtx.state === 'suspended') {
+      return chatbotPlaybackCtx.resume().then(function() {
+        return chatbotPlaybackCtx;
+      });
+    }
+    return Promise.resolve(chatbotPlaybackCtx);
+  }
+
+  function chatbotRequestSpeechAudio(text, lang) {
+    return fetch(CHATBOT_TTS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: text,
+        lang: lang
+      })
+    })
+    .then(function(res) {
+      if (!res.ok) {
+        return res.json().catch(function() { return {}; }).then(function(data) {
+          throw new Error(data.error || 'TTS request failed (' + res.status + ')');
+        });
+      }
+      return res.json();
     });
-    if (exact) return exact;
+  }
 
-    var family = chatbotSpeechVoices.find(function(voice) {
-      return voice.lang && voice.lang.toLowerCase().indexOf(lang.slice(0, 2).toLowerCase()) === 0;
+  function chatbotPlaySpeechAudio(base64Audio, sampleRate, requestId) {
+    return chatbotEnsurePlaybackContext().then(function(audioCtx) {
+      if (!audioCtx || requestId !== chatbotSpeechRequestId) return;
+
+      var arrayBuf = chatbotBase64ToArrayBuffer(base64Audio);
+      var int16 = new Int16Array(arrayBuf);
+      var float32 = chatbotInt16ToFloat32(int16);
+      var audioBuffer = audioCtx.createBuffer(1, float32.length, sampleRate || CHATBOT_TTS_SAMPLE_RATE);
+      var source = audioCtx.createBufferSource();
+
+      audioBuffer.getChannelData(0).set(float32);
+      source.buffer = audioBuffer;
+      source.connect(audioCtx.destination);
+      source.onended = function() {
+        if (chatbotPlaybackSource === source) {
+          chatbotPlaybackSource = null;
+        }
+      };
+
+      chatbotPlaybackSource = source;
+      if (requestId === chatbotSpeechRequestId) {
+        source.start(0);
+      }
     });
-    if (family) return family;
-
-    return chatbotSpeechVoices[0] || null;
   }
 
   function chatbotUpdateSpeechToggleButtons() {
@@ -263,8 +339,8 @@
     chatbotPersistVoiceOutputPreference(chatbotState.voiceOutputEnabled);
     chatbotUpdateSpeechToggleButtons();
 
-    if (!chatbotState.voiceOutputEnabled && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    if (!chatbotState.voiceOutputEnabled) {
+      chatbotStopSpeech();
     }
 
     if (!options || !options.silent) {
@@ -304,18 +380,17 @@
 
     var lang = chatbotGuessSpeechLang(langHint || cleanText);
     chatbotState.preferredSpeechLang = lang;
+    chatbotStopSpeech();
 
-    window.speechSynthesis.cancel();
-
-    var utterance = new window.SpeechSynthesisUtterance(cleanText);
-    utterance.lang = lang;
-    utterance.rate = lang === 'cs-CZ' ? 1 : 0.98;
-    utterance.pitch = 1;
-
-    var voice = chatbotPickSpeechVoice(lang);
-    if (voice) utterance.voice = voice;
-
-    window.speechSynthesis.speak(utterance);
+    var requestId = chatbotSpeechRequestId;
+    chatbotRequestSpeechAudio(cleanText, lang)
+      .then(function(data) {
+        if (!data || !data.audio || requestId !== chatbotSpeechRequestId) return;
+        return chatbotPlaySpeechAudio(data.audio, data.sampleRate, requestId);
+      })
+      .catch(function(err) {
+        console.error('Chatbot TTS error:', err);
+      });
   }
 
   function chatbotSetMode(mode, syncReplies) {
@@ -626,9 +701,7 @@
     chatbotUnreadCount = 0;
     chatbotUpdateUnreadBadge();
 
-    if (CHATBOT_CAN_SPEAK) {
-      window.speechSynthesis.cancel();
-    }
+    chatbotStopSpeech();
 
     if (chatbotState.inactivityTimer) {
       clearTimeout(chatbotState.inactivityTimer);
@@ -788,19 +861,14 @@
 
   window.addEventListener('beforeunload', function() {
     chatbotSendTranscript();
-    if (CHATBOT_CAN_SPEAK) {
-      window.speechSynthesis.cancel();
+    chatbotStopSpeech();
+    if (chatbotPlaybackCtx && chatbotPlaybackCtx.state !== 'closed') {
+      chatbotPlaybackCtx.close().catch(function() {});
     }
   });
 
   function chatbotInit() {
     chatbotState.voiceOutputEnabled = chatbotReadVoiceOutputPreference();
-    if (CHATBOT_CAN_SPEAK) {
-      chatbotLoadSpeechVoices();
-      if (typeof window.speechSynthesis.onvoiceschanged !== 'undefined') {
-        window.speechSynthesis.onvoiceschanged = chatbotLoadSpeechVoices;
-      }
-    }
     chatbotInitHero();
     chatbotInitWidget();
     chatbotUpdateSpeechToggleButtons();
