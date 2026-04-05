@@ -355,7 +355,12 @@ body:not(.loading) > * {
                                     <p class="text-sm uppercase tracking-[0.35em] text-white/45">Hybridní agent</p>
                                     <h3 class="text-2xl font-bold mt-2">Piš mi nebo klikni na Mluvit hlasem</h3>
                                 </div>
-                                <div id="agent-mode-badge" class="agent-status-badge">Talk / Public presence</div>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <div id="agent-mode-badge" class="agent-status-badge">Talk / Public presence</div>
+                                    <button id="hero-speech-toggle" type="button" class="speech-output-toggle" data-speech-output="off" aria-pressed="false">
+                                        Hlasové odpovědi: vypnuto
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="flex flex-wrap gap-3 mb-6">
@@ -383,10 +388,11 @@ body:not(.loading) > * {
                         </button>
                     </div>
 
-                    <p class="mt-3 text-sm text-white/60">Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call. Asistent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.</p>
+                    <p class="mt-3 text-sm text-white/60">Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Asistent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.</p>
 
                     <div id="hero-quick-replies" class="flex gap-2 flex-wrap mt-4">
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Děláš portrétní focení?">Portréty</button>
+                        <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Odpovídej mi prosím hlasem, ale já budu dál psát.">Odpovídej hlasem</button>
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Please continue in English and tell me what you do.">Speak English</button>
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Fotíš sportovní akce?">Sport</button>
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Jak funguje Fotograf AI?">Fotograf AI</button>
@@ -986,6 +992,7 @@ body:not(.loading) > * {
                     <p id="chat-mode-badge" class="text-xs uppercase tracking-[0.28em] text-white/70 mt-1">Talk</p>
                 </div>
                 <div class="flex gap-2">
+                    <button id="widget-speech-toggle" class="speech-output-toggle speech-output-toggle-compact" type="button" data-speech-output="off" aria-pressed="false">Hlas vyp.</button>
                     <button id="clearChat" class="text-xl hover:text-gray-200" title="Smazat historii" aria-label="Smazat historii">🗑️</button>
                     <button id="closeChat" class="text-2xl hover:text-gray-200" aria-label="Zavřít chat">&times;</button>
                 </div>

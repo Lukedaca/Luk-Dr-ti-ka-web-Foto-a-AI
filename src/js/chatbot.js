@@ -9,6 +9,8 @@
   var CHATBOT_INACTIVITY_MS = 180000;
   var CHATBOT_API_URL = '/.netlify/functions/chat';
   var CHATBOT_DEFAULT_MODE = 'talk';
+  var CHATBOT_VOICE_OUTPUT_KEY = 'lukas_ai_voice_output';
+  var CHATBOT_CAN_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
 
   var CHATBOT_MODE_META = {
     talk: {
@@ -17,6 +19,7 @@
       helper: 'Povídej si se mnou jako s digitální verzí Lukáše. Česky defaultně, anglicky podle potřeby.',
       replies: [
         { text: 'Co přesně děláš?', value: 'Co přesně děláš a s čím lidem pomáháš?' },
+        { text: 'Odpovídej hlasem', value: 'Odpovídej mi prosím hlasem, ale já budu dál psát.' },
         { text: 'Speak English', value: 'Please continue in English and tell me what you do.' },
         { text: 'Ukaž portfolio', value: 'Ukaž mi portfolio a co je na něm nejzajímavější.' },
         { text: 'Fotograf AI', value: 'Vysvětli mi lidsky, co je Fotograf AI.' }
@@ -112,7 +115,9 @@
     notificationSent: false,
     isProcessing: false,
     mode: CHATBOT_DEFAULT_MODE,
-    workbench: chatbotDefaultWorkbench(CHATBOT_DEFAULT_MODE)
+    workbench: chatbotDefaultWorkbench(CHATBOT_DEFAULT_MODE),
+    voiceOutputEnabled: false,
+    preferredSpeechLang: 'cs-CZ'
   };
 
   var chatbotDOM = {
@@ -130,6 +135,8 @@
     heroSend: null,
     heroMessages: null,
     heroQuickReplies: null,
+    heroSpeechToggle: null,
+    widgetSpeechToggle: null,
     modeButtons: [],
     heroModeBadge: null,
     workbenchSummary: null,
@@ -141,6 +148,7 @@
   };
 
   var chatbotUnreadCount = 0;
+  var chatbotSpeechVoices = [];
 
   function chatbotEscapeHTML(str) {
     var div = document.createElement('div');
@@ -150,6 +158,140 @@
 
   function chatbotModeMeta(mode) {
     return CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk;
+  }
+
+  function chatbotReadVoiceOutputPreference() {
+    if (!CHATBOT_CAN_SPEAK) return false;
+    try {
+      return window.localStorage.getItem(CHATBOT_VOICE_OUTPUT_KEY) === 'on';
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function chatbotPersistVoiceOutputPreference(enabled) {
+    try {
+      window.localStorage.setItem(CHATBOT_VOICE_OUTPUT_KEY, enabled ? 'on' : 'off');
+    } catch (err) {
+      // ignore storage failures
+    }
+  }
+
+  function chatbotLoadSpeechVoices() {
+    if (!CHATBOT_CAN_SPEAK) return;
+    chatbotSpeechVoices = window.speechSynthesis.getVoices();
+  }
+
+  function chatbotGuessSpeechLang(text) {
+    if (!text) return chatbotState.preferredSpeechLang || 'cs-CZ';
+    if (/[áčďéěíňóřšťúůýž]/i.test(text) || /\b(jsem|můžu|můžeš|ahoj|fotka|fotky|spolupráce|portfolio|chci|prosím|mluv|hlasem)\b/i.test(text)) {
+      return 'cs-CZ';
+    }
+    if (/\b(hello|please|what|how|services|portfolio|pricing|agent|english|voice|speak|project)\b/i.test(text)) {
+      return 'en-US';
+    }
+    return chatbotState.preferredSpeechLang || 'cs-CZ';
+  }
+
+  function chatbotPickSpeechVoice(lang) {
+    if (!CHATBOT_CAN_SPEAK || !chatbotSpeechVoices.length) return null;
+
+    var exact = chatbotSpeechVoices.find(function(voice) {
+      return voice.lang && voice.lang.toLowerCase() === lang.toLowerCase();
+    });
+    if (exact) return exact;
+
+    var family = chatbotSpeechVoices.find(function(voice) {
+      return voice.lang && voice.lang.toLowerCase().indexOf(lang.slice(0, 2).toLowerCase()) === 0;
+    });
+    if (family) return family;
+
+    return chatbotSpeechVoices[0] || null;
+  }
+
+  function chatbotUpdateSpeechToggleButtons() {
+    var enabled = chatbotState.voiceOutputEnabled;
+    var unsupported = !CHATBOT_CAN_SPEAK;
+    var heroLabel = unsupported
+      ? 'Hlasové odpovědi nejsou dostupné'
+      : (enabled ? 'Hlasové odpovědi: zapnuto' : 'Hlasové odpovědi: vypnuto');
+    var widgetLabel = unsupported
+      ? 'Hlas N/A'
+      : (enabled ? 'Hlas zap.' : 'Hlas vyp.');
+
+    [chatbotDOM.heroSpeechToggle, chatbotDOM.widgetSpeechToggle].forEach(function(button, index) {
+      if (!button) return;
+      button.disabled = unsupported;
+      button.setAttribute('data-speech-output', enabled ? 'on' : 'off');
+      button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+      button.textContent = index === 0 ? heroLabel : widgetLabel;
+    });
+  }
+
+  function chatbotSetVoiceOutput(enabled, options) {
+    if (!CHATBOT_CAN_SPEAK) {
+      chatbotState.voiceOutputEnabled = false;
+      chatbotUpdateSpeechToggleButtons();
+      return;
+    }
+
+    chatbotState.voiceOutputEnabled = !!enabled;
+    chatbotPersistVoiceOutputPreference(chatbotState.voiceOutputEnabled);
+    chatbotUpdateSpeechToggleButtons();
+
+    if (!chatbotState.voiceOutputEnabled && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
+    if (!options || !options.silent) {
+      var confirmMessage = chatbotState.voiceOutputEnabled
+        ? 'Hlasové odpovědi jsou zapnuté. Klidně piš, budu odpovídat i nahlas.'
+        : 'Hlasové odpovědi jsou vypnuté. Budu už jen psát.';
+
+      chatbotState.messages.push({ role: 'assistant', content: confirmMessage });
+      chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', confirmMessage);
+      chatbotRenderBubble(chatbotDOM.messages, 'assistant', confirmMessage);
+      if (chatbotState.voiceOutputEnabled) {
+        chatbotSpeakText(confirmMessage, confirmMessage);
+      }
+    }
+  }
+
+  function chatbotToggleVoiceOutput() {
+    chatbotSetVoiceOutput(!chatbotState.voiceOutputEnabled);
+  }
+
+  function chatbotResolveVoiceDirective(action) {
+    var actions = Array.isArray(action) ? action : (action ? [action] : []);
+    for (var i = 0; i < actions.length; i++) {
+      if (actions[i] && actions[i].type === 'voice_output') {
+        return actions[i].target === 'off' ? 'off' : 'on';
+      }
+    }
+    return null;
+  }
+
+  function chatbotSpeakText(text, langHint) {
+    if (!CHATBOT_CAN_SPEAK || !chatbotState.voiceOutputEnabled || !text) return;
+    if (window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active') return;
+
+    var cleanText = String(text).replace(/\s+/g, ' ').trim();
+    if (!cleanText) return;
+
+    var lang = chatbotGuessSpeechLang(langHint || cleanText);
+    chatbotState.preferredSpeechLang = lang;
+
+    window.speechSynthesis.cancel();
+
+    var utterance = new window.SpeechSynthesisUtterance(cleanText);
+    utterance.lang = lang;
+    utterance.rate = lang === 'cs-CZ' ? 1 : 0.98;
+    utterance.pitch = 1;
+
+    var voice = chatbotPickSpeechVoice(lang);
+    if (voice) utterance.voice = voice;
+
+    window.speechSynthesis.speak(utterance);
   }
 
   function chatbotSetMode(mode, syncReplies) {
@@ -410,6 +552,17 @@
       chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, result.suggestedReplies);
       chatbotRenderQuickReplies(chatbotDOM.quickReplies, result.suggestedReplies);
 
+      var voiceDirective = chatbotResolveVoiceDirective(result.action);
+      if (voiceDirective === 'on') {
+        chatbotSetVoiceOutput(true, { silent: true });
+      } else if (voiceDirective === 'off') {
+        chatbotSetVoiceOutput(false, { silent: true });
+      }
+
+      if (chatbotState.voiceOutputEnabled && voiceDirective !== 'off') {
+        chatbotSpeakText(result.message, result.message);
+      }
+
       if (!chatbotState.isWidgetOpen) {
         chatbotUnreadCount++;
         chatbotUpdateUnreadBadge();
@@ -419,7 +572,9 @@
         setTimeout(function() {
           var actions = Array.isArray(result.action) ? result.action : [result.action];
           actions.forEach(function(action, index) {
-            setTimeout(function() { chatbotExecuteAction(action); }, index * 250);
+            if (action && action.type !== 'voice_output') {
+              setTimeout(function() { chatbotExecuteAction(action); }, index * 250);
+            }
           });
         }, 700);
       }
@@ -440,6 +595,10 @@
     chatbotState.isProcessing = false;
     chatbotUnreadCount = 0;
     chatbotUpdateUnreadBadge();
+
+    if (CHATBOT_CAN_SPEAK) {
+      window.speechSynthesis.cancel();
+    }
 
     if (chatbotState.inactivityTimer) {
       clearTimeout(chatbotState.inactivityTimer);
@@ -485,6 +644,7 @@
     chatbotDOM.heroSend = document.getElementById('hero-send');
     chatbotDOM.heroMessages = document.getElementById('hero-messages');
     chatbotDOM.heroQuickReplies = document.getElementById('hero-quick-replies');
+    chatbotDOM.heroSpeechToggle = document.getElementById('hero-speech-toggle');
     chatbotDOM.modeButtons = Array.prototype.slice.call(document.querySelectorAll('[data-agent-mode]'));
     chatbotDOM.heroModeBadge = document.getElementById('agent-mode-badge');
     chatbotDOM.workbenchSummary = document.getElementById('agent-summary');
@@ -509,6 +669,10 @@
       chatbotDOM.heroSend.addEventListener('click', function() {
         chatbotHandleSend(chatbotDOM.heroInput ? chatbotDOM.heroInput.value : '');
       });
+    }
+
+    if (chatbotDOM.heroSpeechToggle) {
+      chatbotDOM.heroSpeechToggle.addEventListener('click', chatbotToggleVoiceOutput);
     }
 
     chatbotDOM.modeButtons.forEach(function(btn) {
@@ -549,6 +713,7 @@
     chatbotDOM.quickReplies = document.getElementById('quickReplies');
     chatbotDOM.unreadBadge = document.getElementById('unreadBadge');
     chatbotDOM.widgetModeBadge = document.getElementById('chat-mode-badge');
+    chatbotDOM.widgetSpeechToggle = document.getElementById('widget-speech-toggle');
 
     if (!chatbotDOM.chatBtn) return;
 
@@ -563,6 +728,10 @@
 
     if (chatbotDOM.clearChat) {
       chatbotDOM.clearChat.addEventListener('click', chatbotClearState);
+    }
+
+    if (chatbotDOM.widgetSpeechToggle) {
+      chatbotDOM.widgetSpeechToggle.addEventListener('click', chatbotToggleVoiceOutput);
     }
 
     if (chatbotDOM.sendBtn) {
@@ -583,16 +752,28 @@
     if (chatbotDOM.messages) chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
     chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
     chatbotSetMode(chatbotState.mode, false);
+    chatbotUpdateSpeechToggleButtons();
     chatbotUpdateUnreadBadge();
   }
 
   window.addEventListener('beforeunload', function() {
     chatbotSendTranscript();
+    if (CHATBOT_CAN_SPEAK) {
+      window.speechSynthesis.cancel();
+    }
   });
 
   function chatbotInit() {
+    chatbotState.voiceOutputEnabled = chatbotReadVoiceOutputPreference();
+    if (CHATBOT_CAN_SPEAK) {
+      chatbotLoadSpeechVoices();
+      if (typeof window.speechSynthesis.onvoiceschanged !== 'undefined') {
+        window.speechSynthesis.onvoiceschanged = chatbotLoadSpeechVoices;
+      }
+    }
     chatbotInitHero();
     chatbotInitWidget();
+    chatbotUpdateSpeechToggleButtons();
   }
 
   if (document.readyState === 'loading') {
@@ -608,6 +789,7 @@
     openWidget: chatbotOpenWidget,
     closeWidget: chatbotCloseWidget,
     setMode: chatbotSetMode,
+    setVoiceOutput: chatbotSetVoiceOutput,
     reinit: chatbotInit
   };
 })();
