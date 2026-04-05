@@ -166,30 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setupRevealAnimations();
 
-    // Typing text effect
-    const typingText = document.getElementById('typingText');
-    if (typingText) {
-        const texts = ['Fotograf & AI Developer', 'Kreativní Vizionář', 'Tech Enthusiast'];
-        let textIndex = 0, charIndex = 0, isDeleting = false;
-        function typeText() {
-            const currentText = texts[textIndex];
-            if (isDeleting) {
-                typingText.textContent = currentText.substring(0, charIndex - 1);
-                charIndex--;
-            } else {
-                typingText.textContent = currentText.substring(0, charIndex + 1);
-                charIndex++;
-            }
-            if (!isDeleting && charIndex === currentText.length) {
-                setTimeout(() => isDeleting = true, 2000);
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                textIndex = (textIndex + 1) % texts.length;
-            }
-            setTimeout(typeText, isDeleting ? 50 : 100);
-        }
-        typeText();
-    }
 
     // Counter and skill bar animations
     function animateCounter(element) {
