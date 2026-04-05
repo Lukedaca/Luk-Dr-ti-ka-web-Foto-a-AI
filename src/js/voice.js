@@ -55,6 +55,7 @@
   var voiceMediaSource = null;
   var voiceMaxTimer = null;
   var voiceElapsedTimer = null;
+  var voicePlaybackCtx = null;  // separate AudioContext for 24kHz playback
   var voicePlaybackQueue = [];
   var voiceIsPlaying = false;
 
@@ -78,13 +79,21 @@
   // HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  function voiceSetStatus(text) {
-    voiceState.status = text === 'Připojuji...' ? 'connecting'
-      : text === 'Hovor aktivní' ? 'active'
-      : text === 'Ukončuji...' ? 'ending'
-      : 'idle';
+  function voiceSetStatus(status) {
+    voiceState.status = status;
+    var labels = {
+      idle: '',
+      connecting: 'Připojuji...',
+      active: 'Hovor aktivní',
+      ending: 'Ukončuji...'
+    };
     if (voiceDOM.statusEl) {
-      voiceDOM.statusEl.textContent = text;
+      voiceDOM.statusEl.textContent = labels[status] || '';
+    }
+    // Disable button during transitional states
+    if (voiceDOM.callBtn) {
+      voiceDOM.callBtn.disabled = (status === 'connecting' || status === 'ending');
+      voiceDOM.callBtn.setAttribute('data-voice-status', status);
     }
   }
 
@@ -148,6 +157,36 @@
     voiceDOM.transcript.scrollTop = voiceDOM.transcript.scrollHeight;
   }
 
+  function voiceRenderChatBubble(container, role, text) {
+    if (!container) return;
+
+    var wrapper = document.createElement('div');
+    var isUser = role === 'user';
+    var time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+    var avatarWrap = document.createElement('div');
+    var contentWrap = document.createElement('div');
+    var bubble = document.createElement('div');
+    var timeEl = document.createElement('div');
+
+    wrapper.className = 'chat-message mb-4 flex gap-2' + (isUser ? ' flex-row-reverse' : '');
+    avatarWrap.className = 'message-avatar ' + (isUser ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass');
+    avatarWrap.textContent = isUser ? '\u{1F464}' : '\u{1F916}';
+
+    contentWrap.className = 'flex flex-col ' + (isUser ? 'items-end' : 'items-start') + ' max-w-xs';
+    bubble.className = 'p-3 rounded-xl ' + (isUser ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'glass');
+    bubble.textContent = text;
+
+    timeEl.className = 'message-time';
+    timeEl.textContent = time;
+
+    contentWrap.appendChild(bubble);
+    contentWrap.appendChild(timeEl);
+    wrapper.appendChild(avatarWrap);
+    wrapper.appendChild(contentWrap);
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // AUDIO PLAYBACK (Gemini → speaker)
   // ═══════════════════════════════════════════════════════════════════════════
@@ -171,17 +210,17 @@
     var int16 = new Int16Array(arrayBuf);
     var float32 = voiceInt16ToFloat32(int16);
 
-    if (!voiceAudioCtx) {
-      voiceIsPlaying = false;
-      return;
+    // Use dedicated playback context at 24kHz (mic context is 16kHz)
+    if (!voicePlaybackCtx) {
+      voicePlaybackCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: VOICE_SAMPLE_RATE_OUT });
     }
 
-    var audioBuffer = voiceAudioCtx.createBuffer(1, float32.length, VOICE_SAMPLE_RATE_OUT);
+    var audioBuffer = voicePlaybackCtx.createBuffer(1, float32.length, VOICE_SAMPLE_RATE_OUT);
     audioBuffer.getChannelData(0).set(float32);
 
-    var source = voiceAudioCtx.createBufferSource();
+    var source = voicePlaybackCtx.createBufferSource();
     source.buffer = audioBuffer;
-    source.connect(voiceAudioCtx.destination);
+    source.connect(voicePlaybackCtx.destination);
     source.onended = function() {
       voicePlayNext();
     };
@@ -208,6 +247,10 @@
         var int16 = voiceFloat32ToInt16(float32);
         var base64 = voiceArrayBufferToBase64(int16.buffer);
 
+        if (e.outputBuffer && e.outputBuffer.numberOfChannels) {
+          e.outputBuffer.getChannelData(0).fill(0);
+        }
+
         voiceWS.send(JSON.stringify({
           realtimeInput: {
             mediaChunks: [{
@@ -228,7 +271,7 @@
   // ═══════════════════════════════════════════════════════════════════════════
 
   function voiceConnect() {
-    voiceSetStatus('Připojuji...');
+    voiceSetStatus('connecting');
     voiceShowOverlay();
 
     return fetch(VOICE_TOKEN_URL, { method: 'POST' })
@@ -240,7 +283,7 @@
         var token = data.token || data.access_token;
         if (!token) throw new Error('No token in response');
 
-        var wsUrl = VOICE_WS_BASE + '?access_token=' + token;
+        var wsUrl = VOICE_WS_BASE + '?access_token=' + encodeURIComponent(token);
         voiceWS = new WebSocket(wsUrl);
 
         voiceWS.onopen = function() {
@@ -275,7 +318,7 @@
 
           // Setup complete
           if (msg.setupComplete) {
-            voiceSetStatus('Hovor aktivní');
+            voiceSetStatus('active');
             voiceState.startTime = Date.now();
             voiceStartTimer();
             voiceStartMaxTimer();
@@ -294,8 +337,15 @@
             sc.modelTurn.parts.forEach(function(part) {
               if (part.inlineData && part.inlineData.data) {
                 voiceEnqueueAudio(part.inlineData.data);
+                if (voiceDOM.orb) {
+                  voiceDOM.orb.classList.add('voice-orb-speaking');
+                }
               }
             });
+          }
+
+          if (sc.turnComplete && voiceDOM.orb) {
+            voiceDOM.orb.classList.remove('voice-orb-speaking');
           }
 
           // Input transcription (user speech)
@@ -330,11 +380,13 @@
       })
       .catch(function(err) {
         console.error('voice.js: connection failed', err);
-        voiceSetStatus('Chyba připojení');
+        voiceSetStatus('ending');
+        if (voiceDOM.statusEl) {
+          voiceDOM.statusEl.textContent = err && err.message ? err.message : 'Nepodarilo se navazat spojeni';
+        }
         setTimeout(function() {
           voiceHideOverlay();
-          voiceSetStatus('');
-          voiceState.status = 'idle';
+          voiceSetStatus('idle');
         }, 2000);
       });
   }
@@ -399,6 +451,7 @@
     }
     if (voiceDOM.orb) {
       voiceDOM.orb.classList.remove('voice-orb-pulse');
+      voiceDOM.orb.classList.remove('voice-orb-speaking');
     }
   }
 
@@ -420,7 +473,7 @@
   function voiceEnd() {
     if (voiceState.status === 'idle' || voiceState.status === 'ending') return;
 
-    voiceSetStatus('Ukončuji...');
+    voiceSetStatus('ending');
 
     // Stop timers
     voiceStopTimer();
@@ -453,6 +506,10 @@
       try { voiceAudioCtx.close(); } catch (e) { /* ignore */ }
       voiceAudioCtx = null;
     }
+    if (voicePlaybackCtx) {
+      try { voicePlaybackCtx.close(); } catch (e) { /* ignore */ }
+      voicePlaybackCtx = null;
+    }
 
     // Clear playback queue
     voicePlaybackQueue = [];
@@ -467,8 +524,7 @@
     // Hide overlay after brief delay
     setTimeout(function() {
       voiceHideOverlay();
-      voiceSetStatus('');
-      voiceState.status = 'idle';
+      voiceSetStatus('idle');
     }, 500);
   }
 
@@ -516,12 +572,18 @@
     if (!window.aiChat || !window.aiChat.state || !window.aiChat.state.messages) return;
     if (voiceState.transcript.length === 0) return;
 
+    var heroMessages = document.getElementById('hero-messages');
+    var widgetMessages = document.getElementById('messages');
+
     voiceState.transcript.forEach(function(t) {
       var content = t.role === 'user' ? '[Hlas] ' + t.text : t.text;
       window.aiChat.state.messages.push({
         role: t.role === 'user' ? 'user' : 'assistant',
         content: content
       });
+
+      voiceRenderChatBubble(heroMessages, t.role, content);
+      voiceRenderChatBubble(widgetMessages, t.role, content);
     });
   }
 

@@ -351,9 +351,16 @@ body:not(.loading) > * {
                 <div id="hero-chat" class="glass rounded-2xl p-6 md:p-8 text-left max-w-2xl mx-auto">
                     <div id="hero-messages" class="flex flex-col gap-3 max-h-96 overflow-y-auto mb-4 scroll-smooth"></div>
 
-                    <div class="flex gap-3">
+                    <div class="flex gap-3 items-center">
                         <input id="hero-input" type="text" placeholder="Zeptej se mě na cokoliv..."
                                class="flex-1 bg-white/10 border border-white/15 rounded-xl px-5 py-3 text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition" autocomplete="off" />
+                        <button id="voice-call-btn" type="button" aria-label="Zavolat AI asistentovi"
+                                class="glass voice-call-btn shrink-0 p-3 rounded-xl hover:bg-white/10 transition"
+                                data-voice-status="idle" title="Zavolat AI asistentovi">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a5 5 0 0 0 5-5V8a5 5 0 1 0-10 0v5a5 5 0 0 0 5 5Zm0 0v3m-4 0h8" />
+                            </svg>
+                        </button>
                         <button id="hero-send" aria-label="Odeslat zprávu"
                                 class="px-5 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-semibold hover:opacity-90 transition whitespace-nowrap">
                             Odeslat
@@ -837,6 +844,34 @@ body:not(.loading) > * {
         }
         </script>
     </main>
+
+    <div id="voice-overlay" class="hidden fixed inset-0 z-[100] bg-slate-950/88 backdrop-blur-xl">
+        <div class="min-h-full flex items-center justify-center px-6 py-10">
+            <div class="voice-overlay-panel glass-strong w-full max-w-md rounded-[2rem] p-8 md:p-10">
+                <p id="voice-status" class="voice-status-label text-center text-xs uppercase tracking-[0.35em] text-white/60"></p>
+
+                <div class="flex justify-center mt-6">
+                    <div id="voice-orb" class="voice-orb" aria-hidden="true">
+                        <div class="voice-orb-inner"></div>
+                    </div>
+                </div>
+
+                <p id="voice-timer" class="mt-6 text-center text-3xl font-semibold tracking-[0.2em] text-white">00:00</p>
+
+                <div id="voice-transcript" class="voice-transcript-panel mt-6 max-h-48 overflow-y-auto rounded-2xl p-4 text-sm text-white/85"></div>
+
+                <div class="mt-8 flex justify-center">
+                    <button id="voice-hangup" type="button"
+                            class="voice-hangup-btn flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-900/40 transition hover:bg-red-500"
+                            aria-label="Ukoncit hovor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 8l-8 8m0-8l8 8" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 

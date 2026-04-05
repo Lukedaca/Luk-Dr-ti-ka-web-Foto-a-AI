@@ -367,6 +367,9 @@ function lazyLoadModules() {
     // Load chatbot immediately (hero AI chatbox needs it on page load)
     loadModule('/dist/js/chatbot.min.js', () => {
         console.log('Chatbot module loaded');
+        loadModule('/dist/js/voice.min.js', () => {
+            console.log('Voice module loaded');
+        });
     });
 }
 
