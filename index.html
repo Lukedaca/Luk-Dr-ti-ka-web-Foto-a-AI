@@ -270,6 +270,7 @@ body:not(.loading) > * {
 
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8" aria-label="Hlavní navigace">
+                <a href="#ai-asistent" class="nav-link hover:text-blue-400 transition">AI Asistent</a>
                 <a href="#portfolio" class="nav-link hover:text-blue-400 transition">Portfolio</a>
                 <a href="#skills" class="nav-link hover:text-blue-400 transition">Dovednosti</a>
                 <a href="#o-mne" class="nav-link hover:text-blue-400 transition">O mně</a>
@@ -295,6 +296,7 @@ body:not(.loading) > * {
         <!-- Close button -->
         <button id="mobileMenuClose" class="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 transition" aria-label="Zavřít menu">&times;</button>
         <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobilní navigace">
+            <a href="#ai-asistent" class="mobile-menu-link hover:text-blue-400 transition">AI Asistent</a>
             <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
             <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
             <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
@@ -322,13 +324,32 @@ body:not(.loading) > * {
                     Fotograf &amp; AI Developer
                 </h1>
 
-                <h2 class="text-xl md:text-2xl font-medium text-gray-400 mb-8 tracking-wide uppercase" style="letter-spacing: 0.15em;">
+                <h2 class="text-xl md:text-2xl font-medium text-gray-400 mb-10 tracking-wide uppercase" style="letter-spacing: 0.15em;">
                     Lukáš Drštička
                 </h2>
 
-                <!-- AI Chatbox -->
-                <div id="hero-chat" class="glass rounded-2xl p-5 md:p-6 text-left max-w-2xl mx-auto">
-                    <div id="hero-messages" class="flex flex-col gap-3 max-h-72 overflow-y-auto mb-4 scroll-smooth"></div>
+                <div class="flex justify-center gap-4 flex-wrap">
+                    <a href="#portfolio" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-semibold hover:opacity-90 transition text-white">Portfolio</a>
+                    <a href="#ai-asistent" class="px-8 py-3 glass rounded-xl font-semibold hover:bg-white/10 transition text-white border border-white/15">AI Asistent</a>
+                </div>
+            </div>
+
+            <!-- Scroll Down Indicator -->
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- AI Asistent Section -->
+        <section id="ai-asistent" class="py-24 reveal">
+            <div class="container mx-auto px-6 section-wrap">
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">AI Asistent</h2>
+                <p class="text-gray-400 text-center mb-12 max-w-xl mx-auto">Zeptejte se mě na cokoliv — focení, ceny, AI projekty nebo spolupráci. Odpovídá Gemma 4 AI.</p>
+
+                <div id="hero-chat" class="glass rounded-2xl p-6 md:p-8 text-left max-w-2xl mx-auto">
+                    <div id="hero-messages" class="flex flex-col gap-3 max-h-96 overflow-y-auto mb-4 scroll-smooth"></div>
 
                     <div class="flex gap-3">
                         <input id="hero-input" type="text" placeholder="Zeptej se mě na cokoliv..."
@@ -346,13 +367,6 @@ body:not(.loading) > * {
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Kolik to stojí?">Ceny</button>
                     </div>
                 </div>
-            </div>
-
-            <!-- Scroll Down Indicator -->
-            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
             </div>
         </section>
 

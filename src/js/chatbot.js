@@ -85,7 +85,7 @@
       return res.json();
     })
     .then(function(data) {
-      var assistantMsg = data.message || 'Omlouvam se, neco se pokazilo.';
+      var assistantMsg = data.message || 'Omlouvám se, něco se pokazilo.';
       var action = data.action || null;
 
       // Push assistant message to shared state
@@ -95,7 +95,8 @@
       return { message: assistantMsg, action: action };
     })
     .catch(function(err) {
-      var errorMsg = 'Omlouvam se, momentalne nemohu odpovedet. Zkus to za chvili.';
+      console.error('Chatbot error:', err);
+      var errorMsg = 'Omlouvám se, momentálně nemohu odpovědět. Zkus to za chvíli.';
       chatbotState.messages.push({ role: 'assistant', content: errorMsg });
       chatbotState.isProcessing = false;
 
