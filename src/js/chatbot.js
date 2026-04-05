@@ -283,6 +283,17 @@
     });
   }
 
+  function chatbotSpeakAudioPayload(speech) {
+    if (!speech || !speech.audio) return;
+    chatbotStopSpeech();
+    chatbotState.preferredSpeechLang = speech.lang || chatbotState.preferredSpeechLang || 'cs-CZ';
+    var requestId = chatbotSpeechRequestId;
+    chatbotPlaySpeechAudio(speech.audio, speech.sampleRate || CHATBOT_TTS_SAMPLE_RATE, requestId)
+      .catch(function(err) {
+        console.error('Chatbot inline TTS playback error:', err);
+      });
+  }
+
   function chatbotPlaySpeechAudio(base64Audio, sampleRate, requestId) {
     return chatbotEnsurePlaybackContext().then(function(audioCtx) {
       if (!audioCtx || requestId !== chatbotSpeechRequestId) return;
@@ -576,6 +587,8 @@
 
     var payload = {
       mode: CHATBOT_PUBLIC_MODE,
+      voiceOutputEnabled: chatbotState.voiceOutputEnabled,
+      speechLang: chatbotGuessSpeechLang(userMessage),
       messages: chatbotState.messages.map(function(message) {
         return { role: message.role, content: message.content };
       })
@@ -600,6 +613,7 @@
       var result = {
         message: assistantMsg,
         action: data.action || null,
+        speech: data.speech || null,
         mode: mode,
         workbench: chatbotNormalizeWorkbench(data.workbench, mode, assistantMsg),
         suggestedReplies: chatbotNormalizeReplies(data.suggestedReplies, mode)
@@ -665,7 +679,11 @@
       }
 
       if (chatbotState.voiceOutputEnabled && voiceDirective !== 'off') {
-        chatbotSpeakText(result.message, result.message);
+        if (result.speech && result.speech.audio) {
+          chatbotSpeakAudioPayload(result.speech);
+        } else {
+          chatbotSpeakText(result.message, result.message);
+        }
       }
 
       if (!chatbotState.isWidgetOpen) {

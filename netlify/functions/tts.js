@@ -43,7 +43,70 @@ function buildPrompt(text, lang) {
   ].join("\n");
 }
 
-exports.handler = async (event) => {
+async function generateSpeechPayload(apiKey, text, lang) {
+  const safeText = typeof text === "string" ? text.trim() : "";
+  const safeLang = typeof lang === "string" && lang.trim() ? lang.trim() : "cs-CZ";
+
+  if (!safeText) {
+    throw new Error("Text is required");
+  }
+
+  if (safeText.length > MAX_TEXT_LENGTH) {
+    throw new Error("Text is too long");
+  }
+
+  const voiceName = String(safeLang).toLowerCase().startsWith("en") ? "Achird" : "Sulafat";
+  const payload = {
+    contents: [{
+      parts: [{
+        text: buildPrompt(safeText, safeLang),
+      }],
+    }],
+    generationConfig: {
+      responseModalities: ["AUDIO"],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: {
+            voiceName,
+          },
+        },
+      },
+    },
+  };
+
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Gemini TTS error:", response.status, errText);
+    throw new Error("TTS service unavailable");
+  }
+
+  const data = await response.json();
+  const inlineData = data.candidates?.[0]?.content?.parts?.find((part) => part.inlineData)?.inlineData;
+  if (!inlineData?.data) {
+    console.error("Unexpected TTS response:", JSON.stringify(data));
+    throw new Error("No audio returned from TTS service");
+  }
+
+  return {
+    audio: inlineData.data,
+    mimeType: inlineData.mimeType || "audio/pcm;rate=24000",
+    sampleRate: 24000,
+    voiceName,
+    lang: safeLang,
+  };
+}
+
+async function handler(event) {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }
@@ -93,83 +156,13 @@ exports.handler = async (event) => {
     };
   }
 
-  if (!text) {
-    return {
-      statusCode: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Text is required" }),
-    };
-  }
-
-  if (text.length > MAX_TEXT_LENGTH) {
-    return {
-      statusCode: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Text is too long" }),
-    };
-  }
-
-  const voiceName = String(lang).toLowerCase().startsWith("en") ? "Achird" : "Sulafat";
-  const payload = {
-    contents: [{
-      parts: [{
-        text: buildPrompt(text, lang),
-      }],
-    }],
-    generationConfig: {
-      responseModalities: ["AUDIO"],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: {
-            voiceName,
-          },
-        },
-      },
-    },
-  };
-
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
-
   try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Gemini TTS error:", response.status, errText);
-      return {
-        statusCode: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "TTS service unavailable" }),
-      };
-    }
-
-    const data = await response.json();
-    const inlineData = data.candidates?.[0]?.content?.parts?.find((part) => part.inlineData)?.inlineData;
-    if (!inlineData?.data) {
-      console.error("Unexpected TTS response:", JSON.stringify(data));
-      return {
-        statusCode: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ error: "No audio returned from TTS service" }),
-      };
-    }
+    const speech = await generateSpeechPayload(apiKey, text, lang);
 
     return {
       statusCode: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        audio: inlineData.data,
-        mimeType: inlineData.mimeType || "audio/pcm;rate=24000",
-        sampleRate: 24000,
-        voiceName,
-      }),
+      body: JSON.stringify(speech),
     };
   } catch (err) {
     console.error("TTS function error:", err);
@@ -179,4 +172,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: "Internal TTS error" }),
     };
   }
-};
+}
+
+exports.handler = handler;
+exports.generateSpeechPayload = generateSpeechPayload;
