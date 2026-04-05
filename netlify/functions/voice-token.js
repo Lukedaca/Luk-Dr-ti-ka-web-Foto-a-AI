@@ -98,12 +98,23 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
+    if (!data.token) {
+      console.error("Unexpected token response:", JSON.stringify(data));
+      return {
+        statusCode: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          error: "Nepodařilo se získat hlasový token.",
+        }),
+      };
+    }
+
     return {
       statusCode: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({
         token: data.token,
-        expiresAt: data.expiresAt,
+        expiresAt: data.expiresAt || data.expirationTime || Date.now() + 120_000,
       }),
     };
   } catch (err) {
