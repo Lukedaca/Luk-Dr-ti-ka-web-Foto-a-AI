@@ -388,21 +388,10 @@ function lazyLoadModules() {
         contactObserver.observe(contactSection);
     }
 
-    // Load chatbot module on first chat button click
-    const chatBtn = document.getElementById('chatBtn');
-    if (chatBtn) {
-        let chatbotLoaded = false;
-        chatBtn.addEventListener('click', () => {
-            if (!chatbotLoaded) {
-                chatbotLoaded = true;
-                loadModule('/dist/js/chatbot.min.js', () => {
-                    console.log('Chatbot module loaded');
-                    // Trigger chatbot open after loading
-                    if (window.chatbot) window.chatbot.openChat();
-                });
-            }
-        }, { once: true });
-    }
+    // Load chatbot immediately (hero AI chatbox needs it on page load)
+    loadModule('/dist/js/chatbot.min.js', () => {
+        console.log('Chatbot module loaded');
+    });
 }
 
 // Helper function to load scripts dynamically
