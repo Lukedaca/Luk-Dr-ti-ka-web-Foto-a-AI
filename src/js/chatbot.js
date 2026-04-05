@@ -9,6 +9,7 @@
   var CHATBOT_INACTIVITY_MS = 180000;
   var CHATBOT_API_URL = '/.netlify/functions/chat';
   var CHATBOT_DEFAULT_MODE = 'talk';
+  var CHATBOT_PUBLIC_MODE = 'talk';
   var CHATBOT_VOICE_OUTPUT_KEY = 'lukas_ai_voice_output';
   var CHATBOT_CAN_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
 
@@ -160,6 +161,29 @@
     return CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk;
   }
 
+  function chatbotDetectVoiceOutputCommand(text) {
+    if (!text) return null;
+    var normalized = String(text)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+
+    var wantsOn = (
+      /(^|\b)(zapni|zapnout|zapnete|aktivuj|aktivovat|povol|povolit|mluv|odpovidej)(\b|$)/.test(normalized) &&
+      /(hlas|hlasovy|hlasove|nahlas|voice|speech)/.test(normalized)
+    ) || /odpovidej mi prosim hlasem/.test(normalized);
+
+    var wantsOff = (
+      /(^|\b)(vypni|vypnout|vypnete|zrus|zrusit|stopni|zastav)(\b|$)/.test(normalized) &&
+      /(hlas|hlasovy|hlasove|nahlas|voice|speech)/.test(normalized)
+    );
+
+    if (wantsOn) return 'on';
+    if (wantsOff) return 'off';
+    return null;
+  }
+
   function chatbotReadVoiceOutputPreference() {
     if (!CHATBOT_CAN_SPEAK) return false;
     try {
@@ -295,7 +319,7 @@
   }
 
   function chatbotSetMode(mode, syncReplies) {
-    if (!CHATBOT_MODE_META[mode]) mode = CHATBOT_DEFAULT_MODE;
+    mode = CHATBOT_PUBLIC_MODE;
     chatbotState.mode = mode;
 
     chatbotDOM.modeButtons.forEach(function(btn) {
@@ -303,8 +327,8 @@
     });
 
     var meta = chatbotModeMeta(mode);
-    if (chatbotDOM.heroModeBadge) chatbotDOM.heroModeBadge.textContent = meta.label + ' / ' + meta.badge;
-    if (chatbotDOM.widgetModeBadge) chatbotDOM.widgetModeBadge.textContent = meta.label;
+    if (chatbotDOM.heroModeBadge) chatbotDOM.heroModeBadge.textContent = 'Veřejný asistent';
+    if (chatbotDOM.widgetModeBadge) chatbotDOM.widgetModeBadge.textContent = 'Asistent';
 
     if (syncReplies !== false) {
       chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, meta.replies);
@@ -476,7 +500,7 @@
     chatbotResetInactivity();
 
     var payload = {
-      mode: chatbotState.mode,
+      mode: CHATBOT_PUBLIC_MODE,
       messages: chatbotState.messages.map(function(message) {
         return { role: message.role, content: message.content };
       })
@@ -496,7 +520,7 @@
       return res.json();
     })
     .then(function(data) {
-      var mode = CHATBOT_MODE_META[data.mode] ? data.mode : chatbotState.mode;
+      var mode = CHATBOT_PUBLIC_MODE;
       var assistantMsg = data.message || 'Promyslim to s tebou a navrhnu dalsi krok.';
       var result = {
         message: assistantMsg,
@@ -535,6 +559,12 @@
     chatbotHideQuickReplies();
     chatbotRenderBubble(chatbotDOM.heroMessages, 'user', text);
     chatbotRenderBubble(chatbotDOM.messages, 'user', text);
+
+    var voiceCommand = chatbotDetectVoiceOutputCommand(text);
+    if (voiceCommand) {
+      chatbotSetVoiceOutput(voiceCommand === 'on');
+      return;
+    }
 
     if (chatbotState.isHeroVisible) chatbotShowTyping(chatbotDOM.heroMessages);
     if (chatbotState.isWidgetOpen) chatbotShowTyping(chatbotDOM.messages);
