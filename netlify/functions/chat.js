@@ -1,15 +1,14 @@
 // ── Netlify Function: Gemma 4 Chat Proxy ──────────────────────────────────
 // Secure backend proxy — API key lives ONLY in Netlify env vars (GEMMA_API_KEY)
+// Uses Google Generative Language API (generateContent) — NOT OpenAI format
 
-const GEMMA_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-const MODEL = "gemma-4-27b-it";
+const MODEL = "gemma-4-31b-it";
 const MAX_HISTORY = 20;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 15;
 
 // ── Rate limiter (in-memory, per function instance) ───────────────────────
-const ipHits = new Map(); // ip → [timestamp, ...]
+const ipHits = new Map();
 
 function isRateLimited(ip) {
   const now = Date.now();
@@ -55,7 +54,7 @@ ODPOVÍDEJ VŽDY ČESKY. Buď stručný, přátelský a konkrétní.
 
 ═══ KONTAKT ═══
 • Email: lukas.drsticka@gmail.com
-• Web: lukáš portfolio (tato stránka)
+• Web: lukasdrsticka-ai-and-foto.com
 • GitHub: github.com/Lukedaca
 
 ═══ AKCE NA STRÁNCE ═══
@@ -86,46 +85,41 @@ function parseAssistantResponse(raw) {
   try {
     const parsed = JSON.parse(cleaned);
     if (typeof parsed.message === "string") {
-      return {
-        message: parsed.message,
-        action: parsed.action || null,
-      };
+      return { message: parsed.message, action: parsed.action || null };
     }
-  } catch {
-    // not JSON
-  }
+  } catch { /* not JSON */ }
 
-  // Try extracting JSON from within text (```json blocks, etc.)
+  // Try extracting JSON from within text
   const jsonMatch = cleaned.match(/\{[\s\S]*"message"\s*:[\s\S]*\}/);
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[0]);
       if (typeof parsed.message === "string") {
-        return {
-          message: parsed.message,
-          action: parsed.action || null,
-        };
+        return { message: parsed.message, action: parsed.action || null };
       }
-    } catch {
-      // couldn't parse extracted JSON
-    }
+    } catch { /* couldn't parse */ }
   }
 
   // Fallback — wrap plain text
-  return {
-    message: cleaned,
-    action: null,
-  };
+  return { message: cleaned, action: null };
+}
+
+// ── Convert OpenAI-style messages to Gemini contents format ───────────────
+function convertToGeminiContents(messages) {
+  return messages.map(function (m) {
+    return {
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    };
+  });
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
-  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }
 
-  // Only POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -134,7 +128,6 @@ exports.handler = async (event) => {
     };
   }
 
-  // Rate limiting
   const clientIp =
     event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     event.headers["client-ip"] ||
@@ -150,7 +143,6 @@ exports.handler = async (event) => {
     };
   }
 
-  // API key check
   const apiKey = process.env.GEMMA_API_KEY;
   if (!apiKey) {
     return {
@@ -160,7 +152,6 @@ exports.handler = async (event) => {
     };
   }
 
-  // Parse body
   let messages;
   try {
     const body = JSON.parse(event.body);
@@ -176,25 +167,28 @@ exports.handler = async (event) => {
     };
   }
 
-  // Trim history to last MAX_HISTORY messages
   const trimmed = messages.slice(-MAX_HISTORY);
+  const contents = convertToGeminiContents(trimmed);
 
-  // Build payload with system prompt
-  const apiMessages = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...trimmed,
-  ];
+  // Gemini generateContent payload
+  const payload = {
+    system_instruction: {
+      parts: [{ text: SYSTEM_PROMPT }],
+    },
+    contents: contents,
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 1024,
+    },
+  };
+
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
 
   try {
-    const response = await fetch(`${GEMMA_API_URL}?key=${apiKey}`, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: apiMessages,
-        temperature: 0.7,
-        max_tokens: 1024,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -205,16 +199,17 @@ exports.handler = async (event) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           error: "AI service unavailable",
-          message:
-            "Omlouvám se, momentálně nemohu odpovědět. Zkus to prosím za chvíli.",
+          message: "Omlouvám se, momentálně nemohu odpovědět. Zkus to prosím za chvíli.",
           action: null,
-          usage: null,
         }),
       };
     }
 
     const data = await response.json();
-    const rawContent = data.choices?.[0]?.message?.content || "";
+    // Filter out thought parts (Gemma returns {thought:true} parts)
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const textParts = parts.filter((p) => !p.thought);
+    const rawContent = textParts.map((p) => p.text).join("") || "";
     const { message, action } = parseAssistantResponse(rawContent);
 
     return {
@@ -223,7 +218,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         message,
         action,
-        usage: data.usage || null,
+        usage: data.usageMetadata || null,
       }),
     };
   } catch (err) {
@@ -233,10 +228,8 @@ exports.handler = async (event) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({
         error: "Internal error",
-        message:
-          "Omlouvám se, něco se pokazilo. Zkus to prosím za chvíli.",
+        message: "Omlouvám se, něco se pokazilo. Zkus to prosím za chvíli.",
         action: null,
-        usage: null,
       }),
     };
   }
