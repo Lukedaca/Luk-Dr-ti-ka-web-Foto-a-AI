@@ -306,9 +306,14 @@
         chatbotUpdateUnreadBadge();
       }
 
-      // Execute page action
+      // Execute page action(s) with slight delay so user sees the message first
       if (result.action) {
-        chatbotExecuteAction(result.action);
+        setTimeout(function() {
+          var actions = Array.isArray(result.action) ? result.action : [result.action];
+          actions.forEach(function(act, i) {
+            setTimeout(function() { chatbotExecuteAction(act); }, i * 300);
+          });
+        }, 800);
       }
     });
   }
