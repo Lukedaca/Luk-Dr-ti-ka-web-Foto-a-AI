@@ -105,7 +105,10 @@ function stripThoughtTags(text) {
 
 // ── Parse response — expect JSON, fall back to wrapping plain text ────────
 function parseAssistantResponse(raw) {
-  const cleaned = stripThoughtTags(raw);
+  let cleaned = stripThoughtTags(raw);
+
+  // Strip markdown code blocks: ```json ... ``` or ``` ... ```
+  cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
   // Try direct JSON parse
   try {
@@ -115,18 +118,20 @@ function parseAssistantResponse(raw) {
     }
   } catch { /* not JSON */ }
 
-  // Try extracting JSON from within text
-  const jsonMatch = cleaned.match(/\{[\s\S]*"message"\s*:[\s\S]*\}/);
-  if (jsonMatch) {
+  // Try extracting JSON by finding outermost { ... } containing "message"
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
     try {
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
       if (typeof parsed.message === "string") {
         return { message: parsed.message, action: parsed.action || null };
       }
     } catch { /* couldn't parse */ }
   }
 
-  // Fallback — wrap plain text
+  // Fallback — wrap plain text (strip any remaining markdown artifacts)
+  cleaned = cleaned.replace(/```/g, "").trim();
   return { message: cleaned, action: null };
 }
 
