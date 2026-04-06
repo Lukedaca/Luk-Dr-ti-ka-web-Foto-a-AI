@@ -309,9 +309,30 @@ body:not(.loading) > * {
                     🌙 / ☀️
                 </button>
                 <div id="langToggleMobileStatic" class="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full p-1">
-                    <a href="?lang=cs" class="lang-switch-btn block px-4 py-3 rounded-full text-base font-semibold transition active:scale-95 text-center no-underline" data-lang-option="cs">CZ</a>
-                    <a href="?lang=en" class="lang-switch-btn block px-4 py-3 rounded-full text-base font-semibold transition active:scale-95 text-center no-underline" data-lang-option="en">EN</a>
+                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="cs">CZ</button>
+                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="en">EN</button>
                 </div>
+                <script>
+                (function(){
+                    var btns = document.querySelectorAll('#langToggleMobileStatic .lang-switch-btn');
+                    btns.forEach(function(btn){
+                        btn.addEventListener('click', function(e){
+                            e.preventDefault();
+                            e.stopPropagation();
+                            var lang = btn.getAttribute('data-lang-option');
+                            if(window.ldI18n && window.ldI18n.applyLanguage){
+                                window.ldI18n.applyLanguage(lang);
+                            } else {
+                                try{localStorage.setItem('ld_lang',lang)}catch(x){}
+                                var u=new URL(location.href);u.searchParams.set('lang',lang);location.href=u.toString();
+                            }
+                            var m=document.getElementById('mobileMenu'),b=document.getElementById('mobileMenuBtn');
+                            if(m)m.classList.remove('active');if(b)b.classList.remove('active');
+                            document.body.style.overflow='';
+                        });
+                    });
+                })();
+                </script>
             </div>
         </nav>
     </div>
