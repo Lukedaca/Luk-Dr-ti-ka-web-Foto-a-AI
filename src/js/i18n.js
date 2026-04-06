@@ -75,7 +75,7 @@
     }
 
     var mobileNav = document.querySelector('#mobileMenu nav');
-    if (mobileNav && !document.getElementById('langToggleMobile')) {
+    if (mobileNav && !document.getElementById('langToggleMobile') && !document.getElementById('langToggleMobileStatic')) {
       var mobile = document.createElement('div');
       mobile.id = 'langToggleMobile';
       mobile.className = 'mt-4 flex items-center gap-2 glass rounded-full p-2';
