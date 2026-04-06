@@ -19,6 +19,97 @@
     return typeof window.ldGetText === 'function' ? window.ldGetText(path, fallback) : fallback;
   }
 
+  function chatbotLanguage() {
+    return typeof window.ldGetLanguage === 'function' ? window.ldGetLanguage() : 'cs';
+  }
+
+  function chatbotLocale() {
+    var isEn = chatbotLanguage() === 'en';
+    return {
+      welcome: isEn
+        ? 'Hi, I am Lukas AI. I can chat with you, think through your request and immediately prepare a mini output. You can write in English or Czech and you can also talk to me by voice.'
+        : 'Ahoj, jsem Lukas AI. Umim si s tebou povidat, promyslet zadani a rovnou pripravit mini vystup. Muzes psat cesky i anglicky a muzes se mnou i mluvit hlasem.',
+      modeMeta: {
+        talk: {
+          label: 'Talk',
+          badge: isEn ? 'Public assistant' : 'Verejny asistent',
+          helper: isEn
+            ? 'Talk to me like a digital version of Lukas. English when needed, Czech by default.'
+            : 'Povidej si se mnou jako s digitalni verzi Lukase. Cesky defaultne, anglicky podle potreby.',
+          replies: isEn
+            ? [
+                { text: 'What do you do?', value: 'What exactly do you do and how do you help people?' },
+                { text: 'Reply by voice', value: 'Please reply by voice while I keep typing.' },
+                { text: 'Show portfolio', value: 'Show me the portfolio and tell me what stands out most.' },
+                { text: 'Photography', value: 'What photography services do you offer?' },
+                { text: 'Fotograf AI', value: 'Explain Fotograf AI to me in simple terms.' }
+              ]
+            : [
+                { text: 'Co presne delas?', value: 'Co presne delas a s cim lidem pomahas?' },
+                { text: 'Odpovidej hlasem', value: 'Odpovidej mi prosim hlasem, ale ja budu dal psat.' },
+                { text: 'Speak English', value: 'Please continue in English and tell me what you do.' },
+                { text: 'Ukaz portfolio', value: 'Ukaz mi portfolio a co je na nem nejzajimavejsi.' },
+                { text: 'Fotograf AI', value: 'Vysvetli mi lidsky, co je Fotograf AI.' }
+              ]
+        },
+        think: {
+          label: 'Think',
+          badge: isEn ? 'Agent reasoning' : 'Agentni uvaha',
+          helper: isEn
+            ? 'I will break the request down, suggest a direction and point out weak spots.'
+            : 'Rozeberu zadani, navrhnu smer a upozornim na slabiny.',
+          replies: isEn
+            ? [
+                { text: 'AI agent for business', value: 'Think through an AI agent for a small company that would do real work.' },
+                { text: 'Website automation', value: 'How would you automate lead flow and website communication?' },
+                { text: 'Pilot strategy', value: 'Suggest a sensible pilot for deploying an AI assistant.' }
+              ]
+            : [
+                { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro mensi firmu, ktery by delal realnou praci.' },
+                { text: 'Automatizace webu', value: 'Jak bys zautomatizoval lead flow a komunikaci na webu?' },
+                { text: 'Strategie pilotu', value: 'Navrhni rozumny pilot pro nasazeni AI asistenta.' }
+              ]
+        },
+        build: {
+          label: 'Build',
+          badge: isEn ? 'Mini deliverable' : 'Mini vystup',
+          helper: isEn
+            ? 'I prepare an output that is already usable for a call, brief or next decision.'
+            : 'Pripravuju vystup, ktery uz jde nekam poslat nebo podle nej jednat.',
+          replies: isEn
+            ? [
+                { text: 'Mini brief', value: 'Create a short collaboration brief for an AI agent on a website.' },
+                { text: 'Draft scope', value: 'Write scope for the first version of a personal AI agent.' },
+                { text: 'Roadmap', value: 'Prepare a short launch roadmap for that kind of agent.' }
+              ]
+            : [
+                { text: 'Mini brief', value: 'Vytvor mi mini brief spoluprace na AI agentovi pro web.' },
+                { text: 'Navrh scope', value: 'Sepis scope pro prvni verzi osobniho AI agenta.' },
+                { text: 'Roadmapa', value: 'Priprav kratkou roadmapu pro launch takoveho agenta.' }
+              ]
+        }
+      },
+      workbench: {
+        buildSteps: isEn ? ['Understand the goal', 'Prepare a mini output', 'Suggest the next step'] : ['Pochopim cil', 'Pripravim mini vystup', 'Navrhnu dalsi krok'],
+        thinkSteps: isEn ? ['Understand context', 'Choose the best direction', 'Show recommendation'] : ['Pochopim kontext', 'Vyberu nejlepsi smer', 'Ukazu doporuceni'],
+        talkSteps: isEn ? ['Start the conversation', 'Choose a useful direction', 'Move things forward'] : ['Navazu konverzaci', 'Vyberu uzitecny smer', 'Posunu to dal']
+      },
+      helperNoteHtml: isEn
+        ? 'Click <strong class="text-white/85 font-semibold">Talk by voice</strong> for a live voice call or enable <strong class="text-white/85 font-semibold">voice replies</strong> when you want to type and hear answers aloud. The assistant works in <strong class="text-white/85 font-semibold">CZ / EN</strong>.'
+        : 'Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasove odpovedi</strong>, kdyz chces psat a slyset odpovedi nahlas. Asistent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.',
+      voiceOutputUnsupported: isEn ? 'Voice replies unavailable' : 'Hlasove odpovedi nejsou dostupne',
+      voiceOutputOn: isEn ? 'Voice replies: on' : 'Hlasove odpovedi: zapnuto',
+      voiceOutputOff: isEn ? 'Voice replies: off' : 'Hlasove odpovedi: vypnuto',
+      voiceShortOn: isEn ? 'Voice on' : 'Hlas zap.',
+      voiceShortOff: isEn ? 'Voice off' : 'Hlas vyp.',
+      voiceEnabledMessage: isEn ? 'Voice replies are enabled. Keep typing and I will answer aloud as well.' : 'Hlasove odpovedi jsou zapnute. Klidne pis, budu odpovidat i nahlas.',
+      voiceDisabledMessage: isEn ? 'Voice replies are disabled. I will answer only in text now.' : 'Hlasove odpovedi jsou vypnute. Budu uz jen psat.',
+      publicAssistantBadge: isEn ? 'Public assistant' : 'Verejny asistent',
+      widgetAssistantBadge: isEn ? 'Assistant' : 'Asistent',
+      defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslim to s tebou a navrhnu dalsi krok.'
+    };
+  }
+
   var CHATBOT_MODE_META = {
     talk: {
       label: 'Talk',
@@ -56,26 +147,34 @@
 
   var CHATBOT_WELCOME = 'Ahoj, jsem Lukáš AI. Umím si s tebou povídat, promyslet zadání a rovnou připravit mini výstup. Můžeš psát česky i anglicky a můžeš se mnou i mluvit hlasem.';
 
+  function chatbotWelcomeMessage() {
+    return chatbotLocale().welcome;
+  }
+
   function chatbotDefaultWorkbench(mode) {
-    var meta = CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk;
+    var locale = chatbotLocale();
+    var meta = chatbotModeMeta(mode);
+    var isEn = chatbotLanguage() === 'en';
     return {
       summary: meta.helper,
       intent: mode + '-mode',
       steps: mode === 'build'
-        ? ['Pochopim cil', 'Pripravim mini vystup', 'Navrhnu dalsi krok']
+        ? locale.workbench.buildSteps
         : mode === 'think'
-          ? ['Pochopim kontext', 'Vyberu nejlepsi smer', 'Ukazu doporuceni']
-          : ['Navazu konverzaci', 'Vyberu uzitecny smer', 'Posunu to dal'],
-      artifactTitle: mode === 'build' ? 'Co z toho muze vzniknout' : 'Co tenhle rezim umi',
+          ? locale.workbench.thinkSteps
+          : locale.workbench.talkSteps,
+      artifactTitle: mode === 'build'
+        ? (isEn ? 'What this can produce' : 'Co z toho muze vzniknout')
+        : (isEn ? 'What this mode can do' : 'Co tenhle rezim umi'),
       artifactBody: mode === 'build'
-        ? 'Muzu pripravit mini brief, scope automatizace, navrh AI agenta nebo call summary.'
+        ? (isEn ? 'I can prepare a mini brief, automation scope, AI agent proposal or a call summary.' : 'Muzu pripravit mini brief, scope automatizace, navrh AI agenta nebo call summary.')
         : mode === 'think'
-          ? 'Muzu rozebrat napad, ukazat rizika, navrhnout architekturu a doporucit prvni pilot.'
-          : 'Muzu mluvit o Lukasovi, projektech, portfoliu a pri spravne chvili se prepnout do agentniho rezimu.',
-      ctaLabel: mode === 'build' ? 'Zkusit build mode' : 'Chci videt konkretni navrh',
+          ? (isEn ? 'I can break down the idea, show risks, suggest architecture and recommend a first pilot.' : 'Muzu rozebrat napad, ukazat rizika, navrhnout architekturu a doporucit prvni pilot.')
+          : (isEn ? 'I can talk about Lukas, the projects, the portfolio and switch into an agent workflow when it makes sense.' : 'Muzu mluvit o Lukasovi, projektech, portfoliu a pri spravne chvili se prepnout do agentniho rezimu.'),
+      ctaLabel: mode === 'build' ? (isEn ? 'Try build mode' : 'Zkusit build mode') : (isEn ? 'Show me a concrete proposal' : 'Chci videt konkretni navrh'),
       ctaValue: mode === 'build'
-        ? 'Vytvor mi konkretni navrh spoluprace na AI agentovi.'
-        : 'Prepneme to do build mode a priprav mi konkretni navrh.'
+        ? (isEn ? 'Create a concrete collaboration proposal for an AI agent.' : 'Vytvor mi konkretni navrh spoluprace na AI agentovi.')
+        : (isEn ? 'Switch to build mode and prepare a concrete proposal for me.' : 'Prepneme to do build mode a priprav mi konkretni navrh.')
     };
   }
 
@@ -98,7 +197,7 @@
 
   function chatbotNormalizeReplies(replies, mode) {
     if (!Array.isArray(replies) || !replies.length) {
-      return (CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk).replies;
+      return chatbotModeMeta(mode).replies;
     }
 
     var normalized = replies
@@ -111,7 +210,7 @@
       .filter(function(reply) { return reply.text && reply.value; })
       .slice(0, 3);
 
-    return normalized.length ? normalized : (CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk).replies;
+    return normalized.length ? normalized : chatbotModeMeta(mode).replies;
   }
 
   var chatbotState = {
@@ -166,7 +265,8 @@
   }
 
   function chatbotModeMeta(mode) {
-    return CHATBOT_MODE_META[mode] || CHATBOT_MODE_META.talk;
+    var meta = chatbotLocale().modeMeta;
+    return meta[mode] || meta.talk;
   }
 
   function chatbotDetectVoiceOutputCommand(text) {
@@ -325,14 +425,11 @@
   }
 
   function chatbotUpdateSpeechToggleButtons() {
+    var locale = chatbotLocale();
     var enabled = chatbotState.voiceOutputEnabled;
     var unsupported = !CHATBOT_CAN_SPEAK;
-    var heroLabel = unsupported
-      ? 'Hlasové odpovědi nejsou dostupné'
-      : (enabled ? 'Hlasové odpovědi: zapnuto' : 'Hlasové odpovědi: vypnuto');
-    var widgetLabel = unsupported
-      ? 'Hlas N/A'
-      : (enabled ? 'Hlas zap.' : 'Hlas vyp.');
+    var heroLabel = unsupported ? locale.voiceOutputUnsupported : (enabled ? locale.voiceOutputOn : locale.voiceOutputOff);
+    var widgetLabel = unsupported ? 'Voice N/A' : (enabled ? locale.voiceShortOn : locale.voiceShortOff);
 
     [chatbotDOM.heroSpeechToggle, chatbotDOM.widgetSpeechToggle].forEach(function(button, index) {
       if (!button) return;
@@ -359,9 +456,10 @@
     }
 
     if (!options || !options.silent) {
+      var locale = chatbotLocale();
       var confirmMessage = chatbotState.voiceOutputEnabled
-        ? 'Hlasové odpovědi jsou zapnuté. Klidně piš, budu odpovídat i nahlas.'
-        : 'Hlasové odpovědi jsou vypnuté. Budu už jen psát.';
+        ? locale.voiceEnabledMessage
+        : locale.voiceDisabledMessage;
 
       chatbotState.messages.push({ role: 'assistant', content: confirmMessage });
       chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', confirmMessage);
@@ -417,8 +515,9 @@
     });
 
     var meta = chatbotModeMeta(mode);
-    if (chatbotDOM.heroModeBadge) chatbotDOM.heroModeBadge.textContent = 'Veřejný asistent';
-    if (chatbotDOM.widgetModeBadge) chatbotDOM.widgetModeBadge.textContent = 'Asistent';
+    var locale = chatbotLocale();
+    if (chatbotDOM.heroModeBadge) chatbotDOM.heroModeBadge.textContent = locale.publicAssistantBadge;
+    if (chatbotDOM.widgetModeBadge) chatbotDOM.widgetModeBadge.textContent = locale.widgetAssistantBadge;
 
     if (syncReplies !== false) {
       chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, meta.replies);
@@ -613,7 +712,7 @@
     })
     .then(function(data) {
       var mode = CHATBOT_PUBLIC_MODE;
-      var assistantMsg = data.message || 'Promyslim to s tebou a navrhnu dalsi krok.';
+      var assistantMsg = data.message || chatbotLocale().defaultAssistantMessage;
       var result = {
         message: assistantMsg,
         action: data.action || null,
@@ -734,9 +833,33 @@
     chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
   }
 
+  function chatbotSyncLocaleUI() {
+    var locale = chatbotLocale();
+    var helperNode = document.getElementById('hero-chat-helper');
+    if (helperNode) helperNode.innerHTML = locale.helperNoteHtml;
+
+    chatbotSetMode(chatbotState.mode, false);
+    chatbotUpdateSpeechToggleButtons();
+
+    var hasUserMessages = chatbotState.messages.some(function(message) {
+      return message.role === 'user';
+    });
+
+    if (!hasUserMessages) {
+      chatbotState.messages = [];
+      if (chatbotDOM.heroMessages) chatbotDOM.heroMessages.innerHTML = '';
+      if (chatbotDOM.messages) chatbotDOM.messages.innerHTML = '';
+      chatbotShowWelcome();
+      chatbotRenderWorkbench(chatbotDefaultWorkbench(chatbotState.mode));
+      chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, chatbotModeMeta(chatbotState.mode).replies);
+      chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
+    }
+  }
+
   function chatbotShowWelcome() {
-    chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', CHATBOT_WELCOME);
-    chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
+    var welcome = chatbotWelcomeMessage();
+    chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', welcome);
+    chatbotRenderBubble(chatbotDOM.messages, 'assistant', welcome);
   }
 
   function chatbotOpenWidget() {
@@ -748,7 +871,7 @@
     chatbotSyncWidgetMessages();
 
     if (!chatbotState.messages.length && chatbotDOM.messages) {
-      chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
+      chatbotRenderBubble(chatbotDOM.messages, 'assistant', chatbotWelcomeMessage());
       chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
     }
   }
@@ -869,7 +992,7 @@
       });
     }
 
-    if (chatbotDOM.messages) chatbotRenderBubble(chatbotDOM.messages, 'assistant', CHATBOT_WELCOME);
+    if (chatbotDOM.messages) chatbotRenderBubble(chatbotDOM.messages, 'assistant', chatbotWelcomeMessage());
     chatbotRenderQuickReplies(chatbotDOM.quickReplies, chatbotModeMeta(chatbotState.mode).replies);
     chatbotSetMode(chatbotState.mode, false);
     chatbotUpdateSpeechToggleButtons();
@@ -888,7 +1011,7 @@
     chatbotState.voiceOutputEnabled = chatbotReadVoiceOutputPreference();
     chatbotInitHero();
     chatbotInitWidget();
-    chatbotUpdateSpeechToggleButtons();
+    chatbotSyncLocaleUI();
   }
 
   if (document.readyState === 'loading') {
@@ -907,4 +1030,6 @@
     setVoiceOutput: chatbotSetVoiceOutput,
     reinit: chatbotInit
   };
+
+  window.addEventListener('ld:languagechange', chatbotSyncLocaleUI);
 })();
