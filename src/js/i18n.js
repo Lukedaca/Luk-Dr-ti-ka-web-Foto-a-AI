@@ -19,19 +19,19 @@
 
     var COPY = {
         cs: {
-      title: 'Lukas Drsticka - Fotograf & AI Developer | Portfolio',
-      description: 'Portfolio Lukase Drsticky - fotograf a AI developer z Prerova. Portretni, sportovni a produktova fotografie, AI chatboty a automatizace na miru.',
-      nav: ['AI Asistent', 'Portfolio', 'Dovednosti', 'O mne', 'Spoluprace', 'Kontakt'],
+      title: 'Lukáš Drštička - Fotograf & AI Developer | Portfolio',
+      description: 'Portfolio Lukáše Drštičky - fotograf a AI developer z Přerova. Portrétní, sportovní a produktová fotografie, AI chatboty a automatizace na míru.',
+      nav: ['AI Asistent', 'Portfolio', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
       hero: ['Fotografie', 'AI Development', 'Automatizace', 'Fotograf & AI Developer', 'Portfolio', 'AI Asistent'],
-      ai: ['Lukas AI', 'Zeptejte se na foceni, AI projekty nebo spolupraci. Muzete psat cesky i anglicky a asistenta spustit i hlasem.', 'Pis mi nebo klikni na Mluvit hlasem', 'Zeptej se cesky nebo in English...', 'Mluvit hlasem', 'Odeslat'],
-      portfolio: ['Portfolio', 'Vse', 'Fotografie', 'AI Projekty'],
-      skills: ['Dovednosti & Technologie', 'Specializuji se na sportovni a portretni fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI.', 'Fotografie', 'AI & Tech', 'Nastroje'],
-      process: ['Jak pracuji', 'Jednoduchy proces od navrhu po realizaci', '1. Konzultace', 'Probereme vase predstavy, cile a pozadavky projektu', '2. Planovani', 'Vytvorime detailni plan a casovy harmonogram', '3. Realizace', 'Fotografie, kod nebo AI reseni podle planu', '4. Dokonceni', 'Finalni upravy a predani hotoveho projektu'],
-      about: ['O mne', 'Fotografuji a vyvijim AI reseni. Bavi me propojovat kreativitu s technologii a vytvaret veci, ktere funguji.'],
-      collaboration: ['Spoluprace', 'Spolupracuji s temito subjekty', 'Klubovy fotograf', 'Sportovni fotografie ze zapasu a klubovych akci. Dokumentace tymu a fanouskovskych momentu.', 'AI specialista', 'Implementace AI reseni, automatizace procesu a technologicke poradenstvi pro kulturni platformu.'],
-        contact: ['Kontakt', 'Preferujete telefon? Zavolejte mi nebo napiste e-mail a ozvu se zpet.', 'Napis te mi zpravu', '(s AI asistentem)', 'Jmeno', 'Email', 'Typ sluzby', 'Zprava', 'AI vam pomuze', 'Vase jmeno', 'vas@email.cz', 'Popiste svuj projekt...', 'Fotografie', 'AI chatbot', 'Automatizace', 'Konzultace', 'Odeslat zpravu', 'Nova zprava z webu', 'Toto pole je povinne'],
-      footer: ['Profesionalni fotografie a AI reseni na miru. Propojuji kreativitu s technologii.', 'Newsletter', 'Email pro newsletter', 'vas@email.cz', 'Odebirat', 'Odkazy', 'Kontakt', 'Prerov, CZ', '© 2025 Lukas Drsticka. Vsechna prava vyhrazena.', 'Vytvoreno s pomoci Claude, Gemini & Codex | Designed with modern web standards'],
-      misc: ['Preskocit na obsah', 'Zpet na uvodni stranku', 'Otevrit mobilni menu', 'Zavrit menu', 'Prepnout rezim', 'Napis te zpravu...', 'Smazat historii', 'Zavrit chat', 'Galerie', 'Zavrit galerii', 'Predchozi fotka', 'Dalsi fotka', 'Ukoncit hovor', 'Zadejte prosim email.', 'Dekuji! Newsletter bude zaslan na:']
+      ai: ['Lukáš AI', 'Zeptejte se na focení, AI projekty nebo spolupráci. Můžete psát česky i anglicky a asistenta spustit i hlasem.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat'],
+      portfolio: ['Portfolio', 'Vše', 'Fotografie', 'AI Projekty'],
+      skills: ['Dovednosti & Technologie', 'Specializuji se na sportovní a portrétní fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI.', 'Fotografie', 'AI & Tech', 'Nástroje'],
+      process: ['Jak pracuji', 'Jednoduchý proces od návrhu po realizaci', '1. Konzultace', 'Probereme vaše představy, cíle a požadavky projektu', '2. Plánování', 'Vytvoříme detailní plán a časový harmonogram', '3. Realizace', 'Fotografie, kód nebo AI řešení podle plánu', '4. Dokončení', 'Finální úpravy a předání hotového projektu'],
+      about: ['O mně', 'Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.'],
+      collaboration: ['Spolupráce', 'Spolupracuji s těmito subjekty', 'Klubový fotograf', 'Sportovní fotografie ze zápasů a klubových akcí. Dokumentace týmu a fanouškovských momentů.', 'AI specialista', 'Implementace AI řešení, automatizace procesů a technologické poradenství pro kulturní platformu.'],
+        contact: ['Kontakt', 'Preferujete telefon? Zavolejte mi nebo napište e-mail a ozvu se zpět.', 'Napište mi zprávu', '(s AI asistentem)', 'Jméno', 'Email', 'Typ služby', 'Zpráva', 'AI vám pomůže', 'Vaše jméno', 'vas@email.cz', 'Popište svůj projekt...', 'Fotografie', 'AI chatbot', 'Automatizace', 'Konzultace', 'Odeslat zprávu', 'Nová zpráva z webu', 'Toto pole je povinné'],
+      footer: ['Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.', 'Newsletter', 'Email pro newsletter', 'vas@email.cz', 'Odebírat', 'Odkazy', 'Kontakt', 'Přerov, CZ', '© 2026 Lukáš Drštička. Všechna práva vyhrazena.', 'Vytvořeno s pomocí Claude, Gemini & Codex | Designed with modern web standards'],
+      misc: ['Přeskočit na obsah', 'Zpět na úvodní stránku', 'Otevřít mobilní menu', 'Zavřít menu', 'Přepnout režim', 'Napište zprávu...', 'Smazat historii', 'Zavřít chat', 'Galerie', 'Zavřít galerii', 'Předchozí fotka', 'Další fotka', 'Ukončit hovor', 'Zadejte prosím email.', 'Děkuji! Newsletter bude zaslán na:']
     },
     en: {
       title: 'Lukas Drsticka - Photographer & AI Developer | Portfolio',
@@ -45,7 +45,7 @@
       about: ['About', 'I work across photography and AI solutions. I enjoy connecting creativity with technology and building things that are actually useful.'],
       collaboration: ['Collaboration', 'I collaborate with these partners', 'Club photographer', 'Sports photography from matches and club events. Team coverage and fan moments.', 'AI specialist', 'AI implementation, process automation and technology consulting for a cultural platform.'],
         contact: ['Contact', 'Prefer a phone call? Call me or send an email and I will get back to you.', 'Send me a message', '(with AI assistant)', 'Name', 'Email', 'Service type', 'Message', 'AI can help you', 'Your name', 'you@email.com', 'Describe your project...', 'Photography', 'AI chatbot', 'Automation', 'Consultation', 'Send message', 'New website message', 'This field is required'],
-      footer: ['Professional photography and tailor-made AI solutions. I connect creativity with technology.', 'Newsletter', 'Newsletter email', 'you@email.com', 'Subscribe', 'Links', 'Contact', 'Prerov, Czech Republic', '© 2025 Lukas Drsticka. All rights reserved.', 'Built with help from Claude, Gemini & Codex | Designed with modern web standards'],
+      footer: ['Professional photography and tailor-made AI solutions. I connect creativity with technology.', 'Newsletter', 'Newsletter email', 'you@email.com', 'Subscribe', 'Links', 'Contact', 'Prerov, Czech Republic', '© 2026 Lukas Drsticka. All rights reserved.', 'Built with help from Claude, Gemini & Codex | Designed with modern web standards'],
       misc: ['Skip to content', 'Back to home page', 'Open mobile menu', 'Close menu', 'Toggle theme', 'Type a message...', 'Clear history', 'Close chat', 'Gallery', 'Close gallery', 'Previous photo', 'Next photo', 'End call', 'Please enter your email.', 'Thanks! The newsletter will be sent to:']
     }
   };
@@ -230,26 +230,26 @@
       var map = {
         'newsletter.enterEmail': copy.misc[13],
         'newsletter.successPrefix': copy.misc[14],
-        'contact.requiredField': currentLanguage === 'en' ? 'This field is required' : 'Toto pole je povinne',
-        'contact.invalidEmail': currentLanguage === 'en' ? 'Please enter a valid email.' : 'Zadejte platny email.',
-        'contact.checkRequired': currentLanguage === 'en' ? 'Please check the required fields.' : 'Zkontrolujte prosim povinna pole.',
-        'contact.sending': currentLanguage === 'en' ? 'Sending...' : 'Odesilam...',
-        'contact.sent': currentLanguage === 'en' ? 'Thank you! Your message has been sent.' : 'Dekuji! Zprava byla odeslana.',
-        'contact.failed': currentLanguage === 'en' ? 'Sending failed. Please try again.' : 'Odeslani se nepodarilo. Zkuste to prosim znovu.',
-        'chatbot.quickReplyLabel': currentLanguage === 'en' ? 'Quick reply' : 'Rychla odpoved',
+        'contact.requiredField': currentLanguage === 'en' ? 'This field is required' : 'Toto pole je povinné',
+        'contact.invalidEmail': currentLanguage === 'en' ? 'Please enter a valid email.' : 'Zadejte platný email.',
+        'contact.checkRequired': currentLanguage === 'en' ? 'Please check the required fields.' : 'Zkontrolujte prosím povinná pole.',
+        'contact.sending': currentLanguage === 'en' ? 'Sending...' : 'Odesílám...',
+        'contact.sent': currentLanguage === 'en' ? 'Thank you! Your message has been sent.' : 'Děkuji! Zpráva byla odeslána.',
+        'contact.failed': currentLanguage === 'en' ? 'Sending failed. Please try again.' : 'Odeslání se nepodařilo. Zkuste to prosím znovu.',
+        'chatbot.quickReplyLabel': currentLanguage === 'en' ? 'Quick reply' : 'Rychlá odpověď',
         'chatbot.serverError': currentLanguage === 'en' ? 'Server error' : 'Chyba serveru',
-        'chatbot.fallback': currentLanguage === 'en' ? "I can't answer properly right now. Try again in a moment or send me a shorter prompt." : 'Ted zrovna nemuzu odpovedet tak, jak bych chtel. Zkus to za chvili nebo mi dej kratke zadani znovu.',
-        'chatbot.typing': currentLanguage === 'en' ? 'Assistant is typing...' : 'Asistent pise...',
-        'chatbot.transcriptUser': currentLanguage === 'en' ? 'User' : 'Uzivatel',
+        'chatbot.fallback': currentLanguage === 'en' ? "I can't answer properly right now. Try again in a moment or send me a shorter prompt." : 'Teď zrovna nemůžu odpovědět tak, jak bych chtěl. Zkus to za chvíli nebo mi dej krátké zadání znovu.',
+        'chatbot.typing': currentLanguage === 'en' ? 'Assistant is typing...' : 'Asistent píše...',
+        'chatbot.transcriptUser': currentLanguage === 'en' ? 'User' : 'Uživatel',
         'chatbot.transcriptAssistant': currentLanguage === 'en' ? 'Assistant' : 'Asistent',
-        'chatbot.transcriptSubject': currentLanguage === 'en' ? 'Lukas AI transcript' : 'Lukas AI prepis',
-        'voice.connecting': currentLanguage === 'en' ? 'Connecting...' : 'Pripojuji...',
-        'voice.active': currentLanguage === 'en' ? 'Call active' : 'Hovor aktivni',
-        'voice.ending': currentLanguage === 'en' ? 'Ending...' : 'Ukoncuji...',
-        'voice.connectionFailed': currentLanguage === 'en' ? 'Connection failed' : 'Nepodarilo se navazat spojeni',
+        'chatbot.transcriptSubject': currentLanguage === 'en' ? 'Lukas AI transcript' : 'Lukáš AI přepis',
+        'voice.connecting': currentLanguage === 'en' ? 'Connecting...' : 'Připojuji...',
+        'voice.active': currentLanguage === 'en' ? 'Call active' : 'Hovor aktivní',
+        'voice.ending': currentLanguage === 'en' ? 'Ending...' : 'Ukončuji...',
+        'voice.connectionFailed': currentLanguage === 'en' ? 'Connection failed' : 'Nepodařilo se navázat spojení',
         'voice.userLabel': currentLanguage === 'en' ? 'You' : 'Vy',
         'voice.assistantLabel': currentLanguage === 'en' ? 'AI' : 'AI',
-        'accessibility.sectionVisiblePrefix': currentLanguage === 'en' ? 'Visible section' : 'Zobrazena sekce'
+        'accessibility.sectionVisiblePrefix': currentLanguage === 'en' ? 'Visible section' : 'Zobrazená sekce'
       };
       return Object.prototype.hasOwnProperty.call(map, path) ? map[path] : fallback;
     };
