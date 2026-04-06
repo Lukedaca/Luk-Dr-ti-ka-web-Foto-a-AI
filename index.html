@@ -309,8 +309,8 @@ body:not(.loading) > * {
                     🌙 / ☀️
                 </button>
                 <div id="langToggleMobileStatic" class="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full p-1">
-                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="cs" onclick="if(window.ldI18n)window.ldI18n.applyLanguage('cs')">CZ</button>
-                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="en" onclick="if(window.ldI18n)window.ldI18n.applyLanguage('en')">EN</button>
+                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="cs" onclick="event.stopPropagation();if(window.ldI18n){window.ldI18n.applyLanguage('cs')}else{var u=new URL(location.href);u.searchParams.set('lang','cs');location.href=u};var m=document.getElementById('mobileMenu'),b=document.getElementById('mobileMenuBtn');if(m)m.classList.remove('active');if(b)b.classList.remove('active');document.body.style.overflow=''">CZ</button>
+                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="en" onclick="event.stopPropagation();if(window.ldI18n){window.ldI18n.applyLanguage('en')}else{var u=new URL(location.href);u.searchParams.set('lang','en');location.href=u};var m=document.getElementById('mobileMenu'),b=document.getElementById('mobileMenuBtn');if(m)m.classList.remove('active');if(b)b.classList.remove('active');document.body.style.overflow=''">EN</button>
                 </div>
             </div>
         </nav>
