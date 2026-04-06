@@ -76,22 +76,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('themeToggle');
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
+    const themeToggleMobile = document.getElementById('themeToggleMobile');
+
     function applyTheme(theme) {
         const useLight = theme === 'light';
         document.documentElement.classList.toggle('theme-light', useLight);
         storage.set('ld_theme', useLight ? 'light' : 'dark');
-        if (themeToggle) themeToggle.textContent = useLight ? '🌙' : '☀️';
+        const icon = useLight ? '🌙' : '☀️';
+        if (themeToggle) themeToggle.textContent = icon;
+        if (themeToggleMobile) themeToggleMobile.textContent = icon;
     }
 
     const savedTheme = storage.get('ld_theme');
     applyTheme(savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light'));
 
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const nextTheme = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light';
-            applyTheme(nextTheme);
-        });
+    function toggleTheme() {
+        const nextTheme = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light';
+        applyTheme(nextTheme);
     }
+
+    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+    if (themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
 
     // Scroll progress and header effects
     const scrollProgress = document.getElementById('scrollProgress');

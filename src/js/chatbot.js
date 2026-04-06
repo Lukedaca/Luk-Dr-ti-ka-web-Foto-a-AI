@@ -28,14 +28,14 @@
     return {
       welcome: isEn
         ? 'Hi, I am Lukas AI. I can chat with you, think through your request and immediately prepare a mini output. You can write in English or Czech and you can also talk to me by voice.'
-        : 'Ahoj, jsem Lukas AI. Umim si s tebou povidat, promyslet zadani a rovnou pripravit mini vystup. Muzes psat cesky i anglicky a muzes se mnou i mluvit hlasem.',
+        : 'Ahoj, jsem Lukáš AI. Umím si s tebou povídat, promyslet zadání a rovnou připravit mini výstup. Můžeš psát česky i anglicky a můžeš se mnou i mluvit hlasem.',
       modeMeta: {
         talk: {
           label: 'Talk',
-          badge: isEn ? 'Public assistant' : 'Verejny asistent',
+          badge: isEn ? 'Public assistant' : 'Veřejný asistent',
           helper: isEn
             ? 'Talk to me like a digital version of Lukas. English when needed, Czech by default.'
-            : 'Povidej si se mnou jako s digitalni verzi Lukase. Cesky defaultne, anglicky podle potreby.',
+            : 'Povídej si se mnou jako s digitální verzí Lukáše. Česky defaultně, anglicky podle potřeby.',
           replies: isEn
             ? [
                 { text: 'What do you do?', value: 'What exactly do you do and how do you help people?' },
@@ -45,19 +45,19 @@
                 { text: 'Fotograf AI', value: 'Explain Fotograf AI to me in simple terms.' }
               ]
             : [
-                { text: 'Co presne delas?', value: 'Co presne delas a s cim lidem pomahas?' },
-                { text: 'Odpovidej hlasem', value: 'Odpovidej mi prosim hlasem, ale ja budu dal psat.' },
+                { text: 'Co přesně děláš?', value: 'Co přesně děláš a s čím lidem pomáháš?' },
+                { text: 'Odpovídej hlasem', value: 'Odpovídej mi prosím hlasem, ale já budu dál psát.' },
                 { text: 'Speak English', value: 'Please continue in English and tell me what you do.' },
-                { text: 'Ukaz portfolio', value: 'Ukaz mi portfolio a co je na nem nejzajimavejsi.' },
-                { text: 'Fotograf AI', value: 'Vysvetli mi lidsky, co je Fotograf AI.' }
+                { text: 'Ukaž portfolio', value: 'Ukaž mi portfolio a co je na něm nejzajímavější.' },
+                { text: 'Fotograf AI', value: 'Vysvětli mi lidsky, co je Fotograf AI.' }
               ]
         },
         think: {
           label: 'Think',
-          badge: isEn ? 'Agent reasoning' : 'Agentni uvaha',
+          badge: isEn ? 'Agent reasoning' : 'Agentní úvaha',
           helper: isEn
             ? 'I will break the request down, suggest a direction and point out weak spots.'
-            : 'Rozeberu zadani, navrhnu smer a upozornim na slabiny.',
+            : 'Rozeberu zadání, navrhnu směr a upozorním na slabiny.',
           replies: isEn
             ? [
                 { text: 'AI agent for business', value: 'Think through an AI agent for a small company that would do real work.' },
@@ -65,17 +65,17 @@
                 { text: 'Pilot strategy', value: 'Suggest a sensible pilot for deploying an AI assistant.' }
               ]
             : [
-                { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro mensi firmu, ktery by delal realnou praci.' },
+                { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro menší firmu, který by dělal reálnou práci.' },
                 { text: 'Automatizace webu', value: 'Jak bys zautomatizoval lead flow a komunikaci na webu?' },
-                { text: 'Strategie pilotu', value: 'Navrhni rozumny pilot pro nasazeni AI asistenta.' }
+                { text: 'Strategie pilotu', value: 'Navrhni rozumný pilot pro nasazení AI asistenta.' }
               ]
         },
         build: {
           label: 'Build',
-          badge: isEn ? 'Mini deliverable' : 'Mini vystup',
+          badge: isEn ? 'Mini deliverable' : 'Mini výstup',
           helper: isEn
             ? 'I prepare an output that is already usable for a call, brief or next decision.'
-            : 'Pripravuju vystup, ktery uz jde nekam poslat nebo podle nej jednat.',
+            : 'Připravuju výstup, který už jde někam poslat nebo podle něj jednat.',
           replies: isEn
             ? [
                 { text: 'Mini brief', value: 'Create a short collaboration brief for an AI agent on a website.' },
@@ -83,30 +83,30 @@
                 { text: 'Roadmap', value: 'Prepare a short launch roadmap for that kind of agent.' }
               ]
             : [
-                { text: 'Mini brief', value: 'Vytvor mi mini brief spoluprace na AI agentovi pro web.' },
-                { text: 'Navrh scope', value: 'Sepis scope pro prvni verzi osobniho AI agenta.' },
-                { text: 'Roadmapa', value: 'Priprav kratkou roadmapu pro launch takoveho agenta.' }
+                { text: 'Mini brief', value: 'Vytvoř mi mini brief spolupráce na AI agentovi pro web.' },
+                { text: 'Návrh scope', value: 'Sepiš scope pro první verzi osobního AI agenta.' },
+                { text: 'Roadmapa', value: 'Připrav krátkou roadmapu pro launch takového agenta.' }
               ]
         }
       },
       workbench: {
-        buildSteps: isEn ? ['Understand the goal', 'Prepare a mini output', 'Suggest the next step'] : ['Pochopim cil', 'Pripravim mini vystup', 'Navrhnu dalsi krok'],
-        thinkSteps: isEn ? ['Understand context', 'Choose the best direction', 'Show recommendation'] : ['Pochopim kontext', 'Vyberu nejlepsi smer', 'Ukazu doporuceni'],
-        talkSteps: isEn ? ['Start the conversation', 'Choose a useful direction', 'Move things forward'] : ['Navazu konverzaci', 'Vyberu uzitecny smer', 'Posunu to dal']
+        buildSteps: isEn ? ['Understand the goal', 'Prepare a mini output', 'Suggest the next step'] : ['Pochopím cíl', 'Připravím mini výstup', 'Navrhnu další krok'],
+        thinkSteps: isEn ? ['Understand context', 'Choose the best direction', 'Show recommendation'] : ['Pochopím kontext', 'Vyberu nejlepší směr', 'Ukážu doporučení'],
+        talkSteps: isEn ? ['Start the conversation', 'Choose a useful direction', 'Move things forward'] : ['Navážu konverzaci', 'Vyberu užitečný směr', 'Posunu to dál']
       },
       helperNoteHtml: isEn
         ? 'Click <strong class="text-white/85 font-semibold">Talk by voice</strong> for a live voice call or enable <strong class="text-white/85 font-semibold">voice replies</strong> when you want to type and hear answers aloud. The assistant works in <strong class="text-white/85 font-semibold">CZ / EN</strong>.'
-        : 'Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasove odpovedi</strong>, kdyz chces psat a slyset odpovedi nahlas. Asistent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.',
-      voiceOutputUnsupported: isEn ? 'Voice replies unavailable' : 'Hlasove odpovedi nejsou dostupne',
-      voiceOutputOn: isEn ? 'Voice replies: on' : 'Hlasove odpovedi: zapnuto',
-      voiceOutputOff: isEn ? 'Voice replies: off' : 'Hlasove odpovedi: vypnuto',
+        : 'Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Asistent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.',
+      voiceOutputUnsupported: isEn ? 'Voice replies unavailable' : 'Hlasové odpovědi nejsou dostupné',
+      voiceOutputOn: isEn ? 'Voice replies: on' : 'Hlasové odpovědi: zapnuto',
+      voiceOutputOff: isEn ? 'Voice replies: off' : 'Hlasové odpovědi: vypnuto',
       voiceShortOn: isEn ? 'Voice on' : 'Hlas zap.',
       voiceShortOff: isEn ? 'Voice off' : 'Hlas vyp.',
-      voiceEnabledMessage: isEn ? 'Voice replies are enabled. Keep typing and I will answer aloud as well.' : 'Hlasove odpovedi jsou zapnute. Klidne pis, budu odpovidat i nahlas.',
-      voiceDisabledMessage: isEn ? 'Voice replies are disabled. I will answer only in text now.' : 'Hlasove odpovedi jsou vypnute. Budu uz jen psat.',
-      publicAssistantBadge: isEn ? 'Public assistant' : 'Verejny asistent',
+      voiceEnabledMessage: isEn ? 'Voice replies are enabled. Keep typing and I will answer aloud as well.' : 'Hlasové odpovědi jsou zapnuté. Klidně piš, budu odpovídat i nahlas.',
+      voiceDisabledMessage: isEn ? 'Voice replies are disabled. I will answer only in text now.' : 'Hlasové odpovědi jsou vypnuté. Budu už jen psát.',
+      publicAssistantBadge: isEn ? 'Public assistant' : 'Veřejný asistent',
       widgetAssistantBadge: isEn ? 'Assistant' : 'Asistent',
-      defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslim to s tebou a navrhnu dalsi krok.'
+      defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslím to s tebou a navrhnu další krok.'
     };
   }
 
@@ -126,21 +126,21 @@
     think: {
       label: 'Think',
       badge: 'Agent reasoning',
-      helper: 'Rozeberu zadani, navrhnu smer a upozornim na slabiny.',
+      helper: 'Rozeberu zadání, navrhnu směr a upozorním na slabiny.',
       replies: [
-        { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro mensi firmu, ktery by delal realnou praci.' },
+        { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro menší firmu, který by dělal reálnou práci.' },
         { text: 'Automatizace webu', value: 'Jak bys zautomatizoval lead flow a komunikaci na webu?' },
-        { text: 'Strategie pilotu', value: 'Navrhni rozumny pilot pro nasazeni AI asistenta.' }
+        { text: 'Strategie pilotu', value: 'Navrhni rozumný pilot pro nasazení AI asistenta.' }
       ]
     },
     build: {
       label: 'Build',
       badge: 'Mini deliverable',
-      helper: 'Pripravuju vystup, ktery uz jde nekam poslat nebo podle nej jednat.',
+      helper: 'Připravuju výstup, který už jde někam poslat nebo podle něj jednat.',
       replies: [
-        { text: 'Mini brief', value: 'Vytvor mi mini brief spoluprace na AI agentovi pro web.' },
-        { text: 'Navrh scope', value: 'Sepis scope pro prvni verzi osobniho AI agenta.' },
-        { text: 'Roadmapa', value: 'Priprav kratkou roadmapu pro launch takoveho agenta.' }
+        { text: 'Mini brief', value: 'Vytvoř mi mini brief spolupráce na AI agentovi pro web.' },
+        { text: 'Návrh scope', value: 'Sepiš scope pro první verzi osobního AI agenta.' },
+        { text: 'Roadmapa', value: 'Připrav krátkou roadmapu pro launch takového agenta.' }
       ]
     }
   };
@@ -164,17 +164,17 @@
           ? locale.workbench.thinkSteps
           : locale.workbench.talkSteps,
       artifactTitle: mode === 'build'
-        ? (isEn ? 'What this can produce' : 'Co z toho muze vzniknout')
-        : (isEn ? 'What this mode can do' : 'Co tenhle rezim umi'),
+        ? (isEn ? 'What this can produce' : 'Co z toho může vzniknout')
+        : (isEn ? 'What this mode can do' : 'Co tenhle režim umí'),
       artifactBody: mode === 'build'
-        ? (isEn ? 'I can prepare a mini brief, automation scope, AI agent proposal or a call summary.' : 'Muzu pripravit mini brief, scope automatizace, navrh AI agenta nebo call summary.')
+        ? (isEn ? 'I can prepare a mini brief, automation scope, AI agent proposal or a call summary.' : 'Můžu připravit mini brief, scope automatizace, návrh AI agenta nebo call summary.')
         : mode === 'think'
-          ? (isEn ? 'I can break down the idea, show risks, suggest architecture and recommend a first pilot.' : 'Muzu rozebrat napad, ukazat rizika, navrhnout architekturu a doporucit prvni pilot.')
-          : (isEn ? 'I can talk about Lukas, the projects, the portfolio and switch into an agent workflow when it makes sense.' : 'Muzu mluvit o Lukasovi, projektech, portfoliu a pri spravne chvili se prepnout do agentniho rezimu.'),
-      ctaLabel: mode === 'build' ? (isEn ? 'Try build mode' : 'Zkusit build mode') : (isEn ? 'Show me a concrete proposal' : 'Chci videt konkretni navrh'),
+          ? (isEn ? 'I can break down the idea, show risks, suggest architecture and recommend a first pilot.' : 'Můžu rozebrat nápad, ukázat rizika, navrhnout architekturu a doporučit první pilot.')
+          : (isEn ? 'I can talk about Lukas, the projects, the portfolio and switch into an agent workflow when it makes sense.' : 'Můžu mluvit o Lukášovi, projektech, portfoliu a při správné chvíli se přepnout do agentního režimu.'),
+      ctaLabel: mode === 'build' ? (isEn ? 'Try build mode' : 'Zkusit build mode') : (isEn ? 'Show me a concrete proposal' : 'Chci vidět konkrétní návrh'),
       ctaValue: mode === 'build'
-        ? (isEn ? 'Create a concrete collaboration proposal for an AI agent.' : 'Vytvor mi konkretni navrh spoluprace na AI agentovi.')
-        : (isEn ? 'Switch to build mode and prepare a concrete proposal for me.' : 'Prepneme to do build mode a priprav mi konkretni navrh.')
+        ? (isEn ? 'Create a concrete collaboration proposal for an AI agent.' : 'Vytvoř mi konkrétní návrh spolupráce na AI agentovi.')
+        : (isEn ? 'Switch to build mode and prepare a concrete proposal for me.' : 'Přepneme to do build mode a připrav mi konkrétní návrh.')
     };
   }
 
@@ -728,7 +728,7 @@
     .catch(function(err) {
       console.error('Chatbot error:', err);
       chatbotState.isProcessing = false;
-      var fallbackMessage = chatbotText('chatbot.fallback', 'Ted zrovna nemuzu odpovedet tak, jak bych chtel. Zkus to za chvili nebo mi dej kratke zadani znovu.');
+      var fallbackMessage = chatbotText('chatbot.fallback', 'Teď zrovna nemůžu odpovědět tak, jak bych chtěl. Zkus to za chvíli nebo mi dej krátké zadání znovu.');
       chatbotState.messages.push({ role: 'assistant', content: fallbackMessage });
       return {
         message: fallbackMessage,
