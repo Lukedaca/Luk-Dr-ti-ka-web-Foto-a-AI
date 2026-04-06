@@ -74,6 +74,10 @@
   // BROWSER SUPPORT CHECK
   // ═══════════════════════════════════════════════════════════════════════════
 
+  function voiceText(path, fallback) {
+    return typeof window.ldGetText === 'function' ? window.ldGetText(path, fallback) : fallback;
+  }
+
   function voiceCheckSupport() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.warn('voice.js: getUserMedia not supported');
@@ -98,6 +102,9 @@
       active: 'Hovor aktivní',
       ending: 'Ukončuji...'
     };
+    labels.connecting = voiceText('voice.connecting', 'Pripojuji...');
+    labels.active = voiceText('voice.active', 'Hovor aktivni');
+    labels.ending = voiceText('voice.ending', 'Ukoncuji...');
     if (voiceDOM.statusEl) {
       voiceDOM.statusEl.textContent = labels[status] || '';
     }
@@ -160,7 +167,9 @@
     div.className = 'voice-transcript-line voice-transcript-' + role;
 
     var label = document.createElement('strong');
-    label.appendChild(document.createTextNode(role === 'user' ? 'Vy: ' : 'AI: '));
+    label.appendChild(document.createTextNode((role === 'user'
+      ? voiceText('voice.userLabel', 'Vy')
+      : voiceText('voice.assistantLabel', 'AI')) + ': '));
     div.appendChild(label);
     div.appendChild(document.createTextNode(text));
 
@@ -393,7 +402,7 @@
         console.error('voice.js: connection failed', err);
         voiceSetStatus('ending');
         if (voiceDOM.statusEl) {
-          voiceDOM.statusEl.textContent = err && err.message ? err.message : 'Nepodarilo se navazat spojeni';
+          voiceDOM.statusEl.textContent = err && err.message ? err.message : voiceText('voice.connectionFailed', 'Nepodarilo se navazat spojeni');
         }
         setTimeout(function() {
           voiceHideOverlay();

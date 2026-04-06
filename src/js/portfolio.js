@@ -13,6 +13,19 @@ const PORTFOLIO_ALT_TEXTS = {
     'automatizace': 'Automatizace procesu s AI',
     'portret-2': 'Portretni fotografie s dramatickym svetlem'
 };
+const PORTFOLIO_NAME_TRANSLATIONS = {
+    'sport-1': { en: 'Aerial duel' },
+    'sport-2': { en: 'Battle for the ball' },
+    'sport-3': { en: 'Goal celebration' },
+    'sport-4': { en: 'Goalmouth action' },
+    'sport-5': { en: 'First league' },
+    'sport-8': { en: 'Prerov vs Brodek 14 Mar 2026' },
+    'sport-9': { en: 'Prerov vs Postrelmov 28 Mar 2026' },
+    'ai-1': { en: 'AI Assistant' },
+    'ai-2': { en: 'Entertainment chatbot' },
+    'portret-1': { en: 'Portrait with smoke' },
+    'portret-3': { en: 'Blue smoke' }
+};
 
 let portfolioProjects = [];
 let activeFilter = 'all';
@@ -25,6 +38,27 @@ const closeLightboxBtn = document.getElementById('closeLightbox');
 const lightboxControls = document.getElementById('lightboxControls');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
+
+function getLanguage() {
+    return typeof window.ldGetLanguage === 'function' ? window.ldGetLanguage() : 'cs';
+}
+
+function translateProjectName(project) {
+    const lang = getLanguage();
+    const overrides = PORTFOLIO_NAME_TRANSLATIONS[String(project?.id || '')];
+    if (lang === 'en' && overrides && overrides.en) {
+        return overrides.en;
+    }
+    return project?.name || 'Project';
+}
+
+function getPortfolioLabel(category) {
+    const lang = getLanguage();
+    if (lang === 'en') {
+        return category === 'ai' ? 'AI Project' : 'Photography';
+    }
+    return category === 'ai' ? 'AI Projekt' : 'Fotografie';
+}
 
 function getPortfolioItems() {
     return Array.from(document.querySelectorAll('.portfolio-item'));
@@ -129,13 +163,16 @@ function renderPortfolio() {
         const mainIndex = Number.isInteger(project.mainImageIndex) ? project.mainImageIndex : 0;
         const mainImage = images[mainIndex] || images[0] || PORTFOLIO_FALLBACK_IMAGE;
         const category = project.category === 'ai' ? 'ai' : 'foto';
-        const categoryLabel = category === 'ai' ? 'AI Projekt' : 'Fotografie';
+        const categoryLabel = getPortfolioLabel(category);
         const type = project.type === 'gallery' ? 'gallery' : 'single';
+        const projectName = translateProjectName(project);
         const metaText = type === 'gallery'
-            ? `${categoryLabel} | ${images.length} fotek`
+            ? (getLanguage() === 'en'
+                ? `Match gallery | ${images.length} photos`
+                : `${categoryLabel} | ${images.length} fotek`)
             : categoryLabel;
         const projectId = project.id ? String(project.id) : `portfolio-${index}`;
-        const altText = PORTFOLIO_ALT_TEXTS[projectId] || project.name || 'Portfolio';
+        const altText = PORTFOLIO_ALT_TEXTS[projectId] || projectName || 'Portfolio';
         const hrefAttr = project.pageUrl ? ` data-project-link="${project.pageUrl}"` : '';
 
         return `
@@ -143,7 +180,7 @@ function renderPortfolio() {
                 <img src="${mainImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='${PORTFOLIO_FALLBACK_IMAGE}';">
                 <div class="portfolio-overlay">
                     <div class="text-center">
-                        <div class="portfolio-title">${project.name || 'Projekt'}</div>
+                        <div class="portfolio-title">${projectName}</div>
                         <div class="portfolio-meta">${metaText}</div>
                     </div>
                 </div>
@@ -298,5 +335,11 @@ function openGalleryLightbox(images, startIndex, altText) {
     setLightboxControls(images.length > 1);
     updateControls();
 }
+
+window.addEventListener('ld:languagechange', () => {
+    if (portfolioProjects.length) {
+        renderPortfolio();
+    }
+});
 
 loadPortfolioData();

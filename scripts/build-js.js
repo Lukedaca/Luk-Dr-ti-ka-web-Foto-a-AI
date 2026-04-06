@@ -10,7 +10,7 @@ if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
 }
 
-const modules = ['core', 'chatbot', 'voice', 'neural', 'portfolio', 'contact'];
+const modules = ['core', 'i18n', 'chatbot', 'voice', 'neural', 'portfolio', 'contact'];
 
 async function build() {
   console.log('Building JavaScript modules...\n');

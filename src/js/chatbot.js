@@ -15,6 +15,10 @@
   var CHATBOT_CAN_SPEAK = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
   var CHATBOT_TTS_SAMPLE_RATE = 24000;
 
+  function chatbotText(path, fallback) {
+    return typeof window.ldGetText === 'function' ? window.ldGetText(path, fallback) : fallback;
+  }
+
   var CHATBOT_MODE_META = {
     talk: {
       label: 'Talk',
@@ -478,7 +482,7 @@
     div.className = 'chat-message mb-4 flex gap-2 chatbot-typing';
     div.innerHTML =
       '<div class="message-avatar glass">\u{1F916}</div>' +
-      '<div class="glass rounded-xl typing-indicator" aria-live="polite" aria-label="Asistent pise...">' +
+      '<div class="glass rounded-xl typing-indicator" aria-live="polite" aria-label="' + chatbotEscapeHTML(chatbotText('chatbot.typing', 'Asistent pise...')) + '">' +
         '<span></span><span></span><span></span>' +
       '</div>';
 
@@ -507,7 +511,7 @@
       var btn = document.createElement('button');
       btn.className = 'quick-reply-btn glass px-4 py-2 rounded-full text-sm mr-2 mb-2';
       btn.setAttribute('data-value', reply.value);
-      btn.setAttribute('aria-label', 'Rychla odpoved: ' + reply.text);
+      btn.setAttribute('aria-label', chatbotText('chatbot.quickReplyLabel', 'Rychla odpoved') + ': ' + reply.text);
       btn.textContent = reply.text;
       btn.addEventListener('click', function() {
         chatbotHandleSend(reply.value);
@@ -543,11 +547,13 @@
     chatbotState.notificationSent = true;
 
     var transcript = chatbotState.messages.map(function(m) {
-      return (m.role === 'user' ? 'Uzivatel' : 'Asistent') + ': ' + m.content;
+      return (m.role === 'user'
+        ? chatbotText('chatbot.transcriptUser', 'Uzivatel')
+        : chatbotText('chatbot.transcriptAssistant', 'Asistent')) + ': ' + m.content;
     }).join('\n\n');
 
     var formData = new FormData();
-    formData.append('_subject', 'Lukas AI transcript (' + chatbotState.messages.length + ' zprav)');
+    formData.append('_subject', chatbotText('chatbot.transcriptSubject', 'Lukas AI prepis') + ' (' + chatbotState.messages.length + ' zpráv)');
     formData.append('message', transcript);
 
     fetch(CHATBOT_FORMSPREE_URL, {
@@ -600,7 +606,7 @@
     .then(function(res) {
       if (!res.ok) {
         return res.json().catch(function() { return {}; }).then(function(data) {
-          throw new Error(data.error || data.message || 'Chyba serveru (' + res.status + ')');
+          throw new Error(data.error || data.message || (chatbotText('chatbot.serverError', 'Chyba serveru') + ' (' + res.status + ')'));
         });
       }
       return res.json();
@@ -623,7 +629,7 @@
     .catch(function(err) {
       console.error('Chatbot error:', err);
       chatbotState.isProcessing = false;
-      var fallbackMessage = 'Ted zrovna nemuzu odpovedet tak, jak bych chtel. Zkus to za chvili nebo mi dej kratke zadani znovu.';
+      var fallbackMessage = chatbotText('chatbot.fallback', 'Ted zrovna nemuzu odpovedet tak, jak bych chtel. Zkus to za chvili nebo mi dej kratke zadani znovu.');
       chatbotState.messages.push({ role: 'assistant', content: fallbackMessage });
       return {
         message: fallbackMessage,

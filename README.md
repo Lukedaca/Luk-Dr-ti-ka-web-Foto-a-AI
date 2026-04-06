@@ -1,192 +1,87 @@
-# 🎨 AI Portfolio Web - Lukáš Drštička
+# Lukas Drsticka Web
 
-Moderní portfolio web kombinující fotografii a AI development, vytvořený pomocí Vibecoding (Claude & Gemini).
+Portfolio web pro fotografii, AI projekty a automatizace. Web je pripraveny pro deploy na Netlify a obsahuje prepinani jazyka `CZ / EN`.
 
-## 🚀 Live Demo
+## Co je soucasti
 
-[**Zobrazit živou verzi**](#) <!-- Doplň URL až nasadíš -->
+- staticky frontend v rootu projektu
+- buildovane assety v `dist/`
+- Netlify Functions v `netlify/functions/`
+- chat assistant a voice vrstva napojena pres Netlify Functions
+- jazykovy prepinac `CZ / EN` s ulozenim volby a podporou `?lang=cs|en`
 
-## ✨ Hlavní features
+## Lokalni spusteni
 
-### 🤖 Enhanced AI Chatbot
-- **Context Awareness** - bot si pamatuje kontext konverzace
-- **Intent Detection** - automatická detekce záměru uživatele s confidence scoring
-- **Sentiment Analysis** - rozpoznání nálady uživatele
-- **Fuzzy Matching** - toleruje překlepy a variace
-- **Entity Recognition** - extrakce klíčových informací z dotazů
-- **Multi-turn Conversations** - pokročilé dialogové schopnosti
+### 1. Instalace
 
-### 🧠 Neural Network Visualization
-- Real-time animovaná vizualizace neural network na pozadí
-- Neurony reagují na pohyb myši a kliknutí
-- 4-vrstvá architektura (5-8-6-4)
-- Dynamické gradient animace
-- Pulzující efekty
-
-### ✍️ AI Writing Assistant
-- Real-time analýza kontaktního formuláře
-- Automatické generování profesionálních textů
-- Inteligentní návrhy na vylepšení zprávy
-- Detekce chybějících informací (termín, rozpočet, typ projektu)
-- Tlačítka pro použití AI návrhů
-
-### 🎨 Design & UX
-- Glassmorphism UI design
-- Gradient animace
-- Responsive layout (mobile-first)
-- Smooth scroll animations
-- Interactive portfolio gallery s lightbox
-- Portfolio filtry (Vše / Fotografie / AI Projekty)
-
-## 🛠️ Technologie
-
-- **HTML5** - sémantický markup
-- **TailwindCSS** - utility-first styling
-- **Vanilla JavaScript** - žádné frameworky, čistý JS
-- **Canvas API** - neural network visualization
-- **LocalStorage API** - perzistence chat historie
-
-## 📁 Struktura projektu
-
-```
-
-## ?? Sprava portfolia bez backendu (GitHub Pages)
-
-1) Nahraj fotku do `assets/portfolio/`
-   - GitHub UI: `Add file` -> `Upload files`
-2) Pridej polozku do `data/portfolio.json`
-   - Priklad:
-```json
-[
-  {
-    "id": "portret-1",
-    "name": "Portret",
-    "category": "foto",
-    "type": "single",
-    "images": ["assets/portfolio/portret-1.jpg"],
-    "mainImageIndex": 0
-  }
-]
-```
-3) Commit/Push -> GitHub Pages se aktualizuje
-
-Doporuceni: pouzivej kratke nazvy bez mezer (napr. `sport-1.jpg`), obrazky predem zkomprimuj (napr. 1600px na delsi strane).
-
-portfolio-web/
-├── index.html          # Hlavní soubor webu
-├── README.md           # Tento soubor
-└── assets/             # (budoucí) obrázky, ikony
-```
-
-## 🎯 AI Features v detailu
-
-### Chatbot Engine
-```javascript
-- Intent Detection s confidence scoring
-- Best-of-patterns algoritmus
-- Levenshtein distance pro fuzzy matching
-- Context management systém
-- Sentiment analysis
-- Entity extraction
-```
-
-### Writing Assistant
-```javascript
-- Debounced input analysis (500ms)
-- Template-based text generation
-- Multi-type suggestions (info/warning/success)
-- Auto-expansion pro krátké texty
-- Smart completion pro chybějící info
-```
-
-### Neural Network
-```javascript
-- 23 neuronů v 4 vrstvách
-- 100+ connections mezi vrstvami
-- Mouse proximity detection (150px radius)
-- Activity-based brightness modulation
-- Gradient color transitions
-```
-
-## 🚀 Jak použít
-
-### Lokální development
 ```bash
-# Stačí otevřít index.html v prohlížeči
-open index.html
-
-# Nebo použít local server (doporučeno)
-python -m http.server 8000
-# Otevři: http://localhost:8000
+npm install
 ```
 
-### Deploy na GitHub Pages
+### 2. Development
+
 ```bash
-# 1. Vytvoř repo
-git init
+npm run dev
+```
+
+To spusti:
+
+- Tailwind watch
+- lokalni staticky server
+
+### 3. Produkcni build
+
+```bash
+npm run build
+```
+
+Build udela:
+
+- `dist/css/styles.min.css`
+- `dist/js/*.min.js`
+- optimalizaci obrazku
+
+## Netlify deploy
+
+Projekt je pripraveny pro Netlify z GitHub repozitare.
+
+- build command: `npm run build`
+- publish directory: `.`
+- functions directory: `netlify/functions`
+
+Konfigurace je v [netlify.toml](./netlify.toml).
+
+## AI a voice konfigurace
+
+Pro produkcni provoz je potreba doplnit vlastni environment variables v Netlify.
+
+Minimalne zkontroluj:
+
+- klice pro Google / Gemini endpointy pouzivane v `netlify/functions`
+- pripadne dalsi tajne hodnoty podle aktualni implementace backend funkcí
+
+API klice se do repozitare neukladaji.
+
+## Jazykove verze
+
+Web umi:
+
+- prepnout mezi `CZ` a `EN`
+- ulozit vybranou verzi do localStorage
+- otevrit primo konkretni jazyk pres URL:
+
+```text
+/?lang=cs
+/?lang=en
+```
+
+## Doporuceny release postup
+
+```bash
+npm run build
 git add .
-git commit -m "Initial commit"
-
-# 2. Push do GitHubu
-git branch -M main
-git remote add origin https://github.com/USERNAME/portfolio.git
-git push -u origin main
-
-# 3. Zapni GitHub Pages v Settings > Pages
-# Vyber branch: main, folder: / (root)
+git commit -m "feat: finalize bilingual website"
+git push
 ```
 
-## 📝 TODO / Budoucí vylepšení
-
-- [ ] Přidat skutečné projekty do galerie
-- [ ] Implementovat backend pro kontaktní formulář
-- [ ] Přidat více AI modelů (TensorFlow.js)
-- [ ] Dark/Light mode toggle
-- [ ] Service Worker pro offline režim
-- [ ] Performance optimalizace (lazy loading)
-- [ ] SEO optimalizace
-- [ ] Analytics integrace
-- [ ] Blog sekce
-- [ ] Vícejazyčná verze (EN/CS)
-
-## 🎓 Co jsem se naučil
-
-- Pokročilé JavaScript patterns (OOP, functional programming)
-- AI/NLP koncepty bez použití externích API
-- Canvas API a animace
-- UX/UI design principy
-- Git workflow
-- Responsive design
-
-## 📊 Statistiky projektu
-
-- **Řádky kódu**: ~2000 řádků JS
-- **Chatbot intents**: 6 základních intentů
-- **AI patterns**: 30+ vzorů pro intent detection
-- **Neural connections**: 100+ spojení
-- **Dev čas**: X hodin
-
-## 🤝 Kontakt
-
-- **Email**: lukas.drsticka@gmail.com
-- **LinkedIn**: [Tvůj LinkedIn](#)
-- **GitHub**: [github.com/tvojejmeno](#)
-
-## 📄 Licence
-
-MIT License - volné použití pro osobní i komerční účely
-
-## 🙏 Poděkování
-
-Vytvořeno pomocí:
-- Claude (Anthropic) - AI asistent pro vývoj
-- Gemini (Google) - Další AI pomoc
-- TailwindCSS - Styling framework
-
----
-
-⭐ **Star this repo** pokud se ti projekt líbí!
-
-💼 **Hledám práci** v oblasti AI/ML nebo Full-stack development
-
-🚀 **Status**: V aktivním vývoji
+Po pushi do branche napojene na Netlify se spusti novy deploy automaticky.

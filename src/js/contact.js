@@ -3,6 +3,14 @@
  * AI Writing Assistant and contact form handling
  */
 
+function getLanguage() {
+    return typeof window.ldGetLanguage === 'function' ? window.ldGetLanguage() : 'cs';
+}
+
+function t(path, fallback) {
+    return typeof window.ldGetText === 'function' ? window.ldGetText(path, fallback) : fallback;
+}
+
 class AIWritingAssistant {
     constructor() {
         this.messageInput = document.getElementById('contactMessage');
@@ -201,6 +209,51 @@ if (contactForm) {
         { input: contactService, errorId: 'contactServiceError', message: 'Toto pole je povinné' },
         { input: contactMessage, errorId: 'contactMessageError', message: 'Toto pole je povinné' }
     ];
+
+    const translateContactRuntimeText = (value) => {
+        const text = (value || '').trim();
+        if (!text) return text;
+        const normalized = text
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+
+        if (normalized.includes('toto pole je povinn')) return t('contact.requiredField', 'Toto pole je povinne');
+        if (normalized.includes('zadejte platn')) return t('contact.invalidEmail', 'Zadejte platny email.');
+        if (normalized.includes('zkontrolujte') && normalized.includes('povinn')) return t('contact.checkRequired', 'Zkontrolujte prosim povinna pole.');
+        if (normalized.includes('odes') && normalized.includes('m')) return t('contact.sending', 'Odesilam...');
+        if (normalized.includes('dekuji') && normalized.includes('odeslan')) return t('contact.sent', 'Dekuji! Zprava byla odeslana.');
+        if (normalized.includes('nepodarilo')) return t('contact.failed', 'Odeslani se nepodarilo. Zkuste to prosim znovu.');
+        return text;
+    };
+
+    const syncContactLocale = () => {
+        fieldConfigs.forEach((config) => {
+            config.message = t('contact.requiredField', 'Toto pole je povinne');
+            const errorEl = document.getElementById(config.errorId);
+            if (errorEl && errorEl.textContent.trim()) {
+                errorEl.textContent = translateContactRuntimeText(errorEl.textContent);
+            }
+        });
+        if (statusEl && statusEl.textContent.trim()) {
+            statusEl.textContent = translateContactRuntimeText(statusEl.textContent);
+        }
+    };
+
+    syncContactLocale();
+    window.addEventListener('ld:languagechange', syncContactLocale);
+
+    [statusEl]
+        .concat(fieldConfigs.map(({ errorId }) => document.getElementById(errorId)))
+        .filter(Boolean)
+        .forEach((node) => {
+            new MutationObserver(() => {
+                const translated = translateContactRuntimeText(node.textContent);
+                if (translated !== node.textContent) {
+                    node.textContent = translated;
+                }
+            }).observe(node, { childList: true, characterData: true, subtree: true });
+        });
 
     const setFieldError = (input, errorId, message) => {
         const errorEl = document.getElementById(errorId);

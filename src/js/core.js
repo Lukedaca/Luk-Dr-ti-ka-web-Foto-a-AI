@@ -251,6 +251,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', (e) => {
+            const statusEl = document.getElementById('newsletterStatus');
+            const emailInput = e.target.querySelector('input[type="email"]');
+            const email = emailInput ? emailInput.value.trim() : '';
+            if (!statusEl || typeof window.ldGetText !== 'function') return;
+            if (!email) {
+                statusEl.textContent = window.ldGetText('newsletter.enterEmail', 'Zadejte prosim email.');
+                return;
+            }
+            statusEl.textContent = `${window.ldGetText('newsletter.successPrefix', 'Dekuji! Newsletter bude zaslan na:')} ${email}`;
+        }, true);
+    }
+
     // Mobile Menu
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
@@ -326,6 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
+    loadModule('/dist/js/i18n.min.js', () => {
+        console.log('I18n module loaded');
+    });
+
     // Load neural network visualization after 2 seconds (deferred, not critical)
     const neuralCanvas = document.getElementById('neuralCanvas');
     if (neuralCanvas) {
