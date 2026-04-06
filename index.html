@@ -318,16 +318,18 @@ body:not(.loading) > * {
                     btns.forEach(function(btn){
                         btn.addEventListener('click', function(e){
                             e.preventDefault();
-                            e.stopPropagation();
                             var lang = btn.getAttribute('data-lang-option');
                             if(window.ldI18n && window.ldI18n.applyLanguage){
                                 window.ldI18n.applyLanguage(lang);
                             } else {
                                 try{localStorage.setItem('ld_lang',lang)}catch(x){}
-                                var u=new URL(location.href);u.searchParams.set('lang',lang);location.href=u.toString();
+                                var u=new URL(location.href);
+                                u.searchParams.set('lang',lang);
+                                location.href=u.toString();
                             }
-                            var m=document.getElementById('mobileMenu'),b=document.getElementById('mobileMenuBtn');
-                            if(m)m.classList.remove('active');if(b)b.classList.remove('active');
+                            var m=document.getElementById('mobileMenu'), b=document.getElementById('mobileMenuBtn');
+                            if(m) m.classList.remove('active');
+                            if(b) b.classList.remove('active');
                             document.body.style.overflow='';
                         });
                     });
