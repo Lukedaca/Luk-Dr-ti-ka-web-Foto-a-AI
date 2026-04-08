@@ -114,7 +114,10 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
     ],
   };
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`;
+  // Gemma 4 spolehlivě streamuje JSON array (bez alt=sse). Druhý oficiální
+  // formát Google Generative Language API — streamGenerateContent vrací
+  // chunkovaný JSON array, který parsujeme po objektech (brace counter).
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?key=${apiKey}`;
 
   const response = await fetch(apiUrl, {
     method: "POST",
@@ -136,8 +139,35 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
   let fullText = "";
   let blocked = false;
 
-  // Posíláme chunky jakmile přijdou — bez bufferování na větší kusy.
-  // Klient si je skládá sám.
+  // Streaming JSON array parser:
+  // - response začíná `[`, končí `]`, mezi nimi jsou JSON objekty oddělené `,`
+  // - počítáme balanced `{...}` a respektujeme stringy + escape sekvence
+  let scan = 0;
+  let depth = 0;
+  let inStr = false;
+  let escape = false;
+  let objStart = -1;
+
+  function processObject(rawJson) {
+    try {
+      const chunk = JSON.parse(rawJson);
+      const finishReason = chunk.candidates?.[0]?.finishReason;
+      if (finishReason === "SAFETY" || chunk.promptFeedback?.blockReason) {
+        blocked = true;
+        return null;
+      }
+      const parts = chunk.candidates?.[0]?.content?.parts || [];
+      let pieces = "";
+      for (const part of parts) {
+        if (part.thought) continue;
+        const text = part.text || "";
+        if (text) pieces += text;
+      }
+      return pieces;
+    } catch (err) {
+      return null;
+    }
+  }
 
   try {
     while (true) {
@@ -146,38 +176,38 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
 
       buffer += decoder.decode(value, { stream: true });
 
-      // SSE: events oddělené \n\n, řádky začínající "data: "
-      let sepIndex;
-      while ((sepIndex = buffer.indexOf("\n\n")) !== -1) {
-        const event = buffer.slice(0, sepIndex);
-        buffer = buffer.slice(sepIndex + 2);
-
-        const lines = event.split("\n");
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const dataStr = line.slice(5).trim();
-          if (!dataStr || dataStr === "[DONE]") continue;
-
-          try {
-            const chunk = JSON.parse(dataStr);
-            const finishReason = chunk.candidates?.[0]?.finishReason;
-            if (finishReason === "SAFETY" || chunk.promptFeedback?.blockReason) {
-              blocked = true;
-              continue;
-            }
-            const parts = chunk.candidates?.[0]?.content?.parts || [];
-            for (const part of parts) {
-              if (part.thought) continue;
-              const text = part.text || "";
-              if (!text) continue;
+      while (scan < buffer.length) {
+        const c = buffer[scan];
+        if (escape) { escape = false; scan++; continue; }
+        if (inStr) {
+          if (c === "\\") escape = true;
+          else if (c === '"') inStr = false;
+          scan++;
+          continue;
+        }
+        if (c === '"') { inStr = true; scan++; continue; }
+        if (c === "{") {
+          if (depth === 0) objStart = scan;
+          depth++;
+        } else if (c === "}") {
+          depth--;
+          if (depth === 0 && objStart !== -1) {
+            const raw = buffer.slice(objStart, scan + 1);
+            objStart = -1;
+            const text = processObject(raw);
+            if (text) {
               fullText += text;
-              // Stream text chunk to client immediately
               await writer.write(encoder.encode(JSON.stringify({ t: text }) + "\n"));
             }
-          } catch (err) {
-            // ignore malformed chunk
           }
         }
+        scan++;
+      }
+
+      // Trim consumed prefix when we're between objects (úspora paměti)
+      if (depth === 0 && objStart === -1 && scan > 2048) {
+        buffer = buffer.slice(scan);
+        scan = 0;
       }
     }
   } catch (err) {
