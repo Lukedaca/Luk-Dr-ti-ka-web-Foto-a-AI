@@ -669,8 +669,8 @@
     col.className = 'flex flex-col items-start max-w-xs';
 
     var bubble = document.createElement('div');
-    bubble.className = 'p-3 rounded-xl glass chatbot-streaming-bubble';
-    bubble.textContent = '';
+    bubble.className = 'p-3 rounded-xl glass chatbot-streaming-bubble chatbot-stream-pending';
+    bubble.innerHTML = '<span class="typing-indicator-inline" aria-live="polite"><span></span><span></span><span></span></span>';
 
     var timeEl = document.createElement('div');
     timeEl.className = 'message-time';
@@ -688,14 +688,27 @@
   function chatbotCreateStreamingBubbles() {
     var heroBubble = chatbotCreateAssistantStreamBubble(chatbotDOM.heroMessages);
     var widgetBubble = chatbotCreateAssistantStreamBubble(chatbotDOM.messages);
+    var firstAppend = true;
+    function clearPending() {
+      if (heroBubble) {
+        heroBubble.classList.remove('chatbot-stream-pending');
+        heroBubble.textContent = '';
+      }
+      if (widgetBubble) {
+        widgetBubble.classList.remove('chatbot-stream-pending');
+        widgetBubble.textContent = '';
+      }
+    }
     return {
       append: function(text) {
+        if (firstAppend) { clearPending(); firstAppend = false; }
         if (heroBubble) heroBubble.textContent += text;
         if (widgetBubble) widgetBubble.textContent += text;
         if (chatbotDOM.heroMessages) chatbotDOM.heroMessages.scrollTop = chatbotDOM.heroMessages.scrollHeight;
         if (chatbotDOM.messages) chatbotDOM.messages.scrollTop = chatbotDOM.messages.scrollHeight;
       },
       replace: function(text) {
+        if (firstAppend) { clearPending(); firstAppend = false; }
         if (heroBubble) heroBubble.textContent = text;
         if (widgetBubble) widgetBubble.textContent = text;
       }
@@ -838,6 +851,7 @@
       var fullText = '';
       var sentenceCursor = 0;
       var meta = null;
+      var firstAudioFired = false;
 
       function handleLine(line) {
         if (!line) return;
@@ -850,12 +864,18 @@
             if (onSentence) {
               while (true) {
                 var remainder = fullText.slice(sentenceCursor);
-                var match = remainder.match(/^([\s\S]*?[\.!\?])(\s|$)/);
+                // Pre-fire: první audio chunk může skončit už na , ; : pokud
+                // už nasbíral 25+ znaků — TTS dostane rychlejší první kousek.
+                var reSentence = (!firstAudioFired && remainder.length >= 25)
+                  ? /^([\s\S]{25,}?[\.!\?,;:])(\s|$)/
+                  : /^([\s\S]*?[\.!\?])(\s|$)/;
+                var match = remainder.match(reSentence);
                 if (!match) break;
                 var sentence = match[1].trim();
                 sentenceCursor += match[0].length;
                 if (sentence.length >= 6) {
                   onSentence(sentence, speechRequestId);
+                  firstAudioFired = true;
                 }
               }
             }

@@ -682,6 +682,33 @@ html {
     }
 }
 
+.typing-indicator-inline {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.typing-indicator-inline span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #60a5fa;
+    animation: bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator-inline span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-indicator-inline span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.chatbot-streaming-bubble.chatbot-stream-pending {
+    min-width: 52px;
+}
+
 .quick-reply-btn {
     transition: all 0.2s ease;
 }

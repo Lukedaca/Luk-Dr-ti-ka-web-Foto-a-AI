@@ -2,7 +2,9 @@
 // Streamuje text z Gemini po kouscích jako NDJSON, aby klient renderoval
 // odpověď průběžně (cool ChatGPT efekt) a nečekal na celý JSON.
 
-const MODEL = "gemma-4-31b-it";
+const PRIMARY_MODEL = "gemma-3-27b-it";
+const FALLBACK_MODEL = "gemma-4-31b-it";
+const MODELS = [PRIMARY_MODEL, FALLBACK_MODEL];
 const MAX_HISTORY = 20;
 const MAX_MSG_LENGTH = 700;
 const MAX_OUTPUT_TOKENS = 420;
@@ -97,28 +99,8 @@ function extractActionTag(fullText) {
   return { cleanText, action: null };
 }
 
-async function streamGeminiResponse(apiKey, contents, writer, encoder) {
-  const payload = {
-    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents,
-    generationConfig: {
-      temperature: 0.75,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
-      topP: 0.9,
-    },
-    safetySettings: [
-      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_LOW_AND_ABOVE" },
-    ],
-  };
-
-  // Gemma 4 spolehlivě streamuje JSON array (bez alt=sse). Druhý oficiální
-  // formát Google Generative Language API — streamGenerateContent vrací
-  // chunkovaný JSON array, který parsujeme po objektech (brace counter).
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?key=${apiKey}`;
-
+async function tryStreamModel(model, apiKey, payload, writer, encoder, state) {
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`;
   const response = await fetch(apiUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -127,10 +109,8 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
 
   if (!response.ok || !response.body) {
     const errText = await response.text().catch(() => "");
-    console.error("Gemini stream error:", response.status, errText);
-    await writer.write(encoder.encode(JSON.stringify({ t: "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli." }) + "\n"));
-    await writer.write(encoder.encode(JSON.stringify({ m: { action: null, error: true } }) + "\n"));
-    return;
+    console.error(`Stream error (${model}):`, response.status, errText);
+    return { ok: false, text: "", blocked: false };
   }
 
   const reader = response.body.getReader();
@@ -139,9 +119,6 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
   let fullText = "";
   let blocked = false;
 
-  // Streaming JSON array parser:
-  // - response začíná `[`, končí `]`, mezi nimi jsou JSON objekty oddělené `,`
-  // - počítáme balanced `{...}` a respektujeme stringy + escape sekvence
   let scan = 0;
   let depth = 0;
   let inStr = false;
@@ -204,14 +181,85 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
         scan++;
       }
 
-      // Trim consumed prefix when we're between objects (úspora paměti)
       if (depth === 0 && objStart === -1 && scan > 2048) {
         buffer = buffer.slice(scan);
         scan = 0;
       }
     }
   } catch (err) {
-    console.error("Stream read error:", err);
+    console.error(`Stream read error (${model}):`, err);
+  }
+
+  return { ok: true, text: fullText, blocked };
+}
+
+async function tryNonStreamModel(model, apiKey, payload) {
+  const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  try {
+    const fbRes = await fetch(fallbackUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!fbRes.ok) {
+      const errText = await fbRes.text().catch(() => "");
+      console.error(`Non-stream error (${model}):`, fbRes.status, errText);
+      return { ok: false, text: "", blocked: false };
+    }
+    const data = await fbRes.json();
+    const finishReason = data.candidates?.[0]?.finishReason;
+    if (finishReason === "SAFETY" || data.promptFeedback?.blockReason) {
+      return { ok: true, text: "", blocked: true };
+    }
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    let text = "";
+    for (const part of parts) {
+      if (part.thought) continue;
+      if (part.text) text += part.text;
+    }
+    return { ok: true, text, blocked: false };
+  } catch (err) {
+    console.error(`Non-stream fetch error (${model}):`, err);
+    return { ok: false, text: "", blocked: false };
+  }
+}
+
+async function streamGeminiResponse(apiKey, contents, writer, encoder) {
+  const payload = {
+    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents,
+    generationConfig: {
+      temperature: 0.75,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      topP: 0.9,
+    },
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_LOW_AND_ABOVE" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_LOW_AND_ABOVE" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_LOW_AND_ABOVE" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_LOW_AND_ABOVE" },
+    ],
+  };
+
+  // Streaming JSON array parser: Gemma spolehlivě streamuje bez alt=sse.
+  // Zkusíme primární model (menší/rychlejší), při selhání fallback na větší.
+  let fullText = "";
+  let blocked = false;
+  let usedModel = null;
+
+  for (const model of MODELS) {
+    const result = await tryStreamModel(model, apiKey, payload, writer, encoder, {});
+    if (result.blocked) {
+      blocked = true;
+      usedModel = model;
+      break;
+    }
+    if (result.ok && result.text) {
+      fullText = result.text;
+      usedModel = model;
+      break;
+    }
+    console.warn(`Stream model ${model} produced no text, trying next`);
   }
 
   if (blocked) {
@@ -221,43 +269,23 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
     return;
   }
 
-  // Fallback: pokud SSE stream nevyplivnul žádný text (Gemma někdy nestreamuje
-  // přes SSE správně), zavolej non-stream generateContent a vrať výsledek najednou.
+  // Non-stream fallback: pokud streamy nic nevrátily, zkus generateContent
+  // postupně na obou modelech.
   if (!fullText) {
-    console.warn("SSE stream produced no text, falling back to non-stream generateContent");
-    try {
-      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
-      const fbRes = await fetch(fallbackUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (fbRes.ok) {
-        const data = await fbRes.json();
-        const finishReason = data.candidates?.[0]?.finishReason;
-        if (finishReason === "SAFETY" || data.promptFeedback?.blockReason) {
-          const safeMsg = "Tohle na veřejném agentovi řešit nemůžu. Můžu to přeformulovat do bezpečného zadání nebo navrhnout další krok.";
-          await writer.write(encoder.encode(JSON.stringify({ t: safeMsg }) + "\n"));
-          await writer.write(encoder.encode(JSON.stringify({ m: { action: null, blocked: true } }) + "\n"));
-          return;
-        }
-        const parts = data.candidates?.[0]?.content?.parts || [];
-        for (const part of parts) {
-          if (part.thought) continue;
-          const text = part.text || "";
-          if (!text) continue;
-          fullText += text;
-        }
-        if (fullText) {
-          // Pošli celý text najednou (pseudo-streaming v jedné chunce)
-          await writer.write(encoder.encode(JSON.stringify({ t: fullText }) + "\n"));
-        }
-      } else {
-        const errText = await fbRes.text().catch(() => "");
-        console.error("Fallback generateContent error:", fbRes.status, errText);
+    console.warn("All stream models produced no text, falling back to non-stream generateContent");
+    for (const model of MODELS) {
+      const result = await tryNonStreamModel(model, apiKey, payload);
+      if (result.blocked) {
+        const safeMsg = "Tohle na veřejném agentovi řešit nemůžu. Můžu to přeformulovat do bezpečného zadání nebo navrhnout další krok.";
+        await writer.write(encoder.encode(JSON.stringify({ t: safeMsg }) + "\n"));
+        await writer.write(encoder.encode(JSON.stringify({ m: { action: null, blocked: true } }) + "\n"));
+        return;
       }
-    } catch (err) {
-      console.error("Fallback fetch error:", err);
+      if (result.ok && result.text) {
+        fullText = result.text;
+        await writer.write(encoder.encode(JSON.stringify({ t: fullText }) + "\n"));
+        break;
+      }
     }
   }
 
