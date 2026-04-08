@@ -200,7 +200,7 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
   await writer.write(encoder.encode(JSON.stringify({ m: { action, done: true } }) + "\n"));
 }
 
-module.exports = async (req, context) => {
+export default async (req, context) => {
   if (req.method === "OPTIONS") {
     return new Response("", { status: 204, headers: corsHeaders });
   }
