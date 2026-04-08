@@ -191,6 +191,53 @@ async function streamGeminiResponse(apiKey, contents, writer, encoder) {
     return;
   }
 
+  // Fallback: pokud SSE stream nevyplivnul žádný text (Gemma někdy nestreamuje
+  // přes SSE správně), zavolej non-stream generateContent a vrať výsledek najednou.
+  if (!fullText) {
+    console.warn("SSE stream produced no text, falling back to non-stream generateContent");
+    try {
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+      const fbRes = await fetch(fallbackUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (fbRes.ok) {
+        const data = await fbRes.json();
+        const finishReason = data.candidates?.[0]?.finishReason;
+        if (finishReason === "SAFETY" || data.promptFeedback?.blockReason) {
+          const safeMsg = "Tohle na veřejném agentovi řešit nemůžu. Můžu to přeformulovat do bezpečného zadání nebo navrhnout další krok.";
+          await writer.write(encoder.encode(JSON.stringify({ t: safeMsg }) + "\n"));
+          await writer.write(encoder.encode(JSON.stringify({ m: { action: null, blocked: true } }) + "\n"));
+          return;
+        }
+        const parts = data.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.thought) continue;
+          const text = part.text || "";
+          if (!text) continue;
+          fullText += text;
+        }
+        if (fullText) {
+          // Pošli celý text najednou (pseudo-streaming v jedné chunce)
+          await writer.write(encoder.encode(JSON.stringify({ t: fullText }) + "\n"));
+        }
+      } else {
+        const errText = await fbRes.text().catch(() => "");
+        console.error("Fallback generateContent error:", fbRes.status, errText);
+      }
+    } catch (err) {
+      console.error("Fallback fetch error:", err);
+    }
+  }
+
+  if (!fullText) {
+    const failMsg = "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.";
+    await writer.write(encoder.encode(JSON.stringify({ t: failMsg }) + "\n"));
+    await writer.write(encoder.encode(JSON.stringify({ m: { action: null, error: true } }) + "\n"));
+    return;
+  }
+
   // Zpracuj action tag z fullText
   const { cleanText, action } = extractActionTag(fullText);
   // Pokud jsme vyčistili ACTION tag, pošli klientovi nahrazovací instrukci
