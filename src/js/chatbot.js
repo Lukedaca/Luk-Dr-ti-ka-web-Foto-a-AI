@@ -13,7 +13,7 @@
   var CHATBOT_ALLOWED_MODES = { talk: true, think: true, build: true };
   var CHATBOT_VOICE_OUTPUT_KEY = 'lukas_ai_voice_output';
   var CHATBOT_CAN_NATIVE_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
-  var CHATBOT_CAN_SPEAK = CHATBOT_CAN_NATIVE_SPEAK || !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
+  var CHATBOT_CAN_SPEAK = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
   var CHATBOT_TTS_SAMPLE_RATE = 24000;
 
   function chatbotText(path, fallback) {
@@ -625,7 +625,6 @@
     chatbotStopSpeech();
 
     var requestId = chatbotSpeechRequestId;
-    if (chatbotSpeakNativeText(cleanText, lang, requestId, true)) return;
     chatbotQueueSentenceSpeech(cleanText, lang, requestId);
   }
 
@@ -636,7 +635,6 @@
     if (!clean || clean.length < 3) return;
     var lang = chatbotGuessSpeechLang(langHint || clean);
     chatbotState.preferredSpeechLang = lang;
-    if (chatbotSpeakNativeText(clean, lang, requestId, false)) return;
     chatbotQueueSentenceSpeech(clean, lang, requestId);
   }
 
