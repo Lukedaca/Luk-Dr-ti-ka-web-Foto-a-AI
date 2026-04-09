@@ -50,8 +50,9 @@
     <!-- Preload critical fonts -->
     <link rel="preload" href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDI1apSCOBt_aeQQ7ftydoaeXYpj_EPk.woff2" as="font" type="font/woff2" crossorigin>
 
-    <!-- Optimized font loading with display=swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Optimized font loading - non-render-blocking -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap"></noscript>
 
     <!-- Critical CSS inline for above-the-fold content -->
     <style>
@@ -127,49 +128,9 @@ header {
     font-family: var(--font-display);
 }
 
-/* Page Loading Overlay */
-#page-loader {
-    position: fixed;
-    inset: 0;
-    z-index: 99999;
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-#page-loader.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-#page-loader .loader-content {
-    text-align: center;
-}
-#page-loader .loader-spinner {
-    width: 48px;
-    height: 48px;
-    border: 3px solid var(--glass-border);
-    border-top-color: var(--accent-blue);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-}
-#page-loader .loader-text {
-    font-size: 14px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-/* Prevent FOUC - hide content until loaded */
-body.loading > *:not(#page-loader) {
-    opacity: 0;
-}
-body:not(.loading) > * {
+/* Content fade-in */
+body > * {
     opacity: 1;
-    transition: opacity 0.3s ease;
 }
 #hero-messages .chat-bubble-user {
     margin-left: auto;
@@ -194,11 +155,13 @@ body:not(.loading) > * {
 
     <!-- Load Tailwind CSS asynchronously -->
     
-    <!-- Compiled Tailwind CSS -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css">
+    <!-- Compiled Tailwind CSS - non-render-blocking -->
+    <link rel="preload" href="/dist/css/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/dist/css/styles.min.css"></noscript>
 
     <!-- Load main CSS asynchronously -->
-    <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="preload" href="/assets/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/assets/styles.css"></noscript>
     
 
     <!-- Schema.org Structured Data -->
@@ -242,14 +205,7 @@ body:not(.loading) > * {
     </script>
 
 </head>
-<body class="text-white loading">
-    <!-- Page Loading Overlay -->
-    <div id="page-loader" aria-hidden="true">
-        <div class="loader-content">
-            <div class="loader-spinner"></div>
-            <div class="loader-text">Načítám...</div>
-        </div>
-    </div>
+<body class="text-white">
     <a href="#main-content" class="skip-link">Přeskočit na obsah</a>
     <!-- Scroll Progress Bar -->
     <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
@@ -309,8 +265,8 @@ body:not(.loading) > * {
                     🌙 / ☀️
                 </button>
                 <div id="langToggleMobileStatic" class="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full p-1">
-                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="cs">CZ</button>
-                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition active:scale-95" data-lang-option="en">EN</button>
+                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition-transform active:scale-95" data-lang-option="cs">CZ</button>
+                    <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition-transform active:scale-95" data-lang-option="en">EN</button>
                 </div>
                 <script>
                 (function(){
@@ -443,7 +399,10 @@ body:not(.loading) > * {
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolioGrid">
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="eager" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/sport-1.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="eager" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Hlavičkový souboj</div>
@@ -452,7 +411,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="eager" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/sport-2.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Souboj o míč</div>
@@ -461,7 +423,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="eager" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/sport-3.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Oslava gólu</div>
@@ -470,7 +435,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/sport-4.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Akce před brankou</div>
@@ -479,7 +447,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-5.jpg" alt="První liga" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/sport-5.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-5.jpg" alt="První liga" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">První liga</div>
@@ -488,7 +459,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/sport-6.jpg" alt="Sigma vs Slavia" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/sport-6.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-6.jpg" alt="Sigma vs Slavia" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Sigma vs Slavia</div>
@@ -497,7 +471,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <a href="/galerie/sigma-vs-mainz/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-7" data-project-index="6" aria-label="Otevřít galerii Sigma Olomouc vs Mainz">
-                        <img src="assets/portfolio/sigma-mainz-01.jpg" alt="Sigma Olomouc vs Mainz" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/sigma-mainz-01.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sigma-mainz-01.jpg" alt="Sigma Olomouc vs Mainz" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Sigma Olomouc vs Mainz</div>
@@ -506,7 +483,7 @@ body:not(.loading) > * {
                         </div>
                     </a>
                     <a href="/galerie/prerov-vs-brodek/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-8" data-project-index="7" aria-label="Otevřít galerii Přerov vs Brodek">
-                        <img src="assets/portfolio/prerov-brodek/thumbs/IMG_8812.jpg" alt="Přerov vs Brodek" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <img src="assets/portfolio/prerov-brodek/thumbs/IMG_8812.jpg" alt="Přerov vs Brodek" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Přerov vs Brodek</div>
@@ -515,7 +492,7 @@ body:not(.loading) > * {
                         </div>
                     </a>
                     <a href="/galerie/prerov-vs-postelmov/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-9" data-project-index="8" aria-label="Otevřít galerii Přerov vs Postřelmov">
-                        <img src="assets/portfolio/prerov-postelmov/thumbs/IMG_8983.jpg" alt="Přerov vs Postřelmov" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <img src="assets/portfolio/prerov-postelmov/thumbs/IMG_8983.jpg" alt="Přerov vs Postřelmov" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Přerov vs Postřelmov</div>
@@ -524,7 +501,10 @@ body:not(.loading) > * {
                         </div>
                     </a>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="assets/portfolio/ai-1.png" alt="Hybridní Agent" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/ai-1.webp" type="image/webp">
+                            <img src="dist/images/portfolio/ai-1.jpg" alt="Hybridní Agent" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Hybridní Agent</div>
@@ -533,7 +513,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="assets/portfolio/ai-2.png" alt="Zábavní chatbot" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/ai-2.webp" type="image/webp">
+                            <img src="dist/images/portfolio/ai-2.jpg" alt="Zábavní chatbot" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Zábavní chatbot</div>
@@ -542,7 +525,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
-                        <img src="assets/portfolio/ai-3.png" alt="Fotograf AI" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/ai-3.webp" type="image/webp">
+                            <img src="dist/images/portfolio/ai-3.jpg" alt="Fotograf AI" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Fotograf AI</div>
@@ -551,7 +537,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/portret-1.jpg" alt="Portrét s kouřem" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/portret-1.webp" type="image/webp">
+                            <img src="dist/images/portfolio/portret-1.jpg" alt="Portrét s kouřem" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Portrét s kouřem</div>
@@ -560,7 +549,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/portret-2.jpg" alt="Festival look" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/portret-2.webp" type="image/webp">
+                            <img src="dist/images/portfolio/portret-2.jpg" alt="Festival look" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Festival look</div>
@@ -569,7 +561,10 @@ body:not(.loading) > * {
                         </div>
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
-                        <img src="assets/portfolio/portret-3.jpg" alt="Modrý kouř" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <picture>
+                            <source srcset="dist/images/portfolio/portret-3.webp" type="image/webp">
+                            <img src="dist/images/portfolio/portret-3.jpg" alt="Modrý kouř" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Modrý kouř</div>
@@ -1052,30 +1047,6 @@ body:not(.loading) > * {
     <script src="/dist/js/core.min.js" defer></script>
 
 
-    <!-- Page Loader Removal Script -->
-    <script>
-    (function() {
-        function hideLoader() {
-            var loader = document.getElementById('page-loader');
-            var body = document.body;
-            if (loader) loader.classList.add('hidden');
-            if (body) body.classList.remove('loading');
-        }
-        // Hide loader when DOM is ready and fonts are loaded
-        if (document.readyState === 'complete') {
-            hideLoader();
-        } else {
-            window.addEventListener('load', function() {
-                // Small delay to ensure all CSS is applied
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(hideLoader);
-                });
-            });
-        }
-        // Fallback: hide after 3 seconds max
-        setTimeout(hideLoader, 3000);
-    })();
-    </script>
 </body>
 </html>
 

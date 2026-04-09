@@ -344,8 +344,7 @@ header.is-scrolled {
     background: linear-gradient(135deg, #3b82f6, #8b5cf6, #22d3ee);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-size: 200% 200%;
-    animation: gradient 8s ease infinite;
+    background-clip: text;
 }
 
 .display-text {
@@ -413,11 +412,6 @@ header.is-scrolled {
     bottom: 5%;
     right: 25%;
     animation-delay: -4s;
-}
-
-@keyframes gradient {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
 }
 
 .portfolio-item {
@@ -837,14 +831,6 @@ html {
         radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(34, 211, 238, 0.3) 0px, transparent 50%),
         radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.3) 0px, transparent 50%);
-    animation: meshMove 15s ease infinite;
-}
-
-@keyframes meshMove {
-    0%, 100% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
-    25% { background-position: 100% 0%, 100% 100%, 0% 100%, 0% 0%; }
-    50% { background-position: 100% 100%, 0% 100%, 0% 0%, 100% 0%; }
-    75% { background-position: 0% 100%, 0% 0%, 100% 0%, 100% 100%; }
 }
 
 /* Floating Animation */
