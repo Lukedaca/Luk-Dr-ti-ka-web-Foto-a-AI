@@ -157,27 +157,27 @@ function buildFastPathResponse(mode, messages) {
   if (!normalized || normalized.length > 160) return null;
 
   if (/^(ahoj|cau|dobry den|hello|hi|hey)\b/.test(normalized)) {
-    return "Ahoj, jsem Lukas AI. Pomuzu s focenim, portfoliem nebo AI projekty. Klidne napis, co presne te zajima.";
+    return "Ahoj, jsem Lukáš AI. Pomůžu s focením, portfoliem nebo AI projekty. Klidně napiš, co přesně tě zajímá.";
   }
 
   if (includesAny(normalized, ["kontakt", "email", "mail", "kontaktovat", "contact"])) {
-    return "Nejrychlejsi kontakt je lukas.drsticka@gmail.com. Kdyz chces, muzu te rovnou posunout na kontakt. [[ACTION:scroll:kontakt]]";
+    return "Nejrychlejší kontakt je lukas.drsticka@gmail.com. Když chceš, můžu tě rovnou posunout na kontakt. [[ACTION:scroll:kontakt]]";
   }
 
   if (includesAny(normalized, ["portfolio", "ukaz portfolio", "show portfolio", "ukaz praci", "prace", "galerie"])) {
-    return "Portfolio najdes primo na webu nize. Jsou tam portrety, sport i akcni fotky. Mrkni rovnou na ukazky. [[ACTION:scroll:portfolio]]";
+    return "Portfolio najdeš přímo na webu níže. Jsou tam portréty, sport i akční fotky. Mrkni rovnou na ukázky. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["sluzby", "sluzba", "foceni", "fotograf", "fotky", "photography", "services"])) {
-    return "Lukas dela portretni, sportovni, akcni a produktovou fotografii. Kdyz chces, muzu te nasmerovat na portfolio nebo rovnou na kontakt. [[ACTION:scroll:portfolio]]";
+    return "Lukáš dělá portrétní, sportovní, akční a produktovou fotografii. Když chceš, můžu tě nasměrovat na portfolio nebo rovnou na kontakt. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["fotograf ai", "ai editor", "ai projekt", "ai projects"])) {
-    return "Fotograf AI je Lukasuv AI projekt pro fotografy. Prakticky propojuje fotografii a automatizaci tak, aby zrychlil realnou praci. Kdyz chces, popisu to vic lidsky.";
+    return "Fotograf AI je Lukášův AI projekt pro fotografy. Prakticky propojuje fotografii a automatizaci tak, aby zrychlil reálnou práci. Když chceš, popíšu to víc lidsky.";
   }
 
   if (includesAny(normalized, ["spoluprace", "spolupracovat", "collaboration", "cooperation", "agent", "automatizace", "automation"])) {
-    return "Lukas umi spojit fotografii, AI agenty i automatizace do realne spoluprace. Napis, co potrebujes vyresit, a navrhnu nejrozumnejsi dalsi krok.";
+    return "Lukáš umí spojit fotografii, AI agenty i automatizace do reálné spolupráce. Napiš, co potřebuješ vyřešit, a navrhnu nejrozumnější další krok.";
   }
 
   return null;
