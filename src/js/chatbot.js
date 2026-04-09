@@ -350,6 +350,13 @@
     chatbotSpeechRequestId++;
     chatbotAudioQueue = [];
     chatbotAudioPlaying = false;
+    if (window.aiVoice && typeof window.aiVoice.stopTextSpeaker === 'function') {
+      try {
+        window.aiVoice.stopTextSpeaker({ requestId: chatbotSpeechRequestId });
+      } catch (err) {
+        // ignore live speaker stop failures
+      }
+    }
     if (chatbotNativeSpeech) {
       try {
         chatbotNativeSpeech.cancel();
@@ -404,6 +411,22 @@
       return true;
     } catch (err) {
       console.error('Native speech synthesis error:', err);
+      return false;
+    }
+  }
+
+  function chatbotSpeakLiveText(text, lang, requestId, interrupt) {
+    if (!window.aiVoice || typeof window.aiVoice.speakText !== 'function' || !text) return false;
+    if (window.aiVoice.state && window.aiVoice.state.status === 'active') return false;
+
+    try {
+      return !!window.aiVoice.speakText(text, {
+        lang: lang || 'cs-CZ',
+        requestId: requestId,
+        interrupt: interrupt !== false
+      });
+    } catch (err) {
+      console.error('Live text speaker error:', err);
       return false;
     }
   }
@@ -582,6 +605,15 @@
 
     if (!chatbotState.voiceOutputEnabled) {
       chatbotStopSpeech();
+      if (window.aiVoice && typeof window.aiVoice.stopTextSpeaker === 'function') {
+        try {
+          window.aiVoice.stopTextSpeaker({ requestId: chatbotSpeechRequestId, disconnect: true });
+        } catch (err) {
+          // ignore live speaker shutdown failures
+        }
+      }
+    } else if (window.aiVoice && typeof window.aiVoice.warmTextSpeaker === 'function' && !(window.aiVoice.state && window.aiVoice.state.status === 'active')) {
+      window.aiVoice.warmTextSpeaker();
     }
 
     if (!options || !options.silent) {
@@ -625,6 +657,7 @@
     chatbotStopSpeech();
 
     var requestId = chatbotSpeechRequestId;
+    if (chatbotSpeakLiveText(cleanText, lang, requestId, true)) return;
     if (chatbotSpeakNativeText(cleanText, lang, requestId, true)) return;
     chatbotQueueSentenceSpeech(cleanText, lang, requestId);
   }
@@ -636,6 +669,7 @@
     if (!clean || clean.length < 3) return;
     var lang = chatbotGuessSpeechLang(langHint || clean);
     chatbotState.preferredSpeechLang = lang;
+    if (chatbotSpeakLiveText(clean, lang, requestId, false)) return;
     if (chatbotSpeakNativeText(clean, lang, requestId, false)) return;
     chatbotQueueSentenceSpeech(clean, lang, requestId);
   }

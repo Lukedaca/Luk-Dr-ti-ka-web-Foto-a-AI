@@ -15,6 +15,13 @@
   var VOICE_SAMPLE_RATE_IN = 16000;
   var VOICE_SAMPLE_RATE_OUT = 24000;
   var VOICE_BUFFER_SIZE = 4096;
+  var VOICE_LIVE_MODEL = 'models/gemini-3.1-flash-live-preview';
+  var VOICE_LIVE_VOICE = 'Aoede';
+  var TEXT_SPEAKER_SYSTEM_PROMPT =
+    'You are the voice renderer for Lukas AI. ' +
+    'Each user message is already the exact text to speak aloud. ' +
+    'Respond with audio only and read exactly the provided text in the same language. ' +
+    'Do not add, remove, paraphrase, translate, explain, greet, or acknowledge anything.';
 
   var VOICE_SYSTEM_PROMPT =
     'Jsi hlasový AI asistent Lukáše Drštičky — fotografa a AI vývojáře z Přerova. ' +
@@ -69,6 +76,20 @@
   var voicePlaybackCtx = null;  // separate AudioContext for 24kHz playback
   var voicePlaybackQueue = [];
   var voiceIsPlaying = false;
+  var textSpeakerState = {
+    status: 'idle', // idle | connecting | active
+    ws: null,
+    connectPromise: null,
+    currentRequestId: 0,
+    activeTurnRequestId: 0,
+    turnInFlight: false,
+    turnQueue: [],
+    playbackCtx: null,
+    playbackSource: null,
+    playbackQueue: [],
+    isPlaying: false,
+    manualClose: false
+  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BROWSER SUPPORT CHECK
@@ -156,6 +177,22 @@
     return bytes.buffer;
   }
 
+  function voicePlayPCMChunk(base64PCM, sampleRate, getCtx, setSource, onEnded) {
+    var playbackCtx = getCtx();
+    var arrayBuf = voiceBase64ToArrayBuffer(base64PCM);
+    var int16 = new Int16Array(arrayBuf);
+    var float32 = voiceInt16ToFloat32(int16);
+    var audioBuffer = playbackCtx.createBuffer(1, float32.length, sampleRate || VOICE_SAMPLE_RATE_OUT);
+    var source = playbackCtx.createBufferSource();
+
+    audioBuffer.getChannelData(0).set(float32);
+    source.buffer = audioBuffer;
+    source.connect(playbackCtx.destination);
+    source.onended = onEnded;
+    setSource(source);
+    source.start();
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // TRANSCRIPT RENDERING
   // ═══════════════════════════════════════════════════════════════════════════
@@ -226,25 +263,274 @@
     voiceIsPlaying = true;
 
     var base64 = voicePlaybackQueue.shift();
-    var arrayBuf = voiceBase64ToArrayBuffer(base64);
-    var int16 = new Int16Array(arrayBuf);
-    var float32 = voiceInt16ToFloat32(int16);
 
     // Use dedicated playback context at 24kHz (mic context is 16kHz)
     if (!voicePlaybackCtx) {
       voicePlaybackCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: VOICE_SAMPLE_RATE_OUT });
     }
 
-    var audioBuffer = voicePlaybackCtx.createBuffer(1, float32.length, VOICE_SAMPLE_RATE_OUT);
-    audioBuffer.getChannelData(0).set(float32);
+    voicePlayPCMChunk(
+      base64,
+      VOICE_SAMPLE_RATE_OUT,
+      function() { return voicePlaybackCtx; },
+      function() {},
+      function() { voicePlayNext(); }
+    );
+  }
 
-    var source = voicePlaybackCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(voicePlaybackCtx.destination);
-    source.onended = function() {
-      voicePlayNext();
-    };
-    source.start();
+  function voiceStopTextSpeakerPlayback() {
+    textSpeakerState.playbackQueue = [];
+    textSpeakerState.isPlaying = false;
+    if (textSpeakerState.playbackSource) {
+      try { textSpeakerState.playbackSource.stop(0); } catch (e) { /* ignore */ }
+      try { textSpeakerState.playbackSource.disconnect(); } catch (e) { /* ignore */ }
+      textSpeakerState.playbackSource = null;
+    }
+  }
+
+  function voicePlayNextTextSpeakerChunk() {
+    if (textSpeakerState.playbackQueue.length === 0) {
+      textSpeakerState.isPlaying = false;
+      return;
+    }
+
+    textSpeakerState.isPlaying = true;
+    var chunk = textSpeakerState.playbackQueue.shift();
+    if (!chunk || !chunk.audio || chunk.requestId !== textSpeakerState.currentRequestId) {
+      voicePlayNextTextSpeakerChunk();
+      return;
+    }
+
+    if (!textSpeakerState.playbackCtx) {
+      textSpeakerState.playbackCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: VOICE_SAMPLE_RATE_OUT });
+    }
+
+    voicePlayPCMChunk(
+      chunk.audio,
+      VOICE_SAMPLE_RATE_OUT,
+      function() { return textSpeakerState.playbackCtx; },
+      function(source) { textSpeakerState.playbackSource = source; },
+      function() {
+        if (textSpeakerState.playbackSource) {
+          try { textSpeakerState.playbackSource.disconnect(); } catch (e) { /* ignore */ }
+          textSpeakerState.playbackSource = null;
+        }
+        voicePlayNextTextSpeakerChunk();
+      }
+    );
+  }
+
+  function voiceEnqueueTextSpeakerAudio(base64PCM, requestId) {
+    if (!base64PCM || requestId !== textSpeakerState.currentRequestId) return;
+    textSpeakerState.playbackQueue.push({ audio: base64PCM, requestId: requestId });
+    if (!textSpeakerState.isPlaying) {
+      voicePlayNextTextSpeakerChunk();
+    }
+  }
+
+  function voiceResetTextSpeakerConnection() {
+    textSpeakerState.ws = null;
+    textSpeakerState.connectPromise = null;
+    textSpeakerState.turnInFlight = false;
+    textSpeakerState.activeTurnRequestId = 0;
+    textSpeakerState.status = 'idle';
+  }
+
+  function voiceMaybeSendTextSpeakerTurn() {
+    if (textSpeakerState.status !== 'active' || textSpeakerState.turnInFlight || !textSpeakerState.ws || textSpeakerState.ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    var next = textSpeakerState.turnQueue.shift();
+    if (!next) return;
+    if (!next.text || next.requestId !== textSpeakerState.currentRequestId) {
+      voiceMaybeSendTextSpeakerTurn();
+      return;
+    }
+
+    textSpeakerState.turnInFlight = true;
+    textSpeakerState.activeTurnRequestId = next.requestId;
+
+    textSpeakerState.ws.send(JSON.stringify({
+      clientContent: {
+        turns: [{
+          role: 'user',
+          parts: [{ text: next.text }]
+        }],
+        turnComplete: true
+      }
+    }));
+  }
+
+  function voiceConnectTextSpeaker() {
+    if (voiceState.status === 'active' || !window.WebSocket || typeof fetch !== 'function') {
+      return Promise.reject(new Error('Live text speaker unavailable'));
+    }
+    if (textSpeakerState.status === 'active' && textSpeakerState.ws && textSpeakerState.ws.readyState === WebSocket.OPEN) {
+      return Promise.resolve();
+    }
+    if (textSpeakerState.connectPromise) {
+      return textSpeakerState.connectPromise;
+    }
+
+    textSpeakerState.status = 'connecting';
+    textSpeakerState.manualClose = false;
+
+    textSpeakerState.connectPromise = fetch(VOICE_TOKEN_URL, { method: 'POST' })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Token fetch failed: ' + res.status);
+        return res.json();
+      })
+      .then(function(data) {
+        var token = data.token || data.access_token;
+        if (!token) throw new Error('No token in response');
+
+        return new Promise(function(resolve, reject) {
+          var settled = false;
+          var wsUrl = VOICE_WS_BASE + '?access_token=' + encodeURIComponent(token);
+          var ws = new WebSocket(wsUrl);
+          textSpeakerState.ws = ws;
+
+          ws.onopen = function() {
+            ws.send(JSON.stringify({
+              setup: {
+                model: VOICE_LIVE_MODEL,
+                generationConfig: {
+                  responseModalities: ['AUDIO'],
+                  speechConfig: {
+                    voiceConfig: {
+                      prebuiltVoiceConfig: { voiceName: VOICE_LIVE_VOICE }
+                    }
+                  }
+                },
+                systemInstruction: {
+                  parts: [{ text: TEXT_SPEAKER_SYSTEM_PROMPT }]
+                }
+              }
+            }));
+          };
+
+          ws.onmessage = function(event) {
+            var msg;
+            try {
+              msg = JSON.parse(event.data);
+            } catch (e) {
+              return;
+            }
+
+            if (msg.setupComplete) {
+              textSpeakerState.status = 'active';
+              if (!settled) {
+                settled = true;
+                resolve();
+              }
+              voiceMaybeSendTextSpeakerTurn();
+              return;
+            }
+
+            var sc = msg.serverContent;
+            if (!sc) return;
+
+            if (sc.interrupted) {
+              voiceStopTextSpeakerPlayback();
+            }
+
+            if (sc.modelTurn && sc.modelTurn.parts) {
+              sc.modelTurn.parts.forEach(function(part) {
+                if (part.inlineData && part.inlineData.data) {
+                  voiceEnqueueTextSpeakerAudio(part.inlineData.data, textSpeakerState.activeTurnRequestId);
+                }
+              });
+            }
+
+            if (sc.turnComplete) {
+              textSpeakerState.turnInFlight = false;
+              textSpeakerState.activeTurnRequestId = 0;
+              voiceMaybeSendTextSpeakerTurn();
+            }
+          };
+
+          ws.onerror = function(err) {
+            if (!settled) {
+              settled = true;
+              reject(err || new Error('Live text speaker connection error'));
+            }
+          };
+
+          ws.onclose = function() {
+            var shouldRetry = !textSpeakerState.manualClose && textSpeakerState.turnQueue.length > 0;
+            voiceResetTextSpeakerConnection();
+            if (shouldRetry) {
+              voiceConnectTextSpeaker()
+                .then(function() { voiceMaybeSendTextSpeakerTurn(); })
+                .catch(function(retryErr) {
+                  console.error('voice.js: text speaker reconnect failed', retryErr);
+                });
+            }
+          };
+        });
+      })
+      .catch(function(err) {
+        voiceResetTextSpeakerConnection();
+        throw err;
+      });
+
+    return textSpeakerState.connectPromise.finally(function() {
+      textSpeakerState.connectPromise = null;
+    });
+  }
+
+  function voiceWarmTextSpeaker() {
+    return voiceConnectTextSpeaker().catch(function(err) {
+      console.error('voice.js: text speaker prewarm failed', err);
+      return false;
+    });
+  }
+
+  function voiceSpeakText(text, options) {
+    if (!text || voiceState.status === 'active') return false;
+    options = options || {};
+
+    var requestId = Number(options.requestId) || Date.now();
+    if (options.interrupt !== false) {
+      textSpeakerState.currentRequestId = requestId;
+      textSpeakerState.turnQueue = [];
+      voiceStopTextSpeakerPlayback();
+    } else if (requestId !== textSpeakerState.currentRequestId) {
+      textSpeakerState.currentRequestId = requestId;
+    }
+
+    textSpeakerState.turnQueue.push({
+      text: String(text).replace(/\s+/g, ' ').trim(),
+      requestId: requestId
+    });
+
+    voiceConnectTextSpeaker()
+      .then(function() { voiceMaybeSendTextSpeakerTurn(); })
+      .catch(function(err) {
+        console.error('voice.js: text speaker send failed', err);
+      });
+
+    return true;
+  }
+
+  function voiceStopTextSpeaker(options) {
+    options = options || {};
+    if (typeof options.requestId === 'number' && !Number.isNaN(options.requestId)) {
+      textSpeakerState.currentRequestId = options.requestId;
+    }
+    textSpeakerState.turnQueue = [];
+    voiceStopTextSpeakerPlayback();
+
+    if (options.disconnect && textSpeakerState.ws) {
+      textSpeakerState.manualClose = true;
+      try { textSpeakerState.ws.close(); } catch (e) { /* ignore */ }
+      voiceResetTextSpeakerConnection();
+    }
+    if (options.disconnect && textSpeakerState.playbackCtx) {
+      try { textSpeakerState.playbackCtx.close(); } catch (e) { /* ignore */ }
+      textSpeakerState.playbackCtx = null;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -310,12 +596,12 @@
           // Send setup message
           voiceWS.send(JSON.stringify({
             setup: {
-              model: 'models/gemini-3.1-flash-live-preview',
+              model: VOICE_LIVE_MODEL,
               generationConfig: {
                 responseModalities: ['AUDIO'],
                 speechConfig: {
                   voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: 'Aoede' }
+                    prebuiltVoiceConfig: { voiceName: VOICE_LIVE_VOICE }
                   }
                 }
               },
@@ -656,7 +942,10 @@
   window.aiVoice = {
     start: voiceStart,
     end: voiceEnd,
-    state: voiceState
+    state: voiceState,
+    warmTextSpeaker: voiceWarmTextSpeaker,
+    speakText: voiceSpeakText,
+    stopTextSpeaker: voiceStopTextSpeaker
   };
 
 })();
