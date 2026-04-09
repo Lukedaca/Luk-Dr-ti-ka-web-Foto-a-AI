@@ -10,13 +10,17 @@
   var CHATBOT_API_URL = '/.netlify/functions/chat';
   var CHATBOT_TTS_API_URL = '/.netlify/functions/tts';
   var CHATBOT_DEFAULT_MODE = 'talk';
-  var CHATBOT_PUBLIC_MODE = 'talk';
+  var CHATBOT_ALLOWED_MODES = { talk: true, think: true, build: true };
   var CHATBOT_VOICE_OUTPUT_KEY = 'lukas_ai_voice_output';
   var CHATBOT_CAN_SPEAK = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
   var CHATBOT_TTS_SAMPLE_RATE = 24000;
 
   function chatbotText(path, fallback) {
     return typeof window.ldGetText === 'function' ? window.ldGetText(path, fallback) : fallback;
+  }
+
+  function chatbotNormalizeMode(mode) {
+    return CHATBOT_ALLOWED_MODES[mode] ? mode : CHATBOT_DEFAULT_MODE;
   }
 
   function chatbotLanguage() {
@@ -590,7 +594,7 @@
   }
 
   function chatbotSetMode(mode, syncReplies) {
-    mode = CHATBOT_PUBLIC_MODE;
+    mode = chatbotNormalizeMode(mode);
     chatbotState.mode = mode;
 
     chatbotDOM.modeButtons.forEach(function(btn) {
@@ -827,8 +831,9 @@
     }
   }
 
-  function chatbotStreamFromAgent(bubbles, onSentence, speechRequestId) {
+  function chatbotStreamFromAgent(mode, bubbles) {
     var payload = {
+      mode: chatbotNormalizeMode(mode),
       messages: chatbotState.messages.map(function(m) {
         return { role: m.role, content: m.content };
       })
@@ -849,9 +854,7 @@
       var decoder = new TextDecoder();
       var buffer = '';
       var fullText = '';
-      var sentenceCursor = 0;
       var meta = null;
-      var firstAudioFired = false;
 
       function handleLine(line) {
         if (!line) return;
@@ -859,11 +862,7 @@
           var obj = JSON.parse(line);
           if (typeof obj.t === 'string') {
             fullText += obj.t;
-            bubbles.append(obj.t);
-            // Sentence detection -> fire TTS per sentence
-            if (onSentence) {
-              while (true) {
-                var remainder = fullText.slice(sentenceCursor);
+            bubbles.append(obj.t); /*
                 // Pre-fire: první audio chunk může skončit už na , ; : pokud
                 // už nasbíral 25+ znaků — TTS dostane rychlejší první kousek.
                 var reSentence = (!firstAudioFired && remainder.length >= 25)
@@ -879,7 +878,7 @@
                 }
               }
             }
-          } else if (typeof obj.replace === 'string') {
+          */ } else if (typeof obj.replace === 'string') {
             fullText = obj.replace;
             bubbles.replace(obj.replace);
           } else if (obj.m) {
@@ -893,7 +892,7 @@
       function pump() {
         return reader.read().then(function(result) {
           if (result.done) {
-            if (buffer.trim()) handleLine(buffer.trim());
+            if (buffer.trim()) handleLine(buffer.trim()); /*
             // Flush zbytek věty do TTS (pokud zbylo cokoliv)
             if (onSentence) {
               var tail = fullText.slice(sentenceCursor).trim();
@@ -902,7 +901,7 @@
                 sentenceCursor = fullText.length;
               }
             }
-            return { text: fullText, meta: meta };
+            */ return { text: fullText, meta: meta };
           }
           buffer += decoder.decode(result.value, { stream: true });
           var nl;
@@ -955,20 +954,15 @@
     if (chatbotState.voiceOutputEnabled) {
       chatbotStopSpeech();
     }
-    var speechRequestId = chatbotSpeechRequestId;
+    var modeAtSend = chatbotNormalizeMode(chatbotState.mode);
     var wantsVoice = chatbotState.voiceOutputEnabled && !(window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active');
 
     // Create streaming assistant bubbles immediately (no typing dots — text pops in)
     var bubbles = chatbotCreateStreamingBubbles();
 
-    function onSentence(sentence, reqId) {
-      if (!wantsVoice) return;
-      chatbotSpeakStreamingSentence(sentence, sentence, reqId);
-    }
-
-    chatbotStreamFromAgent(bubbles, onSentence, speechRequestId)
+    chatbotStreamFromAgent(modeAtSend, bubbles)
       .then(function(result) {
-        var mode = CHATBOT_PUBLIC_MODE;
+        var mode = chatbotNormalizeMode((result && result.meta && result.meta.mode) || modeAtSend);
         var message = (result && result.text ? result.text.trim() : '') || chatbotText('chatbot.fallback', 'Teď jsem to nezvládl. Zkus to prosím znovu.');
         var meta = (result && result.meta) || {};
 
@@ -994,6 +988,10 @@
           chatbotSetVoiceOutput(true, { silent: true });
         } else if (voiceDirective === 'off') {
           chatbotSetVoiceOutput(false, { silent: true });
+        }
+
+        if (message && ((wantsVoice || voiceDirective === 'on') && voiceDirective !== 'off')) {
+          chatbotSpeakText(message, message);
         }
 
         if (!chatbotState.isWidgetOpen) {
