@@ -155,13 +155,8 @@ body > * {
 
     <!-- Load Tailwind CSS asynchronously -->
     
-    <!-- Compiled Tailwind CSS - non-render-blocking -->
-    <link rel="preload" href="/dist/css/styles.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/dist/css/styles.min.css"></noscript>
-
-    <!-- Load main CSS asynchronously -->
-    <link rel="preload" href="/assets/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/assets/styles.css"></noscript>
+    <!-- Combined Tailwind + custom CSS (single request) -->
+    <link rel="stylesheet" href="/dist/css/styles.min.css">
     
 
     <!-- Schema.org Structured Data -->
