@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (scrollProgress || headerEl) {
+            updateScrollUI();
             window.addEventListener('scroll', () => {
                 if (!scrollTicking) {
                     scrollTicking = true;
