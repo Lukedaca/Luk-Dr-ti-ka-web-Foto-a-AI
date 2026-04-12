@@ -793,6 +793,19 @@ html {
     pointer-events: none;
 }
 
+@supports (content-visibility: auto) {
+    #ai-asistent,
+    #portfolio,
+    #skills,
+    #o-mne,
+    #spoluprace,
+    #kontakt,
+    footer {
+        content-visibility: auto;
+        contain-intrinsic-size: 900px;
+    }
+}
+
 #mobileMenu.active {
     opacity: 1 !important;
     visibility: visible !important;
@@ -851,6 +864,28 @@ html {
 
 .float-animation {
     animation: float 6s ease-in-out infinite;
+}
+
+@media (max-width: 767px) {
+    .float-animation,
+    .hero-orb {
+        animation: none;
+    }
+
+    .hero-ambient {
+        transform: none;
+        transition: none;
+    }
+
+    .hero-orb {
+        filter: blur(12px);
+        opacity: 0.35;
+    }
+
+    .section-wrap::before {
+        filter: blur(10px);
+        opacity: 0.35;
+    }
 }
 .theme-light .text-gray-200 { color: #26344a; }
 .theme-light .text-gray-300 { color: #324258; }

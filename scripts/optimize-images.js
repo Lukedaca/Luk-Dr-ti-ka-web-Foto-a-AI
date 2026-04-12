@@ -10,9 +10,10 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-const MAX_WIDTH = 1200;
-const JPEG_QUALITY = 85;
-const WEBP_QUALITY = 80;
+const MAX_WIDTH = 1100;
+const JPEG_QUALITY = 82;
+const WEBP_QUALITY = 72;
+const AVIF_QUALITY = 50;
 const BLUR_SIZE = 20;
 
 async function optimizeImages() {
@@ -50,24 +51,34 @@ async function optimizeImages() {
       // Resize if wider than MAX_WIDTH
       const resizeOptions = metadata.width > MAX_WIDTH ? { width: MAX_WIDTH } : {};
 
+      // Create AVIF version
+      const avifPath = path.join(outputDir, `${baseName}.avif`);
+      await image
+        .clone()
+        .resize(resizeOptions)
+        .avif({ quality: AVIF_QUALITY, effort: 7 })
+        .toFile(avifPath);
+
+      const avifSize = fs.statSync(avifPath).size;
+      totalOptimized += avifSize;
+
       // Create WebP version
       const webpPath = path.join(outputDir, `${baseName}.webp`);
       await image
         .clone()
         .resize(resizeOptions)
-        .webp({ quality: WEBP_QUALITY })
+        .webp({ quality: WEBP_QUALITY, effort: 6 })
         .toFile(webpPath);
-
-      const webpSize = fs.statSync(webpPath).size;
-      totalOptimized += webpSize;
 
       // Create JPEG fallback
       const jpegPath = path.join(outputDir, `${baseName}.jpg`);
       await image
         .clone()
         .resize(resizeOptions)
-        .jpeg({ quality: JPEG_QUALITY, progressive: true })
+        .jpeg({ quality: JPEG_QUALITY, progressive: true, mozjpeg: true })
         .toFile(jpegPath);
+
+      const webpSize = fs.statSync(webpPath).size;
 
       // Create blur placeholder (tiny image for lazy loading)
       const blurPath = path.join(outputDir, `${baseName}-blur.jpg`);

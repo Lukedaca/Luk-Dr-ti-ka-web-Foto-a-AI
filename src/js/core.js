@@ -44,6 +44,14 @@ const storage = {
 window.appStorage = storage;
 
 document.addEventListener('DOMContentLoaded', () => {
+    const runWhenIdle = (callback, timeout = 1200) => {
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(() => callback(), { timeout });
+            return;
+        }
+        window.setTimeout(callback, 1);
+    };
+
     // Clean conflict markers (safety feature)
     function cleanConflictMarkers() {
         const markers = ['<<<<<<<', '=======', '>>>>>>>'];
@@ -70,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         commentsToRemove.forEach(node => node.parentNode?.removeChild(node));
     }
-    cleanConflictMarkers();
+    runWhenIdle(cleanConflictMarkers, 2000);
 
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
@@ -103,54 +111,68 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerEl = document.querySelector('header');
     let scrollTicking = false;
 
-    const updateScrollUI = () => {
-        if (scrollProgress) {
-            const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = windowHeight > 0 ? (window.scrollY / windowHeight) * 100 : 0;
-            scrollProgress.style.width = scrolled + '%';
+    const setupScrollUI = () => {
+        const updateScrollUI = () => {
+            if (scrollProgress) {
+                const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = windowHeight > 0 ? (window.scrollY / windowHeight) * 100 : 0;
+                scrollProgress.style.width = scrolled + '%';
+            }
+            if (headerEl) headerEl.classList.toggle('is-scrolled', window.scrollY > 12);
+            scrollTicking = false;
+        };
+
+        if (scrollProgress || headerEl) {
+            updateScrollUI();
+            window.addEventListener('scroll', () => {
+                if (!scrollTicking) {
+                    scrollTicking = true;
+                    requestAnimationFrame(updateScrollUI);
+                }
+            }, { passive: true });
         }
-        if (headerEl) headerEl.classList.toggle('is-scrolled', window.scrollY > 12);
-        scrollTicking = false;
     };
 
-    if (scrollProgress || headerEl) {
-        updateScrollUI();
-        window.addEventListener('scroll', () => {
-            if (!scrollTicking) {
-                scrollTicking = true;
-                requestAnimationFrame(updateScrollUI);
-            }
-        }, { passive: true });
-    }
+    runWhenIdle(setupScrollUI, 1500);
 
     // Cursor spotlight and hero ambient effects
     const cursorSpotlight = document.getElementById('cursorSpotlight');
     const heroAmbient = document.querySelector('.hero-ambient');
     let mouseX = 0, mouseY = 0, mouseTicking = false;
 
-    const updateMouseEffects = () => {
-        if (cursorSpotlight) {
-            cursorSpotlight.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
-            cursorSpotlight.style.opacity = '1';
+    const setupMouseEffects = () => {
+        const updateMouseEffects = () => {
+            if (cursorSpotlight) {
+                cursorSpotlight.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+                cursorSpotlight.style.opacity = '1';
+            }
+            if (heroAmbient) {
+                const x = (mouseX / window.innerWidth - 0.5) * 20;
+                const y = (mouseY / window.innerHeight - 0.5) * 20;
+                heroAmbient.style.setProperty('--hero-x', `${x}px`);
+                heroAmbient.style.setProperty('--hero-y', `${y}px`);
+            }
+            mouseTicking = false;
+        };
+
+        if (cursorSpotlight || heroAmbient) {
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                if (!mouseTicking) {
+                    mouseTicking = true;
+                    requestAnimationFrame(updateMouseEffects);
+                }
+            }, { passive: true });
         }
-        if (heroAmbient) {
-            const x = (mouseX / window.innerWidth - 0.5) * 20;
-            const y = (mouseY / window.innerHeight - 0.5) * 20;
-            heroAmbient.style.setProperty('--hero-x', `${x}px`);
-            heroAmbient.style.setProperty('--hero-y', `${y}px`);
-        }
-        mouseTicking = false;
     };
 
-    if (cursorSpotlight || heroAmbient) {
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            if (!mouseTicking) {
-                mouseTicking = true;
-                requestAnimationFrame(updateMouseEffects);
-            }
-        }, { passive: true });
+    const canUseDesktopPointerEffects = window.matchMedia
+        && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+        && window.innerWidth >= 768;
+
+    if (canUseDesktopPointerEffects) {
+        runWhenIdle(setupMouseEffects, 2000);
     }
 
     // Reveal animations
@@ -169,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         revealElements.forEach(el => observer.observe(el));
     }
-    setupRevealAnimations();
+    runWhenIdle(setupRevealAnimations, 800);
 
 
     // Counter and skill bar animations
@@ -205,8 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, { threshold: 0.5 });
 
-    document.querySelectorAll('[data-count]').forEach(el => animationObserver.observe(el));
-    document.querySelectorAll('.skill-bar').forEach(el => animationObserver.observe(el));
+    runWhenIdle(() => {
+        document.querySelectorAll('[data-count]').forEach(el => animationObserver.observe(el));
+        document.querySelectorAll('.skill-bar').forEach(el => animationObserver.observe(el));
+    }, 1000);
 
     // Testimonials slider
     const testimonialsSlider = document.getElementById('testimonialsSlider');
@@ -231,12 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        prevTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial - 1));
-        nextTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial + 1));
-        testimonialDots.forEach((dot, index) => {
-            dot.addEventListener('click', () => showTestimonial(index));
-        });
-        setInterval(() => showTestimonial(currentTestimonial + 1), 5000);
+        runWhenIdle(() => {
+            prevTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial - 1));
+            nextTestimonial.addEventListener('click', () => showTestimonial(currentTestimonial + 1));
+            testimonialDots.forEach((dot, index) => {
+                dot.addEventListener('click', () => showTestimonial(index));
+            });
+            setInterval(() => showTestimonial(currentTestimonial + 1), 5000);
+        }, 1200);
     }
 
     // Newsletter form

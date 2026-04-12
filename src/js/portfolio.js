@@ -64,6 +64,24 @@ function getPortfolioItems() {
     return Array.from(document.querySelectorAll('.portfolio-item'));
 }
 
+function getOptimizedImageSources(imagePath) {
+    const normalizedPath = String(imagePath || '').replace(/\\/g, '/');
+    const pathParts = normalizedPath.split('/');
+    const fileName = pathParts[pathParts.length - 1] || '';
+    const isTopLevelPortfolioAsset = normalizedPath.startsWith('assets/portfolio/') && pathParts.length === 3;
+
+    if (!isTopLevelPortfolioAsset || !fileName.includes('.')) {
+        return null;
+    }
+
+    const baseName = fileName.replace(/\.[^.]+$/, '');
+    return {
+        avif: `dist/images/portfolio/${baseName}.avif`,
+        webp: `dist/images/portfolio/${baseName}.webp`,
+        jpg: `dist/images/portfolio/${baseName}.jpg`
+    };
+}
+
 function setLightboxControls(visible) {
     if (!lightboxControls) return;
     lightboxControls.classList.toggle('hidden', !visible);
@@ -166,6 +184,8 @@ function renderPortfolio() {
         const categoryLabel = getPortfolioLabel(category);
         const type = project.type === 'gallery' ? 'gallery' : 'single';
         const projectName = translateProjectName(project);
+        const optimizedImage = getOptimizedImageSources(mainImage);
+        const fallbackImage = optimizedImage?.jpg || mainImage || PORTFOLIO_FALLBACK_IMAGE;
         const metaText = type === 'gallery'
             ? (getLanguage() === 'en'
                 ? `Match gallery | ${images.length} photos`
@@ -177,7 +197,11 @@ function renderPortfolio() {
 
         return `
             <div class="portfolio-item rounded-xl overflow-hidden" data-category="${category}" data-project-id="${projectId}" data-project-index="${index}"${hrefAttr}>
-                <img src="${mainImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" onerror="this.onerror=null;this.src='${PORTFOLIO_FALLBACK_IMAGE}';">
+                <picture>
+                    ${optimizedImage ? `<source srcset="${optimizedImage.avif}" type="image/avif">` : ''}
+                    ${optimizedImage ? `<source srcset="${optimizedImage.webp}" type="image/webp">` : ''}
+                    <img src="${fallbackImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='${PORTFOLIO_FALLBACK_IMAGE}';">
+                </picture>
                 <div class="portfolio-overlay">
                     <div class="text-center">
                         <div class="portfolio-title">${projectName}</div>

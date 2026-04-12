@@ -51,8 +51,8 @@
     <link rel="preload" href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDI1apSCOBt_aeQQ7ftydoaeXYpj_EPk.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- Optimized font loading - non-render-blocking -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional"></noscript>
 
     <!-- Critical CSS inline for above-the-fold content -->
     <style>
@@ -378,14 +378,14 @@ body > * {
                 <span class="hero-orb two" aria-hidden="true"></span>
                 <span class="hero-orb three" aria-hidden="true"></span>
             </div>
-            <div class="text-center max-w-5xl mx-auto relative z-10 reveal is-visible">
+            <div class="text-center max-w-5xl mx-auto relative z-10">
                 <div class="mb-6 flex justify-center gap-4 flex-wrap" aria-label="Hlavní zaměření">
                     <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0s;">Fotografie</span>
                     <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0.5s;">AI Development</span>
                     <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">Automatizace</span>
                 </div>
 
-                <h1 class="text-5xl sm:text-7xl md:text-8xl font-extrabold mb-6 gradient-text display-text tracking-tight leading-none" style="font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.03em;">
+                <h1 class="text-5xl sm:text-7xl md:text-8xl font-extrabold mb-6 gradient-text display-text tracking-tight leading-none" style="letter-spacing: -0.03em;">
                     Fotograf &amp; AI Developer
                 </h1>
 
@@ -475,8 +475,9 @@ body > * {
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolioGrid">
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
+                            <source srcset="dist/images/portfolio/sport-1.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-1.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="eager" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -487,8 +488,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
+                            <source srcset="dist/images/portfolio/sport-2.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-2.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -499,8 +501,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
+                            <source srcset="dist/images/portfolio/sport-3.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-3.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -511,8 +514,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
+                            <source srcset="dist/images/portfolio/sport-4.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-4.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
