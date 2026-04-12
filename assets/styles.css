@@ -789,9 +789,19 @@ html {
 }
 
 /* Mobile Menu Animations */
+#mobileMenu {
+    pointer-events: none;
+}
+
 #mobileMenu.active {
     opacity: 1 !important;
     visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+#mobileMenuBtn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #mobileMenuBtn.active .hamburger-line:nth-child(1) {

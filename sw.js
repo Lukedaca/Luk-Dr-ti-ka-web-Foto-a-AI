@@ -1,9 +1,9 @@
-const CACHE_NAME = 'lukas-portfolio-v3';
+const CACHE_NAME = 'lukas-portfolio-v4';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/assets/styles.css',
-    '/assets/main.js',
+    '/dist/css/styles.min.css',
+    '/dist/js/core.min.js',
     '/manifest.json'
 ];
 
