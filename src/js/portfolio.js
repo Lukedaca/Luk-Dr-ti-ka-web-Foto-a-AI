@@ -66,19 +66,21 @@ function getPortfolioItems() {
 
 function getOptimizedImageSources(imagePath) {
     const normalizedPath = String(imagePath || '').replace(/\\/g, '/');
-    const pathParts = normalizedPath.split('/');
-    const fileName = pathParts[pathParts.length - 1] || '';
-    const isTopLevelPortfolioAsset = normalizedPath.startsWith('assets/portfolio/') && pathParts.length === 3;
+    if (!normalizedPath.startsWith('assets/portfolio/')) return null;
 
-    if (!isTopLevelPortfolioAsset || !fileName.includes('.')) {
-        return null;
-    }
+    const relative = normalizedPath.slice('assets/portfolio/'.length);
+    const pathParts = relative.split('/');
+    const fileName = pathParts[pathParts.length - 1] || '';
+    if (!fileName.includes('.')) return null;
 
     const baseName = fileName.replace(/\.[^.]+$/, '');
+    const subPath = pathParts.slice(0, -1).join('/');
+    const prefix = subPath ? `dist/images/portfolio/${subPath}` : 'dist/images/portfolio';
+
     return {
-        avif: `dist/images/portfolio/${baseName}.avif`,
-        webp: `dist/images/portfolio/${baseName}.webp`,
-        jpg: `dist/images/portfolio/${baseName}.jpg`
+        avif: `${prefix}/${baseName}.avif`,
+        webp: `${prefix}/${baseName}.webp`,
+        jpg: `${prefix}/${baseName}.jpg`
     };
 }
 

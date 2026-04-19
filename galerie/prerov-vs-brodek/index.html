@@ -201,7 +201,11 @@
             <button id="lightboxPrev" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Předchozí fotka">&lsaquo;</button>
             <button id="lightboxNext" class="pointer-events-auto h-12 w-12 rounded-full bg-black/40 text-white text-3xl flex items-center justify-center hover:bg-black/60 transition" aria-label="Další fotka">&rsaquo;</button>
         </div>
-        <img id="lightboxImg" src="" alt="">
+        <picture>
+            <source id="lightboxSourceAvif" type="image/avif" srcset="">
+            <source id="lightboxSourceWebp" type="image/webp" srcset="">
+            <img id="lightboxImg" src="" alt="">
+        </picture>
     </div>
 
     <script>
@@ -215,7 +219,9 @@
             'IMG_8982'
         ].map((name, index) => ({
             thumb: `/assets/portfolio/prerov-brodek/thumbs/${name}.jpg`,
-            full: `/assets/portfolio/prerov-brodek/${name}.JPG`,
+            full: `/dist/images/portfolio/prerov-brodek/${name}.jpg`,
+            fullWebp: `/dist/images/portfolio/prerov-brodek/${name}.webp`,
+            fullAvif: `/dist/images/portfolio/prerov-brodek/${name}.avif`,
             alt: `Přerov vs Brodek – fotka ${index + 1}`
         }));
 
@@ -242,8 +248,13 @@
             });
         }
 
+        const lightboxSourceAvif = document.getElementById('lightboxSourceAvif');
+        const lightboxSourceWebp = document.getElementById('lightboxSourceWebp');
+
         function updateLightbox() {
             const image = galleryImages[currentIndex];
+            if (lightboxSourceAvif) lightboxSourceAvif.srcset = image.fullAvif || '';
+            if (lightboxSourceWebp) lightboxSourceWebp.srcset = image.fullWebp || '';
             lightboxImg.src = image.full;
             lightboxImg.alt = `${image.alt} (${currentIndex + 1}/${galleryImages.length})`;
             lightboxPrev.classList.toggle('opacity-40', currentIndex === 0);
