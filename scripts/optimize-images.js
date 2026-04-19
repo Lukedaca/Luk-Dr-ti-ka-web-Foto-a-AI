@@ -19,45 +19,83 @@ const LIGHTBOX_WEBP_QUALITY = 78;
 const LIGHTBOX_AVIF_QUALITY = 55;
 const BLUR_SIZE = 20;
 
+const CONCURRENCY = Math.max(2, Math.min(6, require('os').cpus().length));
+
 let totalOriginal = 0;
 let totalOptimized = 0;
+let skipped = 0;
+
+function outputsFresh(inputPath, outputs) {
+  try {
+    const inputMtime = fs.statSync(inputPath).mtimeMs;
+    return outputs.every(p => fs.existsSync(p) && fs.statSync(p).mtimeMs >= inputMtime);
+  } catch {
+    return false;
+  }
+}
 
 async function processFile(inputPath, outDir, baseName, { lightbox = false } = {}) {
   const originalSize = fs.statSync(inputPath).size;
-  totalOriginal += originalSize;
 
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+
+  const avifPath = path.join(outDir, `${baseName}.avif`);
+  const webpPath = path.join(outDir, `${baseName}.webp`);
+  const jpegPath = path.join(outDir, `${baseName}.jpg`);
+  const blurPath = lightbox ? null : path.join(outDir, `${baseName}-blur.jpg`);
+  const requiredOutputs = [avifPath, webpPath, jpegPath].concat(blurPath ? [blurPath] : []);
+
+  if (outputsFresh(inputPath, requiredOutputs)) {
+    totalOriginal += originalSize;
+    totalOptimized += fs.statSync(avifPath).size;
+    skipped++;
+    return 'skip';
+  }
+
+  totalOriginal += originalSize;
 
   const image = sharp(inputPath).rotate();
   const metadata = await image.metadata();
   const targetWidth = lightbox ? LIGHTBOX_WIDTH : MAX_WIDTH;
   const resizeOptions = metadata.width > targetWidth ? { width: targetWidth } : {};
 
-  const avifPath = path.join(outDir, `${baseName}.avif`);
   await image.clone().resize(resizeOptions)
     .avif({ quality: lightbox ? LIGHTBOX_AVIF_QUALITY : AVIF_QUALITY, effort: 7 })
     .toFile(avifPath);
   totalOptimized += fs.statSync(avifPath).size;
 
-  const webpPath = path.join(outDir, `${baseName}.webp`);
   await image.clone().resize(resizeOptions)
     .webp({ quality: lightbox ? LIGHTBOX_WEBP_QUALITY : WEBP_QUALITY, effort: 6 })
     .toFile(webpPath);
 
-  const jpegPath = path.join(outDir, `${baseName}.jpg`);
   await image.clone().resize(resizeOptions)
     .jpeg({ quality: JPEG_QUALITY, progressive: true, mozjpeg: true })
     .toFile(jpegPath);
 
-  if (!lightbox) {
-    const blurPath = path.join(outDir, `${baseName}-blur.jpg`);
+  if (blurPath) {
     await image.clone().resize({ width: BLUR_SIZE }).blur(5)
       .jpeg({ quality: 30 }).toFile(blurPath);
   }
 
   const webpSize = fs.statSync(webpPath).size;
-  const savings = ((1 - webpSize / originalSize) * 100).toFixed(1);
-  return savings;
+  return ((1 - webpSize / originalSize) * 100).toFixed(1);
+}
+
+async function runInParallel(tasks, limit) {
+  const results = [];
+  let i = 0;
+  async function worker() {
+    while (i < tasks.length) {
+      const idx = i++;
+      try {
+        results[idx] = await tasks[idx]();
+      } catch (err) {
+        results[idx] = { error: err };
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: limit }, worker));
+  return results;
 }
 
 async function optimizeImages() {
@@ -72,19 +110,20 @@ async function optimizeImages() {
     .filter(e => e.isFile() && /\.(jpg|jpeg|png|webp)$/i.test(e.name))
     .map(e => e.name);
 
-  console.log(`Optimizing ${topLevelFiles.length} top-level images (max ${MAX_WIDTH}px)...\n`);
-  for (const file of topLevelFiles) {
+  console.log(`Optimizing ${topLevelFiles.length} top-level images (max ${MAX_WIDTH}px, concurrency=${CONCURRENCY})...\n`);
+  const topTasks = topLevelFiles.map(file => async () => {
     try {
       const savings = await processFile(
         path.join(inputDir, file),
         outputDir,
         path.parse(file).name
       );
-      console.log(`✓ ${file} → WebP (${savings}% smaller)`);
+      console.log(savings === 'skip' ? `↷ ${file} (up to date)` : `✓ ${file} → WebP (${savings}% smaller)`);
     } catch (err) {
       console.error(`Error optimizing ${file}:`, err.message);
     }
-  }
+  });
+  await runInParallel(topTasks, CONCURRENCY);
 
   const subDirs = entries.filter(e => e.isDirectory() && e.name !== 'thumbs').map(e => e.name);
 
@@ -95,7 +134,7 @@ async function optimizeImages() {
     if (files.length === 0) continue;
 
     console.log(`\nOptimizing gallery "${dir}" — ${files.length} images (lightbox ${LIGHTBOX_WIDTH}px)...`);
-    for (const file of files) {
+    const tasks = files.map(file => async () => {
       try {
         const savings = await processFile(
           path.join(subInput, file),
@@ -103,15 +142,16 @@ async function optimizeImages() {
           path.parse(file).name,
           { lightbox: true }
         );
-        console.log(`  ✓ ${dir}/${file} → WebP (${savings}% smaller)`);
+        console.log(savings === 'skip' ? `  ↷ ${dir}/${file} (up to date)` : `  ✓ ${dir}/${file} → WebP (${savings}% smaller)`);
       } catch (err) {
         console.error(`  Error optimizing ${dir}/${file}:`, err.message);
       }
-    }
+    });
+    await runInParallel(tasks, CONCURRENCY);
   }
 
-  const totalSavings = ((1 - totalOptimized / totalOriginal) * 100).toFixed(1);
-  console.log(`\nTotal: ${(totalOriginal / 1024 / 1024).toFixed(2)} MB → ${(totalOptimized / 1024 / 1024).toFixed(2)} MB (${totalSavings}% AVIF savings)`);
+  const totalSavings = totalOriginal > 0 ? ((1 - totalOptimized / totalOriginal) * 100).toFixed(1) : '0';
+  console.log(`\nTotal: ${(totalOriginal / 1024 / 1024).toFixed(2)} MB → ${(totalOptimized / 1024 / 1024).toFixed(2)} MB (${totalSavings}% AVIF savings, ${skipped} skipped)`);
 }
 
 optimizeImages().catch(console.error);
