@@ -286,7 +286,7 @@ body > * {
 
             <!-- Theme toggle + Language switcher (mobile) -->
             <div class="flex items-center gap-4 mt-4" style="position:relative;z-index:10">
-                <button id="themeToggleMobile" onclick="document.documentElement.classList.toggle('theme-light');var l=document.documentElement.classList.contains('theme-light');try{localStorage.setItem('ld_theme',l?'light':'dark')}catch(e){};this.textContent=l?'🌙':'☀️';var dt=document.getElementById('themeToggle');if(dt)dt.textContent=l?'🌙':'☀️'" class="px-5 py-3 bg-white/10 border border-white/20 rounded-full text-base font-semibold active:scale-95 transition" aria-label="Přepnout režim">
+                <button id="themeToggleMobile" class="px-5 py-3 bg-white/10 border border-white/20 rounded-full text-base font-semibold active:scale-95 transition" aria-label="Přepnout režim">
                     🌙 / ☀️
                 </button>
                 <div id="langToggleMobileStatic" class="flex items-center gap-1 bg-white/10 border border-white/20 rounded-full p-1">
