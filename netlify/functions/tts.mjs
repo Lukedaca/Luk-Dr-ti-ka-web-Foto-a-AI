@@ -1,14 +1,16 @@
 // OpenAI TTS endpoint for the hybrid agent.
 // Returns base64 PCM16 so the existing browser AudioContext playback can use it directly.
 
-const MAX_TTS_CHARS = 650;
+const MAX_TTS_CHARS = 360;
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_MAX = 45;
 const TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
 const TTS_VOICE = process.env.OPENAI_TTS_VOICE || "alloy";
 const TTS_SAMPLE_RATE = 24000;
+const TTS_CACHE_MAX = 80;
 
 const ipHits = new Map();
+const audioCache = new Map();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -49,12 +51,32 @@ function cleanTextForSpeech(value) {
     .slice(0, MAX_TTS_CHARS);
 }
 
+function makeCacheKey(text, lang) {
+  return [TTS_MODEL, TTS_VOICE, String(lang || "cs-CZ").toLowerCase(), text].join("::");
+}
+
+function getCachedAudio(key) {
+  if (!audioCache.has(key)) return null;
+  const value = audioCache.get(key);
+  audioCache.delete(key);
+  audioCache.set(key, value);
+  return value;
+}
+
+function setCachedAudio(key, value) {
+  audioCache.set(key, value);
+  while (audioCache.size > TTS_CACHE_MAX) {
+    const firstKey = audioCache.keys().next().value;
+    audioCache.delete(firstKey);
+  }
+}
+
 function voiceInstructions(lang) {
   const normalized = String(lang || "cs-CZ").toLowerCase();
   if (normalized.startsWith("en")) {
-    return "Speak naturally, clearly and briefly. Friendly confident tone, not over-dramatic.";
+    return "Clear, natural, brief.";
   }
-  return "Mluv přirozeně česky, jasně a krátce. Přátelský sebevědomý tón, žádné přehrávání.";
+  return "Česky, přirozeně, krátce.";
 }
 
 export default async (req) => {
@@ -63,7 +85,15 @@ export default async (req) => {
   }
 
   if (req.method === "GET") {
-    return jsonResponse(200, { ok: true, provider: "openai", model: TTS_MODEL, voice: TTS_VOICE, sampleRate: TTS_SAMPLE_RATE });
+    return jsonResponse(200, {
+      ok: true,
+      warm: true,
+      provider: "openai",
+      model: TTS_MODEL,
+      voice: TTS_VOICE,
+      sampleRate: TTS_SAMPLE_RATE,
+      cacheSize: audioCache.size,
+    });
   }
 
   if (req.method !== "POST") {
@@ -97,6 +127,13 @@ export default async (req) => {
     return jsonResponse(400, { error: "Chybí text pro hlas." });
   }
 
+  const cacheKey = makeCacheKey(text, lang);
+  const cached = getCachedAudio(cacheKey);
+  if (cached) {
+    return jsonResponse(200, { ...cached, cached: true }, { "Server-Timing": "tts;dur=0;desc=cache" });
+  }
+
+  const startedAt = Date.now();
   let response;
   try {
     response = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -111,7 +148,7 @@ export default async (req) => {
         input: text,
         instructions: voiceInstructions(lang),
         response_format: "pcm",
-        speed: 1.02,
+        speed: 1.06,
       }),
     });
   } catch (err) {
@@ -127,12 +164,17 @@ export default async (req) => {
 
   const arrayBuffer = await response.arrayBuffer();
   const audio = Buffer.from(arrayBuffer).toString("base64");
-
-  return jsonResponse(200, {
+  const payload = {
     audio,
     sampleRate: TTS_SAMPLE_RATE,
     lang,
     model: TTS_MODEL,
     voice: TTS_VOICE,
+  };
+
+  setCachedAudio(cacheKey, payload);
+
+  return jsonResponse(200, payload, {
+    "Server-Timing": `tts;dur=${Date.now() - startedAt};desc=openai`,
   });
 };
