@@ -7,11 +7,73 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 20;
 const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 
+const PUBLIC_KNOWLEDGE = {
+  owner: {
+    name: "Lukáš Drštička",
+    location: "Přerov",
+    email: "lukas.drsticka@gmail.com",
+    roles: ["fotograf", "AI builder", "webový vývojář", "automatizace"],
+  },
+  services: [
+    "portrétní fotografie",
+    "sportovní a akční fotografie",
+    "produktová fotografie",
+    "AI chatboti",
+    "AI agenti",
+    "automatizace webu a firemních procesů",
+    "jednoduché webové stránky",
+  ],
+  projects: [
+    {
+      name: "Fotograf AI",
+      type: "AI projekt",
+      description: "AI editor pro fotografy zaměřený na zrychlení úprav a zachování kontroly nad výsledkem.",
+    },
+    {
+      name: "Zábavní chatbot",
+      type: "AI projekt",
+      description: "Chatbot pro doporučování filmů, seriálů, her a knih podle dotazu uživatele.",
+    },
+    {
+      name: "Hybridní Agent / Lukáš AI",
+      type: "webový AI agent",
+      description: "Veřejný agent na osobním webu, který umí odpovídat textem i hlasem a navigovat uživatele po webu.",
+    },
+  ],
+  collaborations: [
+    {
+      name: "eKultura",
+      type: "reálná spolupráce / projekty",
+      description: "Spolupráce na reálných projektech v oblasti webu, AI a automatizace.",
+    },
+    {
+      name: "DIV.cz",
+      type: "koncept / chatbot pro zábavní doporučení",
+      description: "Návrh chatbota pro doporučování filmů, seriálů, her a knih ve stylu DIV.cz.",
+    },
+    {
+      name: "1.FC Viktorie Přerov",
+      type: "fotbalový klub / vizuální a sportovní obsah",
+      description: "Tvorba sportovního a klubového vizuálního obsahu.",
+    },
+  ],
+  portfolioHighlights: [
+    "Sigma Olomouc vs Mainz",
+    "Přerov vs Brodek 14.3.2026",
+    "Přerov vs Postřelmov 28.3.2026",
+    "Přerov vs Mohelnice 18.4.2026",
+    "SK Sigma Olomouc vs 1.FC Slovácko 19.4.2026",
+    "portrétní galerie",
+    "sportovní fotografie",
+    "AI projekty",
+  ],
+};
+
 const MODE_CONFIG = {
   talk: {
     history: 6,
     maxOutputTokens: 130,
-    temperature: 0.4,
+    temperature: 0.25,
     topP: 0.82,
     instruction: [
       "REZIM TALK:",
@@ -24,7 +86,7 @@ const MODE_CONFIG = {
   think: {
     history: 8,
     maxOutputTokens: 220,
-    temperature: 0.55,
+    temperature: 0.35,
     topP: 0.88,
     instruction: [
       "REZIM THINK:",
@@ -37,7 +99,7 @@ const MODE_CONFIG = {
   build: {
     history: 10,
     maxOutputTokens: 300,
-    temperature: 0.6,
+    temperature: 0.45,
     topP: 0.88,
     instruction: [
       "REZIM BUILD:",
@@ -60,6 +122,12 @@ const corsHeaders = {
 const BASE_SYSTEM_PROMPT = `Jsi Lukas AI - hybridni agent pro osobni web Lukase Drsticky.
 
 DEFAULT CESTINA. Kdyz uzivatel pise anglicky, plynule prepni na anglictinu.
+
+ZASADNI PRAVIDLO PRAVDIVOSTI
+- Odpovidej pouze z verejne znalostni baze WEB_KNOWLEDGE a z obsahu webu.
+- Nevymyslej si klienty, spoluprace, reference, technologie ani vysledky.
+- Kdyz udaj ve WEB_KNOWLEDGE neni, rekni: "Tohle nemam na webu uvedene." a navrhni, ze se muze zeptat Lukase.
+- Dotazy na spoluprace, reference a s kym Lukas spolupracuje NIKDY nesmeruj automaticky na kontaktni formular. Nejdrive vypis zname polozky z WEB_KNOWLEDGE.collaborations.
 
 KDO JE LUKAS
 - Fotograf z Prerova (portretni, sportovni, akcni, produktova fotografie)
@@ -84,7 +152,7 @@ PRAVIDLA
 FORMAT
 - Vrat CISTY TEXT odpovedi. Zadny JSON, zadne markdown bloky, zadne hvezdicky.
 - Pokud navrhujes akci na strance, uved ji az na konci odpovedi
-  samostatne ve tvaru: [[ACTION:scroll:portfolio]] nebo [[ACTION:scroll:kontakt]]
+  samostatne ve tvaru: [[ACTION:scroll:portfolio]] nebo [[ACTION:scroll:spoluprace]] nebo [[ACTION:scroll:kontakt]]
   nebo [[ACTION:voice:on]] / [[ACTION:voice:off]].
 - Povolene akce: scroll:portfolio, scroll:skills, scroll:o-mne, scroll:spoluprace,
   scroll:kontakt, voice:on, voice:off.
@@ -144,12 +212,25 @@ function getLastUserMessage(messages) {
   return "";
 }
 
+function formatCollaborations() {
+  return PUBLIC_KNOWLEDGE.collaborations
+    .map((item) => `${item.name} — ${item.description}`)
+    .join(" ");
+}
+
 function buildFastPathResponse(mode, messages) {
   if (normalizeMode(mode) !== "talk") return null;
 
   const lastUser = getLastUserMessage(messages);
   const normalized = normalizeText(lastUser);
-  if (!normalized || normalized.length > 160) return null;
+  if (!normalized || normalized.length > 220) return null;
+
+  const asksCollaborationList =
+    includesAny(normalized, ["s kym spolupracuji", "s kym spolupracujes", "spolupracuji", "spolupracujes", "spoluprace", "reference", "klienti", "partners", "collaboration", "collaborations", "who do you work with"]);
+
+  if (asksCollaborationList) {
+    return `Na webu mám uvedené tyto spolupráce: ${formatCollaborations()} [[ACTION:scroll:spoluprace]]`;
+  }
 
   if (/^(ahoj|cau|dobry den|hello|hi|hey)\b/.test(normalized)) {
     return "Ahoj, jsem Lukáš AI. Pomůžu s focením, portfoliem nebo AI projekty.";
@@ -169,10 +250,6 @@ function buildFastPathResponse(mode, messages) {
 
   if (includesAny(normalized, ["fotograf ai", "ai editor", "ai projekt", "ai projects"])) {
     return "Fotograf AI šetří čas fotografům. Pomáhá zrychlit úpravy a držet výsledek pod kontrolou.";
-  }
-
-  if (includesAny(normalized, ["spoluprace", "spolupracovat", "collaboration", "cooperation", "agent", "automatizace", "automation"])) {
-    return "Jo, tohle dává smysl řešit. Lukáš umí spojit web, AI agenta a automatizaci do praktického řešení.";
   }
 
   return null;
@@ -199,7 +276,7 @@ function toOpenAIMessages(mode, messages) {
   return [
     {
       role: "system",
-      content: `${BASE_SYSTEM_PROMPT}\n\n${config.instruction}`,
+      content: `${BASE_SYSTEM_PROMPT}\n\nWEB_KNOWLEDGE:\n${JSON.stringify(PUBLIC_KNOWLEDGE, null, 2)}\n\n${config.instruction}`,
     },
     ...messages.map((m) => ({
       role: m.role === "assistant" ? "assistant" : "user",
@@ -224,7 +301,7 @@ async function writeResolvedText(writer, encoder, text, meta) {
 async function streamOpenAIResponse(apiKey, mode, messages, writer, encoder) {
   const fastPath = buildFastPathResponse(mode, messages);
   if (fastPath) {
-    await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "fast-path" });
+    await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "knowledge-fast-path" });
     return;
   }
 
@@ -317,7 +394,7 @@ export default async (req) => {
   }
 
   if (req.method === "GET") {
-    return jsonResponse(200, { ok: true, warm: true, provider: "openai", model: OPENAI_CHAT_MODEL });
+    return jsonResponse(200, { ok: true, warm: true, provider: "openai", model: OPENAI_CHAT_MODEL, knowledge: PUBLIC_KNOWLEDGE });
   }
 
   if (req.method !== "POST") {
