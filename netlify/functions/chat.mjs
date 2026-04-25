@@ -9,36 +9,39 @@ const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 
 const MODE_CONFIG = {
   talk: {
-    history: 8,
-    maxOutputTokens: 180,
-    temperature: 0.45,
-    topP: 0.85,
+    history: 6,
+    maxOutputTokens: 130,
+    temperature: 0.4,
+    topP: 0.82,
     instruction: [
       "REZIM TALK:",
       "- Odpovidej co nejrychleji a co nejprakticteji.",
+      "- Prvni veta musi byt kratka a samostatna, idealne do 9 slov.",
       "- Drz se max 2 kratkych vet, pokud uzivatel nechce detail.",
       "- Priorita je rychla, jasna odpoved a jeden dalsi konkretni krok.",
     ].join("\n"),
   },
   think: {
-    history: 10,
-    maxOutputTokens: 280,
-    temperature: 0.6,
-    topP: 0.9,
+    history: 8,
+    maxOutputTokens: 220,
+    temperature: 0.55,
+    topP: 0.88,
     instruction: [
       "REZIM THINK:",
+      "- Zacni kratkou samostatnou vetou do 9 slov.",
       "- Kratce rozloz problem, vyber doporuceny smer a rekni proc.",
       "- Drz se max 4 kratkych vet.",
       "- Vyhni se zbytecne omacce, dej pouzitelnou radu.",
     ].join("\n"),
   },
   build: {
-    history: 12,
-    maxOutputTokens: 360,
-    temperature: 0.65,
-    topP: 0.9,
+    history: 10,
+    maxOutputTokens: 300,
+    temperature: 0.6,
+    topP: 0.88,
     instruction: [
       "REZIM BUILD:",
+      "- Zacni kratkou samostatnou vetou do 9 slov.",
       "- Vrat mini vystup, ktery je hned pouzitelny.",
       "- Uprednostni konkretni navrh, draft, scope nebo roadmapu.",
       "- Drz se max 5 kratkych vet.",
@@ -67,6 +70,7 @@ KDO JE LUKAS
 
 STYL
 - Strucne, prakticky, sebevedome. Zadna korporatni omacka.
+- Pro nizkou audio latenci pis kratke vety. Prvni veta ma byt vzdy kratka a samostatna.
 - Po 1-3 vymenach navrhni konkretni dalsi krok.
 - Mluvis jako digitalni verze Lukase - lidsky, chytre.
 
@@ -148,27 +152,27 @@ function buildFastPathResponse(mode, messages) {
   if (!normalized || normalized.length > 160) return null;
 
   if (/^(ahoj|cau|dobry den|hello|hi|hey)\b/.test(normalized)) {
-    return "Ahoj, jsem Lukáš AI. Pomůžu s focením, portfoliem nebo AI projekty. Klidně napiš, co přesně tě zajímá.";
+    return "Ahoj, jsem Lukáš AI. Pomůžu s focením, portfoliem nebo AI projekty.";
   }
 
   if (includesAny(normalized, ["kontakt", "email", "mail", "kontaktovat", "contact"])) {
-    return "Nejrychlejší kontakt je lukas.drsticka@gmail.com. Když chceš, můžu tě rovnou posunout na kontakt. [[ACTION:scroll:kontakt]]";
+    return "Jasně, kontakt je jednoduchý. Napiš na lukas.drsticka@gmail.com nebo skoč níže na kontakt. [[ACTION:scroll:kontakt]]";
   }
 
   if (includesAny(normalized, ["portfolio", "ukaz portfolio", "show portfolio", "ukaz praci", "prace", "galerie"])) {
-    return "Portfolio najdeš přímo na webu níže. Jsou tam portréty, sport i akční fotky. Mrkni rovnou na ukázky. [[ACTION:scroll:portfolio]]";
+    return "Jasně, ukážu portfolio. Najdeš tam portréty, sport i akční fotky. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["sluzby", "sluzba", "foceni", "fotograf", "fotky", "photography", "services"])) {
-    return "Lukáš dělá portrétní, sportovní, akční a produktovou fotografii. Když chceš, můžu tě nasměrovat na portfolio nebo rovnou na kontakt. [[ACTION:scroll:portfolio]]";
+    return "Lukáš fotí portréty, sport, akce i produkty. Nejlepší je mrknout na ukázky a pak napsat konkrétní termín. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["fotograf ai", "ai editor", "ai projekt", "ai projects"])) {
-    return "Fotograf AI je Lukášův AI projekt pro fotografy. Prakticky propojuje fotografii a automatizaci tak, aby zrychlil reálnou práci. Když chceš, popíšu to víc lidsky.";
+    return "Fotograf AI šetří čas fotografům. Pomáhá zrychlit úpravy a držet výsledek pod kontrolou.";
   }
 
   if (includesAny(normalized, ["spoluprace", "spolupracovat", "collaboration", "cooperation", "agent", "automatizace", "automation"])) {
-    return "Lukáš umí spojit fotografii, AI agenty i automatizace do reálné spolupráce. Napiš, co potřebuješ vyřešit, a navrhnu nejrozumnější další krok.";
+    return "Jo, tohle dává smysl řešit. Lukáš umí spojit web, AI agenta a automatizaci do praktického řešení.";
   }
 
   return null;
