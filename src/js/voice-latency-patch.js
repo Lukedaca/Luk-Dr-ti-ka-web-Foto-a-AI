@@ -1,16 +1,31 @@
 /**
  * voice-latency-patch.js
- * Perceived-latency patch for text → voice replies.
- * It gives an instant native browser acknowledgement while the higher-quality OpenAI TTS is being generated.
+ * Low-latency voice mode for text replies.
+ *
+ * Problem with server TTS:
+ * chat stream -> TTS request -> audio generation -> base64 playback = slow first sound.
+ *
+ * This patch intercepts only /tts calls from chatbot.js and speaks the same text immediately
+ * with browser SpeechSynthesis. It prevents double voices by returning an empty TTS payload,
+ * so the old OpenAI audio queue has nothing else to play.
  */
 ;(function voiceLatencyPatchIIFE() {
   'use strict';
 
+  var TTS_ENDPOINT = '/.netlify/functions/tts';
   var VOICE_OUTPUT_KEY = 'lukas_ai_voice_output';
-  var ACK_COOLDOWN_MS = 6500;
-  var ACK_DELAY_MS = 220;
-  var lastAckAt = 0;
-  var ackTimer = null;
+  var FAST_NATIVE_KEY = 'lukas_ai_fast_native_voice';
+  var originalFetch = window.fetch ? window.fetch.bind(window) : null;
+  var selectedVoiceByLang = {};
+  var lastSpokenAt = 0;
+
+  function isFastNativeEnabled() {
+    try {
+      return window.localStorage.getItem(FAST_NATIVE_KEY) !== 'off';
+    } catch (err) {
+      return true;
+    }
+  }
 
   function isVoiceOutputEnabled() {
     try {
@@ -24,7 +39,14 @@
     return !!(window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active');
   }
 
-  function detectLang() {
+  function supportsNativeSpeech() {
+    return !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  }
+
+  function normalizeLang(lang) {
+    var value = String(lang || '').toLowerCase();
+    if (value.indexOf('en') === 0) return 'en-US';
+    if (value.indexOf('cs') === 0 || value.indexOf('cz') === 0) return 'cs-CZ';
     try {
       if (typeof window.ldGetLanguage === 'function' && window.ldGetLanguage() === 'en') return 'en-US';
     } catch (err) {
@@ -33,84 +55,140 @@
     return 'cs-CZ';
   }
 
-  function warmVoiceEndpoints() {
-    if (!window.fetch) return;
-    fetch('/.netlify/functions/tts', { method: 'GET', cache: 'no-store' }).catch(function() {});
-    fetch('/.netlify/functions/chat', { method: 'GET', cache: 'no-store' }).catch(function() {});
+  function getBestVoice(lang) {
+    if (!supportsNativeSpeech() || !window.speechSynthesis.getVoices) return null;
+    if (selectedVoiceByLang[lang]) return selectedVoiceByLang[lang];
+
+    var voices = window.speechSynthesis.getVoices() || [];
+    if (!voices.length) return null;
+
+    var langPrefix = lang.slice(0, 2).toLowerCase();
+    var exact = voices.find(function(v) { return String(v.lang || '').toLowerCase() === lang.toLowerCase(); });
+    var prefix = voices.find(function(v) { return String(v.lang || '').toLowerCase().slice(0, 2) === langPrefix; });
+    var local = voices.find(function(v) { return v.localService && String(v.lang || '').toLowerCase().slice(0, 2) === langPrefix; });
+
+    selectedVoiceByLang[lang] = local || exact || prefix || null;
+    return selectedVoiceByLang[lang];
   }
 
-  function speakInstantAck() {
-    if (!isVoiceOutputEnabled()) return;
-    if (isLiveVoiceCallActive()) return;
-    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+  function cleanSpeechText(text) {
+    return String(text || '')
+      .replace(/\[\[ACTION:[^\]]+\]\]/gi, '')
+      .replace(/https?:\/\/\S+/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
-    var now = Date.now();
-    if (now - lastAckAt < ACK_COOLDOWN_MS) return;
-    lastAckAt = now;
+  function speakNative(text, lang) {
+    if (!supportsNativeSpeech()) return false;
+    if (!isVoiceOutputEnabled()) return false;
+    if (!isFastNativeEnabled()) return false;
+    if (isLiveVoiceCallActive()) return false;
 
-    var lang = detectLang();
-    var text = lang === 'en-US' ? 'Okay.' : 'Jasně.';
+    var clean = cleanSpeechText(text);
+    if (!clean) return false;
 
     try {
-      var utterance = new window.SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      utterance.rate = 1.08;
+      var normalizedLang = normalizeLang(lang);
+      var utterance = new window.SpeechSynthesisUtterance(clean);
+      var voice = getBestVoice(normalizedLang);
+
+      utterance.lang = normalizedLang;
+      utterance.rate = normalizedLang === 'en-US' ? 1.04 : 1.06;
       utterance.pitch = 1;
-      utterance.volume = 0.85;
+      utterance.volume = 1;
+      if (voice) utterance.voice = voice;
+
+      // Do not cancel here. chatbot.js increments requestId and clears its own queue.
+      // Native SpeechSynthesis should speak sentence chunks in order.
       window.speechSynthesis.speak(utterance);
+      lastSpokenAt = Date.now();
+      return true;
     } catch (err) {
-      // Native acknowledgement is optional. Do not break the chat.
+      return false;
     }
   }
 
-  function scheduleInstantAck() {
-    if (!isVoiceOutputEnabled()) return;
-    if (ackTimer) window.clearTimeout(ackTimer);
-    ackTimer = window.setTimeout(function() {
-      ackTimer = null;
-      speakInstantAck();
-    }, ACK_DELAY_MS);
+  function isTtsRequest(input) {
+    var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+    return typeof url === 'string' && url.indexOf(TTS_ENDPOINT) !== -1;
   }
 
-  function shouldTriggerFromElement(el) {
-    if (!el) return false;
-    if (el.id === 'hero-send') return true;
-    if (el.id === 'sendMessage' || el.id === 'sendBtn' || el.id === 'chat-send') return true;
-    if (el.closest && el.closest('.hero-qr')) return true;
-    if (el.closest && el.closest('.quick-reply')) return true;
-    return false;
+  function parseBody(init) {
+    if (!init || !init.body || typeof init.body !== 'string') return {};
+    try {
+      return JSON.parse(init.body);
+    } catch (err) {
+      return {};
+    }
   }
 
-  function bindLatencyPatch() {
-    warmVoiceEndpoints();
+  function fakeTtsResponse(lang, nativeSpoken) {
+    var body = JSON.stringify({
+      audio: null,
+      sampleRate: 24000,
+      lang: lang || 'cs-CZ',
+      native: true,
+      spoken: !!nativeSpoken
+    });
+    return Promise.resolve(new Response(body, {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    }));
+  }
+
+  function installFetchInterceptor() {
+    if (!originalFetch || !supportsNativeSpeech()) return;
+    if (window.__lukasFastNativeVoiceInstalled) return;
+    window.__lukasFastNativeVoiceInstalled = true;
+
+    window.fetch = function(input, init) {
+      if (isTtsRequest(input) && isFastNativeEnabled()) {
+        var body = parseBody(init);
+        var lang = normalizeLang(body.lang);
+        var spoken = speakNative(body.text, lang);
+        return fakeTtsResponse(lang, spoken);
+      }
+      return originalFetch(input, init);
+    };
+  }
+
+  function warmVoices() {
+    if (!supportsNativeSpeech()) return;
+    try {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = function() {
+        selectedVoiceByLang = {};
+        getBestVoice('cs-CZ');
+        getBestVoice('en-US');
+      };
+    } catch (err) {
+      // ignore
+    }
+  }
+
+  function warmEndpoints() {
+    if (!originalFetch) return;
+    originalFetch('/.netlify/functions/chat', { method: 'GET', cache: 'no-store' }).catch(function() {});
+  }
+
+  function bind() {
+    warmVoices();
+    installFetchInterceptor();
+    warmEndpoints();
 
     document.addEventListener('click', function(event) {
-      var target = event.target;
-      if (target && target.closest) target = target.closest('button, a, [role="button"]') || target;
-
-      if (target && (target.id === 'hero-speech-toggle' || target.id === 'widget-speech-toggle')) {
-        window.setTimeout(warmVoiceEndpoints, 80);
-        return;
-      }
-
-      if (shouldTriggerFromElement(target)) {
-        scheduleInstantAck();
-      }
-    }, true);
-
-    document.addEventListener('keydown', function(event) {
-      if (event.key !== 'Enter' || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return;
-      var target = event.target;
-      if (!target) return;
-      if (target.id === 'hero-input' || target.id === 'chatInput' || target.id === 'messageInput') {
-        scheduleInstantAck();
+      var target = event.target && event.target.closest ? event.target.closest('button, a, [role="button"]') : event.target;
+      if (target && target.id === 'hero-speech-toggle') {
+        setTimeout(warmVoices, 80);
+        setTimeout(warmEndpoints, 120);
       }
     }, true);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindLatencyPatch);
+    document.addEventListener('DOMContentLoaded', bind);
   } else {
-    bindLatencyPatch();
+    bind();
   }
 })();
