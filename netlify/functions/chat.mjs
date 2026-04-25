@@ -1,10 +1,11 @@
 // Hybrid agent streaming chat endpoint for Netlify Functions v2.
-// Streams NDJSON chunks so the client can render text progressively.
+// OpenAI implementation: streams NDJSON chunks so the client can render progressively.
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 20;
+const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 
 const MODE_CONFIG = {
   talk: {
@@ -12,7 +13,6 @@ const MODE_CONFIG = {
     maxOutputTokens: 180,
     temperature: 0.45,
     topP: 0.85,
-    models: ["gemma-3-27b-it"],
     instruction: [
       "REZIM TALK:",
       "- Odpovidej co nejrychleji a co nejprakticteji.",
@@ -25,7 +25,6 @@ const MODE_CONFIG = {
     maxOutputTokens: 280,
     temperature: 0.6,
     topP: 0.9,
-    models: ["gemma-3-27b-it"],
     instruction: [
       "REZIM THINK:",
       "- Kratce rozloz problem, vyber doporuceny smer a rekni proc.",
@@ -38,7 +37,6 @@ const MODE_CONFIG = {
     maxOutputTokens: 360,
     temperature: 0.65,
     topP: 0.9,
-    models: ["gemma-3-27b-it", "gemma-4-31b-it"],
     instruction: [
       "REZIM BUILD:",
       "- Vrat mini vystup, ktery je hned pouzitelny.",
@@ -120,13 +118,6 @@ function jsonResponse(status, body, extraHeaders) {
   });
 }
 
-function convertToGeminiContents(messages) {
-  return messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
-}
-
 function normalizeText(value) {
   return String(value || "")
     .toLowerCase()
@@ -199,6 +190,20 @@ function extractActionTag(fullText) {
   return { cleanText, action: null };
 }
 
+function toOpenAIMessages(mode, messages) {
+  const config = getModeConfig(mode);
+  return [
+    {
+      role: "system",
+      content: `${BASE_SYSTEM_PROMPT}\n\n${config.instruction}`,
+    },
+    ...messages.map((m) => ({
+      role: m.role === "assistant" ? "assistant" : "user",
+      content: m.content,
+    })),
+  ];
+}
+
 async function writeFinalMessage(writer, encoder, text, meta) {
   if (text) {
     await writer.write(encoder.encode(JSON.stringify({ t: text }) + "\n"));
@@ -212,227 +217,86 @@ async function writeResolvedText(writer, encoder, text, meta) {
   await writer.write(encoder.encode(JSON.stringify({ m: { ...meta, action, done: true } }) + "\n"));
 }
 
-function buildPayload(mode, contents) {
-  const config = getModeConfig(mode);
-  return {
-    system_instruction: {
-      parts: [{ text: `${BASE_SYSTEM_PROMPT}\n\n${config.instruction}` }],
-    },
-    contents,
-    generationConfig: {
-      temperature: config.temperature,
-      maxOutputTokens: config.maxOutputTokens,
-      topP: config.topP,
-    },
-    safetySettings: [
-      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_LOW_AND_ABOVE" },
-      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_LOW_AND_ABOVE" },
-    ],
-  };
-}
+async function streamOpenAIResponse(apiKey, mode, messages, writer, encoder) {
+  const fastPath = buildFastPathResponse(mode, messages);
+  if (fastPath) {
+    await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "fast-path" });
+    return;
+  }
 
-async function tryStreamModel(model, apiKey, payload, writer, encoder) {
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`;
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const config = getModeConfig(mode);
+  const payload = {
+    model: OPENAI_CHAT_MODEL,
+    messages: toOpenAIMessages(mode, messages),
+    temperature: config.temperature,
+    top_p: config.topP,
+    max_tokens: config.maxOutputTokens,
+    stream: true,
+  };
+
+  let response;
+  try {
+    response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("OpenAI fetch error:", err);
+    await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
+    return;
+  }
 
   if (!response.ok || !response.body) {
     const errText = await response.text().catch(() => "");
-    console.error(`Stream error (${model}):`, response.status, errText);
-    return { ok: false, text: "", blocked: false };
+    console.error("OpenAI stream error:", response.status, errText);
+    await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
+    return;
   }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   let fullText = "";
-  let blocked = false;
-
-  let scan = 0;
-  let depth = 0;
-  let inStr = false;
-  let escape = false;
-  let objStart = -1;
-
-  function processObject(rawJson) {
-    try {
-      const chunk = JSON.parse(rawJson);
-      const finishReason = chunk.candidates?.[0]?.finishReason;
-      if (finishReason === "SAFETY" || chunk.promptFeedback?.blockReason) {
-        blocked = true;
-        return null;
-      }
-      const parts = chunk.candidates?.[0]?.content?.parts || [];
-      let pieces = "";
-      for (const part of parts) {
-        if (part.thought) continue;
-        const text = part.text || "";
-        if (text) pieces += text;
-      }
-      return pieces;
-    } catch (err) {
-      return null;
-    }
-  }
 
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-
       buffer += decoder.decode(value, { stream: true });
 
-      while (scan < buffer.length) {
-        const c = buffer[scan];
-        if (escape) {
-          escape = false;
-          scan += 1;
-          continue;
-        }
-        if (inStr) {
-          if (c === "\\") escape = true;
-          else if (c === "\"") inStr = false;
-          scan += 1;
-          continue;
-        }
-        if (c === "\"") {
-          inStr = true;
-          scan += 1;
-          continue;
-        }
-        if (c === "{") {
-          if (depth === 0) objStart = scan;
-          depth += 1;
-        } else if (c === "}") {
-          depth -= 1;
-          if (depth === 0 && objStart !== -1) {
-            const raw = buffer.slice(objStart, scan + 1);
-            objStart = -1;
-            const text = processObject(raw);
-            if (text) {
-              fullText += text;
-              await writer.write(encoder.encode(JSON.stringify({ t: text }) + "\n"));
-            }
+      let sepIndex;
+      while ((sepIndex = buffer.indexOf("\n\n")) !== -1) {
+        const event = buffer.slice(0, sepIndex);
+        buffer = buffer.slice(sepIndex + 2);
+
+        const lines = event.split("\n");
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const dataStr = line.slice(5).trim();
+          if (!dataStr || dataStr === "[DONE]") continue;
+
+          try {
+            const chunk = JSON.parse(dataStr);
+            const text = chunk.choices?.[0]?.delta?.content || "";
+            if (!text) continue;
+            fullText += text;
+            await writer.write(encoder.encode(JSON.stringify({ t: text }) + "\n"));
+          } catch (err) {
+            // Ignore malformed stream fragments.
           }
         }
-        scan += 1;
-      }
-
-      if (depth === 0 && objStart === -1 && scan > 2048) {
-        buffer = buffer.slice(scan);
-        scan = 0;
       }
     }
   } catch (err) {
-    console.error(`Stream read error (${model}):`, err);
+    console.error("OpenAI stream read error:", err);
   }
 
-  return { ok: true, text: fullText, blocked };
-}
-
-async function tryNonStreamModel(model, apiKey, payload) {
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      console.error(`Non-stream error (${model}):`, response.status, errText);
-      return { ok: false, text: "", blocked: false };
-    }
-    const data = await response.json();
-    const finishReason = data.candidates?.[0]?.finishReason;
-    if (finishReason === "SAFETY" || data.promptFeedback?.blockReason) {
-      return { ok: true, text: "", blocked: true };
-    }
-    const parts = data.candidates?.[0]?.content?.parts || [];
-    let text = "";
-    for (const part of parts) {
-      if (part.thought) continue;
-      if (part.text) text += part.text;
-    }
-    return { ok: true, text, blocked: false };
-  } catch (err) {
-    console.error(`Non-stream fetch error (${model}):`, err);
-    return { ok: false, text: "", blocked: false };
-  }
-}
-
-async function streamGeminiResponse(apiKey, mode, contents, writer, encoder) {
-  const fastPath = buildFastPathResponse(mode, contents.map((item) => ({
-    role: item.role === "model" ? "assistant" : "user",
-    content: item.parts?.[0]?.text || "",
-  })));
-
-  if (fastPath) {
-    await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true });
-    return;
-  }
-
-  const config = getModeConfig(mode);
-  const payload = buildPayload(mode, contents);
-
-  let fullText = "";
-  let blocked = false;
-
-  for (const model of config.models) {
-    const result = await tryStreamModel(model, apiKey, payload, writer, encoder);
-    if (result.blocked) {
-      blocked = true;
-      break;
-    }
-    if (result.ok && result.text) {
-      fullText = result.text;
-      break;
-    }
-    console.warn(`Stream model ${model} produced no text, trying next`);
-  }
-
-  if (blocked) {
-    await writeFinalMessage(
-      writer,
-      encoder,
-      "Tohle na verejnem agentovi resit nemuzu. Muzu to preformulovat do bezpecneho zadani nebo navrhnout dalsi krok.",
-      { action: null, blocked: true, mode }
-    );
-    return;
-  }
-
-  if (!fullText) {
-    console.warn("All stream models produced no text, falling back to non-stream generateContent");
-    for (const model of config.models) {
-      const result = await tryNonStreamModel(model, apiKey, payload);
-      if (result.blocked) {
-        await writeFinalMessage(
-          writer,
-          encoder,
-          "Tohle na verejnem agentovi resit nemuzu. Muzu to preformulovat do bezpecneho zadani nebo navrhnout dalsi krok.",
-          { action: null, blocked: true, mode }
-        );
-        return;
-      }
-      if (result.ok && result.text) {
-        fullText = result.text;
-        break;
-      }
-    }
-  }
-
-  if (!fullText) {
-    await writeFinalMessage(
-      writer,
-      encoder,
-      "Ted zrovna nedokazu odpovedet. Zkus to prosim za chvili.",
-      { action: null, error: true, mode }
-    );
+  if (!fullText.trim()) {
+    await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
     return;
   }
 
@@ -440,7 +304,7 @@ async function streamGeminiResponse(apiKey, mode, contents, writer, encoder) {
   if (cleanText !== fullText.trim()) {
     await writer.write(encoder.encode(JSON.stringify({ replace: cleanText }) + "\n"));
   }
-  await writer.write(encoder.encode(JSON.stringify({ m: { action, done: true, mode } }) + "\n"));
+  await writer.write(encoder.encode(JSON.stringify({ m: { action, done: true, mode, model: OPENAI_CHAT_MODEL } }) + "\n"));
 }
 
 export default async (req) => {
@@ -449,7 +313,7 @@ export default async (req) => {
   }
 
   if (req.method === "GET") {
-    return jsonResponse(200, { ok: true, warm: true });
+    return jsonResponse(200, { ok: true, warm: true, provider: "openai", model: OPENAI_CHAT_MODEL });
   }
 
   if (req.method !== "POST") {
@@ -462,12 +326,12 @@ export default async (req) => {
     "unknown";
 
   if (isRateLimited(clientIp)) {
-    return jsonResponse(429, { error: "Prilis mnoho pozadavku. Zkus to za chvili." });
+    return jsonResponse(429, { error: "Příliš mnoho požadavků. Zkus to za chvíli." });
   }
 
-  const apiKey = process.env.GEMMA_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return jsonResponse(500, { error: "API key not configured" });
+    return jsonResponse(500, { error: "OPENAI_API_KEY není nastavený v Netlify Environment variables." });
   }
 
   let messages;
@@ -489,19 +353,18 @@ export default async (req) => {
       return jsonResponse(400, { error: "Invalid message role" });
     }
     if (typeof msg.content !== "string" || msg.content.length > MAX_MSG_LENGTH) {
-      return jsonResponse(400, { error: "Zprava je prilis dlouha (max 700 znaku)." });
+      return jsonResponse(400, { error: "Zpráva je příliš dlouhá (max 700 znaků)." });
     }
   }
 
   const config = getModeConfig(mode);
   const trimmed = messages.slice(-config.history);
-  const contents = convertToGeminiContents(trimmed);
 
   const encoder = new TextEncoder();
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
 
-  streamGeminiResponse(apiKey, mode, contents, writer, encoder)
+  streamOpenAIResponse(apiKey, mode, trimmed, writer, encoder)
     .catch((err) => {
       console.error("Stream function error:", err);
       writer.write(encoder.encode(JSON.stringify({ m: { action: null, error: true, mode } }) + "\n")).catch(() => {});
