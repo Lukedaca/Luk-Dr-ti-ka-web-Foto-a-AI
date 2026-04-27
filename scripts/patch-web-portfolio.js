@@ -227,15 +227,15 @@ const websSection = `
             </style>
 
             <div class="container mx-auto px-6 section-wrap">
-                <p class="text-center uppercase tracking-[0.35em] text-blue-300/80 text-sm mb-4">Vybrané realizace</p>
+                <p class="text-center uppercase tracking-[0.35em] text-blue-300/80 text-sm mb-4">Portfolio realizací</p>
                 <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Weby</h2>
-                <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">Ukázky webových projektů, které propojují moderní design, rychlost, SEO a praktickou použitelnost pro klienty.</p>
+                <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">Vybrané webové projekty pro klienty — moderní prezentace, čistý design a praktické řešení podle konkrétního zadání.</p>
 
                 <div class="webs-table-wrap" role="region" aria-label="Portfolio webových projektů">
                     <div class="webs-table-head" aria-hidden="true">
                         <div>Klient</div>
-                        <div>Projekt</div>
-                        <div>Stav</div>
+                        <div>Realizace</div>
+                        <div>Typ</div>
                         <div></div>
                     </div>
 
@@ -244,20 +244,20 @@ const websSection = `
                             <span class="webs-client-badge" aria-hidden="true">DK</span>
                             <div>
                                 <strong>Klientka masáže Dominika Kolková</strong>
-                                <span>Olomouc · masáže a relaxační služby</span>
+                                <span>Olomouc · osobní služby</span>
                             </div>
                         </div>
                         <div>
-                            <strong>Masáže Dominika Kolková</strong>
-                            <span>Prezentační web, ceník, SEO a Google indexace</span>
+                            <strong>Prezentační web pro masáže</strong>
+                            <span>Jemná vizuální identita, nabídka služeb a jednoduché objednání</span>
                         </div>
-                        <div><span class="webs-status">Hotovo / online</span></div>
+                        <div><span class="webs-status">Web online</span></div>
                         <div class="webs-chevron" aria-hidden="true">⌄</div>
                     </button>
 
                     <div id="web-dominika-detail" class="webs-detail" data-web-detail>
                         <div class="webs-detail-card">
-                            <p>Jemný prezentační web pro masáže v Olomouci. Součástí je nabídka služeb, kontaktní objednávací modal, sitemap, robots.txt a základ pro dohledatelnost ve vyhledávání.</p>
+                            <p>Realizace webu pro klientku z oblasti masáží. Cílem bylo vytvořit elegantní, klidnou a důvěryhodnou prezentaci, která návštěvníka rychle dovede k výběru služby a kontaktu.</p>
                             <a class="webs-open-link" href="https://masaze-dominika.org/" target="_blank" rel="noopener noreferrer">Otevřít web Dominiky</a>
                         </div>
                     </div>
@@ -279,6 +279,8 @@ const websSection = `
             </script>
         </section>
 `;
+
+html = html.replace(/\n\s*<!-- Weby Section -->[\s\S]*?<\/section>\s*(?=\n\s*<section id="skills")/, `\n${websSection}\n`);
 
 if (!html.includes('id="weby"')) {
   if (html.includes('<section id="skills"')) {
