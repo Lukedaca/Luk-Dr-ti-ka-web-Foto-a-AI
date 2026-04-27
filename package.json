@@ -4,7 +4,7 @@
   "description": "Portfolio website - Lukas Drsticka",
   "private": true,
   "scripts": {
-    "build": "npm run build:css && npm run build:js && npm run build:images",
+    "build": "npm run build:css && npm run build:js && npm run build:images && node scripts/patch-web-portfolio.js",
     "build:css": "npx tailwindcss -i src/css/main.css -o dist/css/tailwind.tmp.css --minify && node -e \"const fs=require('fs');const tw=fs.readFileSync('dist/css/tailwind.tmp.css');const custom=fs.readFileSync('assets/styles.css');fs.writeFileSync('dist/css/styles.min.css',tw+'\\n'+custom);fs.unlinkSync('dist/css/tailwind.tmp.css');console.log('Combined CSS: '+(tw.length+custom.length)+' bytes')\"",
     "build:js": "node scripts/build-js.js",
     "build:images": "node scripts/optimize-images.js",
