@@ -309,8 +309,84 @@ function getLastUserMessage(messages) {
 
 function formatCollaborations() {
   return PUBLIC_KNOWLEDGE.collaborations
-    .map((item) => `${item.name} — ${item.description}`)
+    .map((item) => `${item.name} - ${item.description}`)
     .join(" ");
+}
+
+function parseInlineFunctionCalls(text) {
+  if (typeof text !== "string" || !text.includes("<function=")) return [];
+
+  const calls = [];
+  const re = /<function=([a-zA-Z0-9_:-]+)>\s*([\s\S]*?)\s*<\/function>/g;
+  let match;
+  while ((match = re.exec(text)) !== null) {
+    const name = String(match[1] || "").trim();
+    if (!name) continue;
+
+    let args = {};
+    try {
+      args = match[2] ? JSON.parse(match[2].trim()) : {};
+    } catch (err) {
+      continue;
+    }
+
+    calls.push({
+      id: `inline_${calls.length}`,
+      name,
+      args,
+    });
+  }
+
+  return calls;
+}
+
+function stripInlineFunctionTags(text) {
+  return String(text || "")
+    .replace(/<function=[a-zA-Z0-9_:-]+>\s*[\s\S]*?\s*<\/function>/g, "")
+    .replace(/<\/?function[^>]*>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function createInlineFunctionStreamFilter() {
+  const completeFunctionTagRe = /<function=[a-zA-Z0-9_:-]+>\s*[\s\S]*?\s*<\/function>/g;
+  const marker = "<function=";
+  let buffer = "";
+
+  function takeSafeText() {
+    buffer = buffer.replace(completeFunctionTagRe, "");
+
+    const openIndex = buffer.search(/<function=[a-zA-Z0-9_:-]*/);
+    if (openIndex !== -1) {
+      const safe = buffer.slice(0, openIndex);
+      buffer = buffer.slice(openIndex);
+      return safe;
+    }
+
+    let keep = 0;
+    for (let i = 1; i < marker.length; i += 1) {
+      if (buffer.endsWith(marker.slice(0, i))) keep = i;
+    }
+
+    const safe = keep ? buffer.slice(0, -keep) : buffer;
+    buffer = keep ? buffer.slice(-keep) : "";
+    return safe;
+  }
+
+  return {
+    push(chunk) {
+      buffer += String(chunk || "");
+      return takeSafeText();
+    },
+    flush() {
+      buffer = buffer.replace(completeFunctionTagRe, "");
+      const safe = buffer.includes("<function=")
+        ? buffer.replace(/<function=[\s\S]*$/g, "").replace(/<\/?function[^>]*>/g, "")
+        : buffer;
+      buffer = "";
+      return safe;
+    },
+  };
 }
 
 function buildFastPathResponse(mode, messages) {
@@ -350,7 +426,11 @@ function buildFastPathResponse(mode, messages) {
   }
 
   if (/^(ahoj|cau|dobry den|hello|hi|hey)\b/.test(normalized)) {
-    return "Ahoj, jsem Lukáš AI. Pomůžu s focením, portfoliem nebo AI projekty.";
+    return "Ahoj, jsem Lukáš AI. Pomůžu s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
+  }
+
+  if (includesAny(normalized, ["jak se mas", "how are you", "how are u"])) {
+    return "Jsem v pohodě, díky. Můžu pomoct s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
   }
 
   if (includesAny(normalized, ["kontakt", "email", "mail", "kontaktovat", "contact"])) {
@@ -375,8 +455,8 @@ function buildFastPathResponse(mode, messages) {
 function extractActionTag(fullText) {
   const re = /\[\[ACTION:([a-z_]+):([a-z0-9_-]+)\]\]/i;
   const match = fullText.match(re);
-  if (!match) return { cleanText: fullText.trim(), action: null };
-  const cleanText = fullText.replace(re, "").trim();
+  if (!match) return { cleanText: stripInlineFunctionTags(fullText), action: null };
+  const cleanText = stripInlineFunctionTags(fullText.replace(re, ""));
   const type = match[1].toLowerCase();
   const target = match[2].toLowerCase();
   if (type === "voice") {
@@ -491,6 +571,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
   const decoder = new TextDecoder();
   let buffer = "";
   let fullText = "";
+  const streamFilter = createInlineFunctionStreamFilter();
   const toolCallBuffer = [];
 
   try {
@@ -516,7 +597,10 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
             const text = delta.content || "";
             if (text) {
               fullText += text;
-              await writer.write(encoder.encode(JSON.stringify({ t: text }) + "\n"));
+              const visibleText = streamFilter.push(text);
+              if (visibleText) {
+                await writer.write(encoder.encode(JSON.stringify({ t: visibleText }) + "\n"));
+              }
             }
             if (Array.isArray(delta.tool_calls)) {
               for (const tc of delta.tool_calls) {
@@ -537,7 +621,15 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
     console.error("OpenAI stream read error:", err);
   }
 
-  const rawCalls = parseStreamedToolCalls(toolCallBuffer);
+  const visibleTail = streamFilter.flush();
+  if (visibleTail) {
+    await writer.write(encoder.encode(JSON.stringify({ t: visibleTail }) + "\n"));
+  }
+
+  const rawCalls = [
+    ...parseStreamedToolCalls(toolCallBuffer),
+    ...parseInlineFunctionCalls(fullText),
+  ];
 
   let validatedActions = [];
   if (rawCalls.length) {
