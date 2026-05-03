@@ -400,6 +400,18 @@ function buildFastPathResponse(mode, messages) {
 
   const normalizedMode = normalizeMode(mode);
 
+  const asksInquiry =
+    includesAny(normalized, ["poptavka", "poptavku", "poptavky", "objednavka", "objednavku", "objednat", "rezervace", "rezervaci", "rezervovat"]) ||
+    (includesAny(normalized, ["odeslat", "odeslanim", "odesli", "poslat", "posli"]) && includesAny(normalized, ["poptavka", "poptavku", "poptavky"]));
+
+  if (asksInquiry && includesAny(normalized, ["odeslat", "odeslanim", "odesli", "poslat", "posli"])) {
+    return "Pomůžu. K odeslání poptávky potřebuju jméno, e-mail, typ focení nebo služby, termín, místo a krátkou zprávu. Pošli mi ty údaje v jedné zprávě, nebo je vyplň ve formuláři níže. [[ACTION:scroll:kontakt]]";
+  }
+
+  if (asksInquiry) {
+    return "Jasně. Můžeš napsat: Ahoj Lukáši, mám zájem o focení. Potřebuji nafotit [co], ideálně [termín], v místě [místo]. Kontakt na mě je [e-mail/telefon]. [[ACTION:scroll:kontakt]]";
+  }
+
   if (normalizedMode === "build" && includesAny(normalized, ["brief", "poptavkovy", "poptavka", "spoluprace", "kontakt", "foceni"])) {
     return "Jasně. Stručný brief: typ focení, termín, místo, počet lidí, účel fotek a kontakt. Pošli Lukášovi, co potřebuješ nafotit a kdy.";
   }
