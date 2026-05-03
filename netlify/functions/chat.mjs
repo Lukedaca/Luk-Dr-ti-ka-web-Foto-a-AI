@@ -25,6 +25,7 @@ import {
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
 const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
+const LLM_BASE_URL = (process.env.LLM_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
 
@@ -359,7 +360,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
 
   let response;
   try {
-    response = await fetch("https://api.openai.com/v1/chat/completions", {
+    response = await fetch(`${LLM_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
@@ -491,10 +492,14 @@ export default async (req) => {
   }
 
   if (req.method === "GET") {
+    const provider = LLM_BASE_URL.includes("groq.com") ? "groq"
+      : LLM_BASE_URL.includes("openrouter.ai") ? "openrouter"
+      : LLM_BASE_URL.includes("cerebras.ai") ? "cerebras"
+      : "openai";
     return jsonResponse(200, {
       ok: true,
       warm: true,
-      provider: "openai",
+      provider,
       model: OPENAI_CHAT_MODEL,
       tools: ENABLE_TOOLS ? TOOLS.map((t) => t.function.name) : [],
       turnstile_required: REQUIRE_TURNSTILE,
