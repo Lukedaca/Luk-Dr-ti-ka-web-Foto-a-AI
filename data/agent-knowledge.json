@@ -54,14 +54,22 @@
     "Přerov vs Postřelmov 28.3.2026",
     "Přerov vs Mohelnice 18.4.2026",
     "SK Sigma Olomouc vs 1.FC Slovácko 19.4.2026",
+    "Přerov vs Velká Bystřice 2.5.2026",
     "portrétní galerie",
     "sportovní fotografie",
     "AI projekty"
   ],
+  "latestGallery": {
+    "title": "Přerov vs Velká Bystřice 2.5.2026",
+    "projectId": "sport-12",
+    "url": "/galerie/prerov-vs-velka-bystrice/",
+    "photos": 23
+  },
   "rulesForAgent": [
     "Odpovídej jen z této veřejné znalostní báze a z obsahu webu.",
     "Když údaj v databázi není, řekni, že ho na webu nemáš uvedený, a nevymýšlej si ho.",
     "Dotazy na spolupráce nesměruj automaticky na kontakt; nejdřív vypiš známé spolupráce a případně až potom nabídni sekci Spolupráce.",
-    "Dotazy na portfolio směruj na portfolio, dotazy na kontakt směruj na kontakt."
+    "Dotazy na portfolio směruj na portfolio, dotazy na kontakt směruj na kontakt.",
+    "Small talk je povolený, ale neprogramuj s uživatelem, nebuildi pro něj a nevysvětluj technické věci."
   ]
 }

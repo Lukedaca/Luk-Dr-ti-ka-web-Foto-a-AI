@@ -71,36 +71,36 @@
           label: 'Think',
           badge: isEn ? 'Agent reasoning' : 'Agentní úvaha',
           helper: isEn
-            ? 'I will break the request down, suggest a direction and point out weak spots.'
-            : 'Rozeberu zadání, navrhnu směr a upozorním na slabiny.',
+            ? 'I will help choose a practical direction for photography, portfolio or collaboration.'
+            : 'Pomůžu vybrat praktický směr pro focení, portfolio nebo spolupráci.',
           replies: isEn
             ? [
-                { text: 'AI agent for business', value: 'Think through an AI agent for a small company that would do real work.' },
-                { text: 'Website automation', value: 'How would you automate lead flow and website communication?' },
-                { text: 'Pilot strategy', value: 'Suggest a sensible pilot for deploying an AI assistant.' }
+                { text: 'Latest gallery', value: 'Show me the latest photo gallery.' },
+                { text: 'Photo shoot choice', value: 'Help me choose the right type of photo shoot.' },
+                { text: 'Collaboration', value: 'What is the best next step if I want to work with Lukas?' }
               ]
             : [
-                { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro menší firmu, který by dělal reálnou práci.' },
-                { text: 'Automatizace webu', value: 'Jak bys zautomatizoval lead flow a komunikaci na webu?' },
-                { text: 'Strategie pilotu', value: 'Navrhni rozumný pilot pro nasazení AI asistenta.' }
+                { text: 'Nejnovější galerie', value: 'Ukaž mi nejnovější fotogalerii.' },
+                { text: 'Výběr focení', value: 'Pomoz mi vybrat vhodný typ focení.' },
+                { text: 'Spolupráce', value: 'Jaký je nejlepší další krok, když chci spolupracovat s Lukášem?' }
               ]
         },
         build: {
-          label: 'Build',
-          badge: isEn ? 'Mini deliverable' : 'Mini výstup',
+          label: 'Brief',
+          badge: isEn ? 'Inquiry brief' : 'Poptávkový brief',
           helper: isEn
-            ? 'I prepare an output that is already usable for a call, brief or next decision.'
-            : 'Připravuju výstup, který už jde někam poslat nebo podle něj jednat.',
+            ? 'I prepare a short non-technical brief for a shoot, portfolio or collaboration.'
+            : 'Připravím krátký netechnický brief pro focení, portfolio nebo spolupráci.',
           replies: isEn
             ? [
-                { text: 'Mini brief', value: 'Create a short collaboration brief for an AI agent on a website.' },
-                { text: 'Draft scope', value: 'Write scope for the first version of a personal AI agent.' },
-                { text: 'Roadmap', value: 'Prepare a short launch roadmap for that kind of agent.' }
+                { text: 'Shoot brief', value: 'Create a short inquiry brief for a photo shoot.' },
+                { text: 'Portfolio note', value: 'Prepare a short note about what I liked in the portfolio.' },
+                { text: 'Contact message', value: 'Draft a short message for contacting Lukas about collaboration.' }
               ]
             : [
-                { text: 'Mini brief', value: 'Vytvoř mi mini brief spolupráce na AI agentovi pro web.' },
-                { text: 'Návrh scope', value: 'Sepiš scope pro první verzi osobního AI agenta.' },
-                { text: 'Roadmapa', value: 'Připrav krátkou roadmapu pro launch takového agenta.' }
+                { text: 'Brief focení', value: 'Vytvoř krátký poptávkový brief pro focení.' },
+                { text: 'Poznámka k portfoliu', value: 'Připrav krátkou poznámku k tomu, co mě zaujalo v portfoliu.' },
+                { text: 'Zpráva Lukášovi', value: 'Navrhni krátkou zprávu Lukášovi kvůli spolupráci.' }
               ]
         }
       },
@@ -141,21 +141,21 @@
     think: {
       label: 'Think',
       badge: 'Agent reasoning',
-      helper: 'Rozeberu zadání, navrhnu směr a upozorním na slabiny.',
+      helper: 'Pomůžu vybrat praktický směr pro focení, portfolio nebo spolupráci.',
       replies: [
-        { text: 'AI agent pro firmu', value: 'Promysli AI agenta pro menší firmu, který by dělal reálnou práci.' },
-        { text: 'Automatizace webu', value: 'Jak bys zautomatizoval lead flow a komunikaci na webu?' },
-        { text: 'Strategie pilotu', value: 'Navrhni rozumný pilot pro nasazení AI asistenta.' }
+        { text: 'Nejnovější galerie', value: 'Ukaž mi nejnovější fotogalerii.' },
+        { text: 'Výběr focení', value: 'Pomoz mi vybrat vhodný typ focení.' },
+        { text: 'Spolupráce', value: 'Jaký je nejlepší další krok, když chci spolupracovat s Lukášem?' }
       ]
     },
     build: {
-      label: 'Build',
-      badge: 'Mini deliverable',
-      helper: 'Připravuju výstup, který už jde někam poslat nebo podle něj jednat.',
+      label: 'Brief',
+      badge: 'Poptávkový brief',
+      helper: 'Připravím krátký netechnický brief pro focení, portfolio nebo spolupráci.',
       replies: [
-        { text: 'Mini brief', value: 'Vytvoř mi mini brief spolupráce na AI agentovi pro web.' },
-        { text: 'Návrh scope', value: 'Sepiš scope pro první verzi osobního AI agenta.' },
-        { text: 'Roadmapa', value: 'Připrav krátkou roadmapu pro launch takového agenta.' }
+        { text: 'Brief focení', value: 'Vytvoř krátký poptávkový brief pro focení.' },
+        { text: 'Poznámka k portfoliu', value: 'Připrav krátkou poznámku k tomu, co mě zaujalo v portfoliu.' },
+        { text: 'Zpráva Lukášovi', value: 'Navrhni krátkou zprávu Lukášovi kvůli spolupráci.' }
       ]
     }
   };
@@ -179,17 +179,17 @@
           ? locale.workbench.thinkSteps
           : locale.workbench.talkSteps,
       artifactTitle: mode === 'build'
-        ? (isEn ? 'What this can produce' : 'Co z toho může vzniknout')
+        ? (isEn ? 'What I can prepare' : 'Co můžu připravit')
         : (isEn ? 'What this mode can do' : 'Co tenhle režim umí'),
       artifactBody: mode === 'build'
-        ? (isEn ? 'I can prepare a mini brief, automation scope, AI agent proposal or a call summary.' : 'Můžu připravit mini brief, scope automatizace, návrh AI agenta nebo call summary.')
+        ? (isEn ? 'I can prepare a short non-technical brief, contact message or portfolio note.' : 'Můžu připravit krátký netechnický brief, zprávu ke kontaktu nebo poznámku k portfoliu.')
         : mode === 'think'
-          ? (isEn ? 'I can break down the idea, show risks, suggest architecture and recommend a first pilot.' : 'Můžu rozebrat nápad, ukázat rizika, navrhnout architekturu a doporučit první pilot.')
+          ? (isEn ? 'I can help choose a sensible next step around photography, portfolio or collaboration.' : 'Můžu pomoct vybrat rozumný další krok kolem focení, portfolia nebo spolupráce.')
           : (isEn ? 'I can talk about Lukas, the projects, the portfolio and switch into an agent workflow when it makes sense.' : 'Můžu mluvit o Lukášovi, projektech, portfoliu a při správné chvíli se přepnout do agentního režimu.'),
-      ctaLabel: mode === 'build' ? (isEn ? 'Try build mode' : 'Zkusit build mode') : (isEn ? 'Show me a concrete proposal' : 'Chci vidět konkrétní návrh'),
+      ctaLabel: mode === 'build' ? (isEn ? 'Prepare a brief' : 'Připravit brief') : (isEn ? 'Show latest gallery' : 'Ukázat nejnovější galerii'),
       ctaValue: mode === 'build'
-        ? (isEn ? 'Create a concrete collaboration proposal for an AI agent.' : 'Vytvoř mi konkrétní návrh spolupráce na AI agentovi.')
-        : (isEn ? 'Switch to build mode and prepare a concrete proposal for me.' : 'Přepneme to do build mode a připrav mi konkrétní návrh.')
+        ? (isEn ? 'Create a short non-technical collaboration brief.' : 'Vytvoř krátký netechnický brief ke spolupráci.')
+        : (isEn ? 'Show me the latest photo gallery.' : 'Ukaž mi nejnovější fotogalerii.')
     };
   }
 
@@ -1079,6 +1079,10 @@
     return 'foto';
   }
 
+  var CHATBOT_PROJECT_LINKS = {
+    'sport-12': '/galerie/prerov-vs-velka-bystrice/'
+  };
+
   function chatbotApplyPortfolioFilter(category) {
     var filter = chatbotNormalizeGalleryCategory(category);
     var buttons = document.querySelectorAll('.filter-btn, [data-filter]');
@@ -1104,6 +1108,35 @@
     }
   }
 
+  function chatbotOpenPortfolioProject(projectId) {
+    var safeId = String(projectId || '').replace(/[^a-z0-9_-]/gi, '');
+    if (!safeId) return;
+
+    var portfolio = document.getElementById('portfolio');
+    if (portfolio) portfolio.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    var card = document.querySelector('[data-project-id="' + safeId + '"]');
+    if (card) {
+      card.classList.add('ai-highlight');
+      setTimeout(function() { card.classList.remove('ai-highlight'); }, 2400);
+
+      var directLink = card.getAttribute('href') || card.getAttribute('data-project-link');
+      if (directLink) {
+        setTimeout(function() { window.location.href = directLink; }, 650);
+        return;
+      }
+
+      if (typeof card.click === 'function') {
+        setTimeout(function() { card.click(); }, 650);
+        return;
+      }
+    }
+
+    if (CHATBOT_PROJECT_LINKS[safeId]) {
+      setTimeout(function() { window.location.href = CHATBOT_PROJECT_LINKS[safeId]; }, 650);
+    }
+  }
+
   function chatbotExecuteAction(action) {
     if (!action || !action.type) return;
 
@@ -1121,6 +1154,9 @@
           highlightTarget.classList.add('ai-highlight');
           setTimeout(function() { highlightTarget.classList.remove('ai-highlight'); }, 3000);
         }
+        break;
+      case 'project':
+        chatbotOpenPortfolioProject(action.target);
         break;
     }
   }
@@ -1185,8 +1221,7 @@
       chatbotApplyPortfolioFilter(args.category);
     },
     show_project_detail: function(args) {
-      var card = document.querySelector('[data-project-id="' + (args.project_id || '').replace(/"/g,'') + '"]');
-      if (card && typeof card.click === 'function') card.click();
+      chatbotOpenPortfolioProject(args.project_id);
     },
     compare_before_after: function(args) {
       var slider = document.querySelector('[data-before-after="' + (args.image_id || '').replace(/"/g,'') + '"]');
