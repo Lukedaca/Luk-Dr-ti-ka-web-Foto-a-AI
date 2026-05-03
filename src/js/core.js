@@ -426,19 +426,32 @@ function lazyLoadModules() {
     }
 
     // Load chatbot immediately (hero AI chatbox needs it on page load)
-    loadModule('/dist/js/chatbot.min.js', () => {
-        console.log('Chatbot module loaded');
-        loadModule('/dist/js/voice.min.js', () => {
-            console.log('Voice module loaded');
+    loadModule('/dist/js/turnstile.min.js', () => {
+        console.log('Turnstile module loaded');
+        loadModule('/dist/js/chatbot.min.js', () => {
+            console.log('Chatbot module loaded');
+            loadModule('/dist/js/voice.min.js', () => {
+                console.log('Voice module loaded');
+            });
+        });
+    }, () => {
+        loadModule('/dist/js/chatbot.min.js', () => {
+            console.log('Chatbot module loaded');
+            loadModule('/dist/js/voice.min.js', () => {
+                console.log('Voice module loaded');
+            });
         });
     });
 }
 
 // Helper function to load scripts dynamically
-function loadModule(src, callback) {
+function loadModule(src, callback, errorCallback) {
     const script = document.createElement('script');
     script.src = src;
     script.onload = callback;
-    script.onerror = () => console.error(`Failed to load module: ${src}`);
+    script.onerror = () => {
+        console.error(`Failed to load module: ${src}`);
+        if (typeof errorCallback === 'function') errorCallback();
+    };
     document.body.appendChild(script);
 }

@@ -1,14 +1,17 @@
 const MODEL = "gemini-2.5-flash-preview-tts";
+const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
+const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "coral";
+const OPENAI_SPEECH_URL = "https://api.openai.com/v1/audio/speech";
 const MAX_TEXT_LENGTH = 1800;
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 25;
+const RATE_LIMIT_MAX = 60;
 
 const ipHits = new Map();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
 function isRateLimited(ip) {
@@ -41,6 +44,62 @@ function buildPrompt(text, lang) {
     "### TRANSCRIPT",
     text,
   ].join("\n");
+}
+
+function buildOpenAiInstructions(lang) {
+  const isEnglish = String(lang || "").toLowerCase().startsWith("en");
+  return isEnglish
+    ? "Voice for Lukas AI: natural, warm, clear, modern, calm and confident. Neutral international English accent. Keep a conversational pace and speak exactly the input text."
+    : "Hlas pro Lukas AI: prirozeny, prijemny, jasny, moderni, klidny a sebejisty. Mluv cesky, civilne, bez prehnane reklamnich intonaci. Drz konverzacni tempo a precti presne zadany text.";
+}
+
+async function generateOpenAiSpeechPayload(apiKey, text, lang) {
+  const safeText = typeof text === "string" ? text.trim() : "";
+  const safeLang = typeof lang === "string" && lang.trim() ? lang.trim() : "cs-CZ";
+
+  if (!safeText) {
+    throw new Error("Text is required");
+  }
+
+  if (safeText.length > MAX_TEXT_LENGTH) {
+    throw new Error("Text is too long");
+  }
+
+  const response = await fetch(OPENAI_SPEECH_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: OPENAI_TTS_MODEL,
+      voice: OPENAI_TTS_VOICE,
+      input: safeText,
+      instructions: buildOpenAiInstructions(safeLang),
+      response_format: "pcm",
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "");
+    console.error("OpenAI TTS error:", response.status, errText);
+    throw new Error("OpenAI TTS service unavailable");
+  }
+
+  const audioBuffer = Buffer.from(await response.arrayBuffer());
+  if (!audioBuffer.length) {
+    throw new Error("No audio returned from OpenAI TTS service");
+  }
+
+  return {
+    audio: audioBuffer.toString("base64"),
+    mimeType: "audio/pcm;rate=24000",
+    sampleRate: 24000,
+    voiceName: OPENAI_TTS_VOICE,
+    lang: safeLang,
+    provider: "openai",
+    model: OPENAI_TTS_MODEL,
+  };
 }
 
 async function generateSpeechPayload(apiKey, text, lang) {
@@ -111,6 +170,10 @@ async function handler(event) {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }
 
+  if (event.httpMethod === "GET" || event.httpMethod === "HEAD") {
+    return { statusCode: 204, headers: corsHeaders, body: "" };
+  }
+
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -132,12 +195,13 @@ async function handler(event) {
     };
   }
 
-  const apiKey = process.env.GEMMA_API_KEY;
-  if (!apiKey) {
+  const openAiApiKey = process.env.OPENAI_API_KEY;
+  const gemmaApiKey = process.env.GEMMA_API_KEY;
+  if (!openAiApiKey && !gemmaApiKey) {
     return {
       statusCode: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "API key not configured" }),
+      body: JSON.stringify({ error: "TTS API key not configured" }),
     };
   }
 
@@ -157,7 +221,19 @@ async function handler(event) {
   }
 
   try {
-    const speech = await generateSpeechPayload(apiKey, text, lang);
+    let speech;
+    if (openAiApiKey) {
+      try {
+        speech = await generateOpenAiSpeechPayload(openAiApiKey, text, lang);
+      } catch (openAiErr) {
+        if (!gemmaApiKey) throw openAiErr;
+        console.warn("OpenAI TTS failed, falling back to Gemini TTS:", openAiErr);
+      }
+    }
+
+    if (!speech) {
+      speech = await generateSpeechPayload(gemmaApiKey, text, lang);
+    }
 
     return {
       statusCode: 200,
