@@ -16,6 +16,7 @@ import {
 } from "./_lib/tools.mjs";
 import { sanitizeToolCalls, validateAgentText } from "./_lib/tool-validator.mjs";
 import {
+  VISITOR_TTL_DAYS,
   buildMemoryContext,
   getVisitorMemory,
   normalizeVisitorId,
@@ -26,6 +27,18 @@ const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
 const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 const LLM_BASE_URL = (process.env.LLM_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
+const GEMMA_OPENAI_BASE_URL = (process.env.GEMMA_OPENAI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/+$/, "");
+const GEMMA_CHAT_MODEL = process.env.GEMMA_CHAT_MODEL || "gemma-4-27b-it";
+const GEMMA_FALLBACK_MODELS = Array.from(new Set([GEMMA_CHAT_MODEL, "gemini-2.0-flash", "gemini-1.5-flash"].filter(Boolean)));
+const GEMINI_NATIVE_MODELS = Array.from(new Set([
+  GEMMA_CHAT_MODEL,
+  "gemini-3.1-flash",
+  "gemini-3.1-flash-preview",
+  "gemini-3.1-flash-live-preview",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+].filter(Boolean)));
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
 
@@ -227,6 +240,16 @@ KDO JE LUKAS
 - Projekt: Fotograf AI (AI editor pro fotografy)
 - Kontakt: lukas.drsticka@gmail.com
 - Web: lukasdrsticka-ai-and-foto.com
+- Praha NENI vychozi misto ani priklad. Lukas je z Prerova. Prahu pouzij jen kdyz ji uzivatel sam vyslovne napise.
+
+POPTAVKY A OBJEDNAVKY
+- Kdyz uzivatel chce napsat objednavku, poptavku, rezervaci nebo zpravu Lukášovi, sestav kratky text na miru podle toho, co uzivatel napsal.
+- Pokud chybi dulezite udaje, neblokuj se: dej pouzitelnou sablonu s jasnymi misty k doplneni a rekni, ktere udaje doplnit.
+- Nikdy si nevymyslej typ foceni, termin, misto, cenu ani rozsah zakazky. Kdyz chybi, pouzij hranate placeholdery.
+- Nikdy nepouzivej Prahu jako domyslene misto. Pokud misto chybi, napis [misto] nebo "Prerov / okoli" jen jako volbu k uprave.
+- Pro odeslani poptavky nejdriv vyzadej jmeno, email, typ foceni/sluzby, termin, misto a kratkou zpravu.
+- send_inquiry pouzij jen pokud uzivatel poskytl potrebne udaje a explicitne potvrdi, ze to chce odeslat.
+- Jinak mu pomoz text pripravit a pripadne ho posun na kontaktni formular.
 
 STYL
 - Strucne, prakticky, sebevedome. Zadna korporatni omacka.
@@ -284,6 +307,130 @@ function normalizeText(value) {
 
 function includesAny(text, terms) {
   return terms.some((term) => text.includes(term));
+}
+
+function isInquiryRequest(text) {
+  return includesAny(text, ["poptavka", "poptavku", "poptavky", "poptavkovy", "objednavka", "objednavku", "objednat", "rezervace", "rezervaci", "rezervovat"]) ||
+    (includesAny(text, ["brief", "zprava", "zpravu"]) && includesAny(text, ["foceni", "spoluprace", "lukase", "lukasovi", "poptavkovy"])) ||
+    (includesAny(text, ["odeslat", "odeslanim", "odesli", "poslat", "posli"]) && includesAny(text, ["poptavka", "poptavku", "poptavky"]));
+}
+
+function isSmallTalkRequest(text) {
+  const value = String(text || "").trim();
+  if (!value || value.length > 140) return false;
+  return /^(ahoj|cau|cus|dobry den|dobry vecer|hello|hi|hey)\b/.test(value) ||
+    includesAny(value, ["jak se mas", "jak je", "co delas", "how are you", "how are u", "how is it going"]);
+}
+
+function isInquirySendRequest(text) {
+  return isInquiryRequest(text) && includesAny(text, ["odeslat", "odeslanim", "odesli", "poslat", "posli"]);
+}
+
+function isInquiryDraftRequest(text) {
+  return isInquiryRequest(text) &&
+    !isInquirySendRequest(text) &&
+    (includesAny(text, ["napsat", "napis", "sepsat", "objednavku", "zpravu"]) || text.includes("pro lukase"));
+}
+
+function buildInquiryProviderFallback(messages) {
+  const normalized = normalizeText(getLastUserMessage(messages));
+  if (!isInquiryRequest(normalized)) return null;
+
+  if (isInquirySendRequest(normalized)) {
+    return "Teď nedokážu sestavit plnou AI odpověď na míru, ale pro odeslání poptávky potřebuji jméno, e-mail, typ focení nebo služby, termín, místo a krátkou zprávu. Pošli ty údaje v jedné zprávě, nebo je vyplň ve formuláři níže. [[ACTION:scroll:kontakt]]";
+  }
+
+  return "Teď nedokážu sestavit plnou AI odpověď na míru, ale základ zprávy může být: Ahoj Lukáši, mám zájem o focení. Potřebuji nafotit [co], ideálně [termín], v místě [místo]. Kontakt na mě je [e-mail/telefon]. [[ACTION:scroll:kontakt]]";
+}
+
+function hasUnsupportedInquirySpecifics(answer, userText) {
+  const checks = [
+    { answer: ["praha", "praze", "prahy", "prague"], user: ["praha", "praze", "prahy", "prague"] },
+    { answer: ["pristi tyden", "pristim tydnu", "pristi tydn"], user: ["pristi", "tyden", "tydnu"] },
+    { answer: ["portretni foceni"], user: ["portret", "portretni"] },
+    { answer: ["sportovni foceni"], user: ["sport", "sportovni"] },
+    { answer: ["produktove foceni"], user: ["produkt", "produktove"] },
+    { answer: ["svatebni foceni"], user: ["svatba", "svatebni"] },
+  ];
+  return checks.some((check) => check.answer.some((term) => answer.includes(term)) && !check.user.some((term) => userText.includes(term)));
+}
+
+function hasLanguageLeak(text) {
+  const answer = normalizeText(text);
+  return includesAny(answer, [
+    "beberapa",
+    "please provide",
+    "would you",
+    "you can",
+    "some important",
+    "several important",
+    "thank you for",
+  ]);
+}
+
+function hasAllInquirySendFields(answer) {
+  return ["jmeno", "email", "termin", "misto"].every((term) => answer.includes(term)) &&
+    includesAny(answer, ["zprava", "zpravu", "zpravy"]) &&
+    includesAny(answer, ["typ foceni", "typ sluzby", "typ foceni sluzby", "foceni sluzby"]);
+}
+
+function hasIncompleteEnding(text) {
+  const raw = stripInlineFunctionTags(text).trim();
+  const normalized = normalizeText(raw);
+  if (!raw) return true;
+  if (/[,:;]$/.test(raw)) return true;
+  if (!/[.!?…"'’”)\]]$/.test(raw)) return true;
+  return /\b(jak|a|nebo|pro|v|s|o|aby|kdyz|pokud|az)$/i.test(normalized);
+}
+
+function needsInquiryRepair(text, messages) {
+  const normalizedUser = normalizeText(getLastUserMessage(messages));
+  if (!isInquiryRequest(normalizedUser)) return false;
+
+  const answer = normalizeText(stripInlineFunctionTags(text));
+  if (!answer) return true;
+  const wantsDraft = isInquiryDraftRequest(normalizedUser);
+  const wantsSend = isInquirySendRequest(normalizedUser);
+
+  const usefulMarkers = [
+    "ahoj lukasi",
+    "dobry den lukasi",
+    "navrh",
+    "zprava",
+    "jmeno",
+    "email",
+    "e mail",
+    "telefon",
+    "termin",
+    "misto",
+    "typ foceni",
+    "typ sluzby",
+    "kontakt",
+    "formular",
+    "dopln",
+  ];
+  const weakMarkers = [
+    "chces napsat objednavku",
+    "chces napsat",
+    "chces odeslat poptavku",
+    "potrebuju vedet vice",
+    "potrebuji vedet vice",
+    "potrebuji vedet co presne",
+    "potrebuju vedet co presne",
+    "co presne chces objednat",
+    "co presne potrebujes",
+  ];
+
+  if (answer.length < 90) return true;
+  if (hasIncompleteEnding(text)) return true;
+  if (hasLanguageLeak(text)) return true;
+  if (hasUnsupportedInquirySpecifics(answer, normalizedUser)) return true;
+  if (wantsDraft && answer.startsWith("k odeslani poptavky")) return true;
+  if (wantsDraft && !includesAny(answer, ["ahoj lukasi", "navrh", "muze znit", "text zpravy"])) return true;
+  if (wantsSend && !hasAllInquirySendFields(answer)) return true;
+  if (answer.startsWith("chces ") && answer.length < 220) return true;
+  if (includesAny(answer, weakMarkers) && !includesAny(answer, usefulMarkers)) return true;
+  return false;
 }
 
 function isTechnicalSupportRequest(text) {
@@ -400,21 +547,7 @@ function buildFastPathResponse(mode, messages) {
 
   const normalizedMode = normalizeMode(mode);
 
-  const asksInquiry =
-    includesAny(normalized, ["poptavka", "poptavku", "poptavky", "objednavka", "objednavku", "objednat", "rezervace", "rezervaci", "rezervovat"]) ||
-    (includesAny(normalized, ["odeslat", "odeslanim", "odesli", "poslat", "posli"]) && includesAny(normalized, ["poptavka", "poptavku", "poptavky"]));
-
-  if (asksInquiry && includesAny(normalized, ["odeslat", "odeslanim", "odesli", "poslat", "posli"])) {
-    return "Pomůžu. K odeslání poptávky potřebuju jméno, e-mail, typ focení nebo služby, termín, místo a krátkou zprávu. Pošli mi ty údaje v jedné zprávě, nebo je vyplň ve formuláři níže. [[ACTION:scroll:kontakt]]";
-  }
-
-  if (asksInquiry) {
-    return "Jasně. Můžeš napsat: Ahoj Lukáši, mám zájem o focení. Potřebuji nafotit [co], ideálně [termín], v místě [místo]. Kontakt na mě je [e-mail/telefon]. [[ACTION:scroll:kontakt]]";
-  }
-
-  if (normalizedMode === "build" && includesAny(normalized, ["brief", "poptavkovy", "poptavka", "spoluprace", "kontakt", "foceni"])) {
-    return "Jasně. Stručný brief: typ focení, termín, místo, počet lidí, účel fotek a kontakt. Pošli Lukášovi, co potřebuješ nafotit a kdy.";
-  }
+  if (isInquiryRequest(normalized)) return null;
 
   if (normalizedMode === "think" && includesAny(normalized, ["vyber", "vybrat", "vhodny typ foceni", "jaky typ foceni"])) {
     return "Začni účelem fotek. Portrét je pro osobní značku, sport pro akci a produktové focení pro prodej nebo prezentaci.";
@@ -435,14 +568,6 @@ function buildFastPathResponse(mode, messages) {
 
   if (asksCollaborationList) {
     return `Na webu mám uvedené tyto spolupráce: ${formatCollaborations()} [[ACTION:scroll:spoluprace]]`;
-  }
-
-  if (/^(ahoj|cau|dobry den|hello|hi|hey)\b/.test(normalized)) {
-    return "Ahoj, jsem Lukáš AI. Pomůžu s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
-  }
-
-  if (includesAny(normalized, ["jak se mas", "how are you", "how are u"])) {
-    return "Jsem v pohodě, díky. Můžu pomoct s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
   }
 
   if (includesAny(normalized, ["kontakt", "email", "mail", "kontaktovat", "contact"])) {
@@ -483,22 +608,83 @@ function extractActionTag(fullText) {
   return { cleanText, action: null };
 }
 
-function buildSystemContent(mode, memoryContext) {
+function buildKnowledgeContent(compact) {
+  if (!compact) {
+    return `WEB_KNOWLEDGE:\n${JSON.stringify(PUBLIC_KNOWLEDGE, null, 2)}`;
+  }
+  return [
+    "WEB_KNOWLEDGE_STRUCNE:",
+    "Lukas Drsticka je fotograf a AI builder z Prerova.",
+    "Kontakt: lukas.drsticka@gmail.com.",
+    "Foti portrety, sport, akce a produkty.",
+    "Projekt Fotograf AI je AI editor pro fotografy.",
+    `Nejnovejsi galerie: ${LATEST_GALLERY.title}, ${LATEST_GALLERY.photos} fotek.`,
+    `Spoluprace: ${PUBLIC_KNOWLEDGE.collaborations.map((item) => item.name).join(", ")}.`,
+  ].join("\n");
+}
+
+function buildBaseSystemPrompt(toolFree) {
+  if (!toolFree) return BASE_SYSTEM_PROMPT;
+  return BASE_SYSTEM_PROMPT.replace(/\nAKCE NA STRANCE \(function calling\)[\s\S]*?(?=\nFORMAT\n)/, "\n");
+}
+
+function isToolFreeRequestContext(requestContext) {
+  return typeof requestContext === "string" &&
+    (requestContext.includes("AKTUALNI DOTAZ JE SMALL TALK") || requestContext.includes("AKTUALNI DOTAZ JE POPTAVKA"));
+}
+
+function buildRequestContext(mode, messages) {
+  const normalized = normalizeText(getLastUserMessage(messages));
+
+  if (isInquiryRequest(normalized)) {
+    return [
+      "AKTUALNI DOTAZ JE POPTAVKA / OBJEDNAVKA.",
+      "- Tohle musi jit pres LLM jako odpoved na miru, ne jako staticka sablona.",
+      "- NIKDY neodpovidej jen potvrzenim typu 'Chces napsat objednavku'.",
+      "- Pokud uzivatel chce napsat objednavku nebo zpravu Lukasovi, rovnou navrhni kratky text zpravy k odeslani.",
+      "- Pokud chybi typ foceni, termin, misto nebo kontakt, nevymyslej je a pouzij placeholdery [typ foceni/sluzby], [termin], [misto], [email/telefon].",
+      "- Praha neni priklad ani vychozi misto; Lukas je z Prerova. Prahu napis jen pokud ji uzivatel sam uvedl.",
+      "- Pokud chce pomoct s odeslanim poptavky, vysvetli, ze k odeslani potrebujes jmeno, email, typ foceni/sluzby, termin, misto a zpravu.",
+      "- Odpoved musi obsahovat bud konkretni navrh zpravy, nebo konkretni seznam udaju k doplneni.",
+      "- Nezacinej odpoved slovy 'Chces...'.",
+      "- Bez techto udaju nic neodesilej. Dej mu jasny dalsi krok.",
+      "- Pouzij jen cestinu. Zadna anglicka, indoneska ani jina cizi slova.",
+      "- Odpovez 3-5 kratkymi vetami, ciste textem, bez markdownu.",
+    ].join("\n");
+  }
+
+  if (isSmallTalkRequest(normalized)) {
+    return [
+      "AKTUALNI DOTAZ JE SMALL TALK.",
+      "- Odpovez pres LLM prirozene, lidsky a kratce.",
+      "- Nevolej zadne nastroje, nepouzivej inline function tagy a neprovadej navigaci po webu.",
+      "- Nenabizej programovani, buildeni ani technicke navody.",
+      "- Pokud navrhnes dalsi krok, drz ho u foceni, portfolia, spoluprace nebo kontaktu.",
+    ].join("\n");
+  }
+
+  return "";
+}
+
+function buildSystemContent(mode, memoryContext, requestContext) {
   const config = getModeConfig(mode);
-  const knowledge = `WEB_KNOWLEDGE:\n${JSON.stringify(PUBLIC_KNOWLEDGE, null, 2)}`;
+  const toolFree = isToolFreeRequestContext(requestContext);
+  const knowledge = buildKnowledgeContent(toolFree);
   const parts = [
-    BASE_SYSTEM_PROMPT,
+    buildBaseSystemPrompt(toolFree),
     knowledge,
     memoryContext || "",
-    ACTIONS_SYSTEM_PROMPT,
+    toolFree ? "" : ACTIONS_SYSTEM_PROMPT,
     config.instruction,
+    requestContext || "",
   ];
   return parts.filter(Boolean).join("\n\n");
 }
 
 function toOpenAIMessages(mode, messages, memoryContext) {
+  const requestContext = buildRequestContext(mode, messages);
   return [
-    { role: "system", content: buildSystemContent(mode, memoryContext) },
+    { role: "system", content: buildSystemContent(mode, memoryContext, requestContext) },
     ...messages.map((m) => ({
       role: m.role === "assistant" ? "assistant" : "user",
       content: m.content,
@@ -534,40 +720,365 @@ function parseStreamedToolCalls(toolCallBuffer) {
   return calls;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchChatCompletionFrom(baseUrl, apiKey, payload, label, provider) {
+  let lastResponse = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      if (attempt === 1) throw err;
+      console.warn(`OpenAI ${label} fetch retry:`, err?.message || err);
+      await sleep(450);
+      continue;
+    }
+
+    response.agentProvider = provider;
+    response.agentModel = payload.model;
+    if (response.ok) return response;
+
+    const errText = await response.text().catch(() => "");
+    lastResponse = new Response(errText, { status: response.status, statusText: response.statusText });
+    lastResponse.agentProvider = provider;
+    lastResponse.agentModel = payload.model;
+    console.warn(`OpenAI ${label} non-ok:`, response.status, errText.slice(0, 500));
+    if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 1) {
+      return lastResponse;
+    }
+    await sleep(550);
+  }
+  return lastResponse || new Response("", { status: 502 });
+}
+
+function openAIToGeminiNativePayload(payload) {
+  const messages = Array.isArray(payload.messages) ? payload.messages : [];
+  const systemText = messages
+    .filter((message) => message.role === "system")
+    .map((message) => message.content)
+    .filter(Boolean)
+    .join("\n\n");
+  const contents = messages
+    .filter((message) => message.role !== "system" && message.content)
+    .map((message) => ({
+      role: message.role === "assistant" ? "model" : "user",
+      parts: [{ text: String(message.content) }],
+    }));
+
+  return {
+    systemInstruction: systemText ? { parts: [{ text: systemText }] } : undefined,
+    contents: contents.length ? contents : [{ role: "user", parts: [{ text: "" }] }],
+    generationConfig: {
+      temperature: typeof payload.temperature === "number" ? payload.temperature : 0.3,
+      topP: typeof payload.top_p === "number" ? payload.top_p : 0.9,
+      maxOutputTokens: typeof payload.max_tokens === "number" ? payload.max_tokens : 240,
+    },
+  };
+}
+
+function geminiNativeText(data) {
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return "";
+  return parts.map((part) => part?.text || "").join("").trim();
+}
+
+function openAICompatibleTextResponse(text, payload, model, provider) {
+  if (payload.stream) {
+    const encoder = new TextEncoder();
+    const sse = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
+    const response = new Response(new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(sse));
+        controller.close();
+      },
+    }), { status: 200 });
+    response.agentProvider = provider;
+    response.agentModel = model;
+    return response;
+  }
+
+  const response = Response.json({ choices: [{ message: { content: text } }] });
+  response.agentProvider = provider;
+  response.agentModel = model;
+  return response;
+}
+
+async function fetchGeminiNativeCompletion(payload, label) {
+  if (!process.env.GEMMA_API_KEY) return new Response("", { status: 404 });
+  const body = openAIToGeminiNativePayload(payload);
+  let lastResponse = null;
+
+  for (const model of GEMINI_NATIVE_MODELS) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${process.env.GEMMA_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        const data = await response.json().catch(() => null);
+        const text = geminiNativeText(data);
+        if (text) return openAICompatibleTextResponse(text, payload, model, "gemini-native");
+        lastResponse = new Response("", { status: 502 });
+        lastResponse.agentProvider = "gemini-native";
+        lastResponse.agentModel = model;
+        continue;
+      }
+
+      const errText = await response.text().catch(() => "");
+      lastResponse = new Response(errText, { status: response.status, statusText: response.statusText });
+      lastResponse.agentProvider = "gemini-native";
+      lastResponse.agentModel = model;
+      console.warn(`Gemini native ${label} non-ok:`, response.status, errText.slice(0, 500));
+    } catch (err) {
+      console.warn(`Gemini native ${label} fetch error:`, err?.message || err);
+      lastResponse = new Response("", { status: 502 });
+      lastResponse.agentProvider = "gemini-native";
+      lastResponse.agentModel = model;
+    }
+  }
+
+  return lastResponse || new Response("", { status: 502 });
+}
+
+async function fetchChatCompletion(apiKey, payload, label) {
+  const primary = await fetchChatCompletionFrom(LLM_BASE_URL, apiKey, payload, label, "primary");
+  if (primary.ok || primary.status !== 429 || payload.tools || !process.env.GEMMA_API_KEY) {
+    return primary;
+  }
+
+  let lastGemma = null;
+  for (const model of GEMMA_FALLBACK_MODELS) {
+    const gemmaPayload = { ...payload, model };
+    const gemma = await fetchChatCompletionFrom(GEMMA_OPENAI_BASE_URL, process.env.GEMMA_API_KEY, gemmaPayload, `${label}-gemma-${model}`, "gemma");
+    lastGemma = gemma;
+    if (gemma.ok) return gemma;
+  }
+  const nativeGemini = await fetchGeminiNativeCompletion(payload, label);
+  return nativeGemini || lastGemma || primary;
+}
+
+async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, badText }) {
+  const lastUser = getLastUserMessage(messages);
+  if (!lastUser) return "";
+  const normalizedUser = normalizeText(lastUser);
+  const wantsDraft = isInquiryDraftRequest(normalizedUser);
+  const wantsSend = isInquirySendRequest(normalizedUser);
+
+  const repairSystem = [
+    "Jsi Lukas AI pro osobni web fotografa a AI buildera Lukase Drsticky.",
+    "Oprav predchozi slabou odpoved na poptavku nebo objednavku.",
+    "Slaba odpoved jen zopakovala zamer uzivatele nebo se zeptala prilis obecne.",
+    "Vrat rovnou uzitecnou odpoved na miru: bud navrh kratke zpravy pro Lukase, nebo konkretni seznam udaju k doplneni pro odeslani poptavky.",
+    wantsDraft ? "Tento dotaz chce napsat objednavku nebo zpravu. Odpoved musi obsahovat 'Navrh zpravy:' a konkretni text zacinajici 'Ahoj Lukasi,'." : "",
+    wantsSend ? "Tento dotaz chce pomoct s odeslanim poptavky. Odpoved musi vyjmenovat presne tyto chybejici udaje: jmeno, email, typ foceni/sluzby, termin, misto a kratka zprava." : "",
+    "Nevymyslej si chybejici udaje. Pokud uzivatel nenapsal typ foceni, termin, misto nebo kontakt, pouzij presne placeholdery [typ foceni/sluzby], [termin], [misto], [email/telefon].",
+    "Lukas je z Prerova. Nepouzivej Prahu, pristi tyden, portretni foceni, ceny ani jiny konkretni detail, pokud ho uzivatel nenapsal.",
+    "Nezacinej odpoved slovy 'Chces'. Zacni rovnou navrhem nebo vetou 'K odeslani poptavky potrebuji...'.",
+    "Nikdy neposilej poptavku bez jmena, emailu, typu foceni/sluzby, terminu, mista a kratke zpravy.",
+    "Neprogramuj, nevysvetluj technicke veci, nepouzivej markdown a nepouzivej function tagy.",
+    "Pouzij jen cestinu. Zadna anglicka, indoneska ani jina cizi slova.",
+    "Odpovez cesky, 3 az 5 kratkymi vetami.",
+    memoryContext || "",
+  ].filter(Boolean).join("\n");
+
+  const repairPayload = {
+    model: OPENAI_CHAT_MODEL,
+    messages: [
+      { role: "system", content: repairSystem },
+      {
+        role: "user",
+        content: [
+          `Dotaz uzivatele: ${lastUser}`,
+          `Predchozi slaba odpoved: ${stripInlineFunctionTags(badText) || "(prazdna odpoved)"}`,
+          "Vrat opravenou odpoved.",
+        ].join("\n"),
+      },
+    ],
+    temperature: Math.max(getModeConfig(mode).temperature, 0.45),
+    top_p: 0.9,
+    max_tokens: 320,
+    stream: false,
+  };
+
+  try {
+    const response = await fetchChatCompletion(apiKey, repairPayload, "repair");
+
+    if (!response.ok) {
+      console.warn("OpenAI repair error:", response.status, await response.text().catch(() => ""));
+      return "";
+    }
+
+    const data = await response.json().catch(() => null);
+    const repaired = stripInlineFunctionTags(data?.choices?.[0]?.message?.content || "");
+    if (!repaired) return "";
+    const promiseCheck = validateAgentText(repaired);
+    if (!promiseCheck.ok) {
+      console.warn("[forbidden_promise_repair]", promiseCheck);
+      return "";
+    }
+    return repaired.trim();
+  } catch (err) {
+    console.error("OpenAI repair fetch error:", err);
+    return "";
+  }
+}
+
+async function requestSmallTalkRepair({ apiKey, mode, messages, badText }) {
+  const lastUser = getLastUserMessage(messages);
+  if (!lastUser) return "";
+
+  const payload = {
+    model: OPENAI_CHAT_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: [
+          "Jsi Lukas AI pro osobni web Lukase Drsticky.",
+          "Oprav useknutou nebo nedokoncenou small talk odpoved.",
+          "Odpovez prirozene cesky, 1 az 2 kratke vety.",
+          "Neprogramuj, nepouzivej tool tagy, nepis technicke veci.",
+        ].join("\n"),
+      },
+      {
+        role: "user",
+        content: [
+          `Dotaz uzivatele: ${lastUser}`,
+          `Predchozi useknuta odpoved: ${stripInlineFunctionTags(badText) || "(prazdna odpoved)"}`,
+          "Vrat hotovou odpoved.",
+        ].join("\n"),
+      },
+    ],
+    temperature: Math.max(getModeConfig(mode).temperature, 0.45),
+    top_p: 0.9,
+    max_tokens: 120,
+    stream: false,
+  };
+
+  try {
+    const response = await fetchChatCompletion(apiKey, payload, "smalltalk-repair");
+    if (!response.ok) return "";
+    const data = await response.json().catch(() => null);
+    const repaired = stripInlineFunctionTags(data?.choices?.[0]?.message?.content || "");
+    if (!repaired || hasIncompleteEnding(repaired)) return "";
+    const promiseCheck = validateAgentText(repaired);
+    if (!promiseCheck.ok) return "";
+    return repaired.trim();
+  } catch (err) {
+    console.error("Small talk repair fetch error:", err);
+    return "";
+  }
+}
+
 async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip, writer, encoder }) {
   const fastPath = buildFastPathResponse(mode, messages);
   if (fastPath) {
     await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "knowledge-fast-path" });
     return { fullText: fastPath, actions: [] };
   }
+  const providerFallback = buildInquiryProviderFallback(messages);
 
   const config = getModeConfig(mode);
+  const normalizedLastUser = normalizeText(getLastUserMessage(messages));
+  const inquiryRequest = isInquiryRequest(normalizedLastUser);
+  const smallTalkRequest = !inquiryRequest && isSmallTalkRequest(normalizedLastUser);
   const payload = {
     model: OPENAI_CHAT_MODEL,
     messages: toOpenAIMessages(mode, messages, memoryContext),
-    temperature: config.temperature,
+    temperature: inquiryRequest ? Math.max(config.temperature, 0.35) : smallTalkRequest ? Math.max(config.temperature, 0.45) : config.temperature,
     top_p: config.topP,
-    max_tokens: config.maxOutputTokens,
+    max_tokens: inquiryRequest ? Math.max(config.maxOutputTokens, 380) : smallTalkRequest ? Math.min(Math.max(config.maxOutputTokens, 120), 180) : config.maxOutputTokens,
     stream: true,
   };
-  if (ENABLE_TOOLS && Array.isArray(TOOLS) && TOOLS.length) {
+  if (!smallTalkRequest && !inquiryRequest && ENABLE_TOOLS && Array.isArray(TOOLS) && TOOLS.length) {
     payload.tools = TOOLS;
     payload.tool_choice = "auto";
     payload.parallel_tool_calls = true;
   }
 
+  if (inquiryRequest) {
+    let fullText = "";
+    let llmModel = OPENAI_CHAT_MODEL;
+    let llmProvider = "primary";
+    try {
+      const response = await fetchChatCompletion(apiKey, { ...payload, stream: false }, "inquiry");
+      llmModel = response.agentModel || llmModel;
+      llmProvider = response.agentProvider || llmProvider;
+      if (!response.ok) {
+        const errText = await response.text().catch(() => "");
+        console.error("OpenAI inquiry error:", response.status, errText);
+        if (providerFallback) {
+          await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback", provider_status: response.status });
+          return { fullText: providerFallback, actions: [] };
+        }
+      } else {
+        const data = await response.json().catch(() => null);
+        fullText = stripInlineFunctionTags(data?.choices?.[0]?.message?.content || "");
+      }
+    } catch (err) {
+      console.error("OpenAI inquiry fetch error:", err);
+      if (providerFallback) {
+        await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback", provider_error: "fetch_error" });
+        return { fullText: providerFallback, actions: [] };
+      }
+    }
+
+    if (!fullText.trim()) {
+      if (providerFallback) {
+        await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback", provider_error: "empty_inquiry" });
+        return { fullText: providerFallback, actions: [] };
+      }
+      await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
+      return { fullText: "", actions: [] };
+    }
+
+    if (needsInquiryRepair(fullText, messages)) {
+      let repairedText = "";
+      let repairSource = fullText;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const candidate = await requestInquiryRepair({ apiKey, mode, messages, memoryContext, badText: repairSource });
+        if (!candidate) break;
+        repairedText = candidate;
+        repairSource = candidate;
+        if (!needsInquiryRepair(candidate, messages)) break;
+      }
+      if (repairedText && !needsInquiryRepair(repairedText, messages)) {
+        fullText = repairedText;
+      }
+    }
+
+    const promiseCheck = validateAgentText(fullText);
+    if (!promiseCheck.ok) {
+      console.warn("[forbidden_promise]", promiseCheck);
+      const safeText = "Konkrétní cenu nebo slevu ti tady neslíbím. Napiš Lukášovi na lukas.drsticka@gmail.com a domluvte termín i podmínky.";
+      await writeResolvedText(writer, encoder, safeText, { mode, model: llmModel, provider: llmProvider, blocked: "forbidden_promise" });
+      return { fullText: safeText, actions: [] };
+    }
+
+    await writeResolvedText(writer, encoder, fullText, { mode, model: llmModel, provider: llmProvider, actions: [] });
+    return { fullText: stripInlineFunctionTags(fullText), actions: [] };
+  }
+
   let response;
   try {
-    response = await fetch(`${LLM_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    response = await fetchChatCompletion(apiKey, payload, "stream");
   } catch (err) {
     console.error("OpenAI fetch error:", err);
+    if (providerFallback) {
+      await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback" });
+      return { fullText: providerFallback, actions: [] };
+    }
     await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
     return { fullText: "", actions: [] };
   }
@@ -575,6 +1086,10 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
   if (!response.ok || !response.body) {
     const errText = await response.text().catch(() => "");
     console.error("OpenAI stream error:", response.status, errText);
+    if (providerFallback) {
+      await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback" });
+      return { fullText: providerFallback, actions: [] };
+    }
     await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
     return { fullText: "", actions: [] };
   }
@@ -663,8 +1178,38 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
   }
 
   if (!fullText.trim() && !validatedActions.length) {
+    if (providerFallback) {
+      await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback" });
+      return { fullText: providerFallback, actions: [] };
+    }
     await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
     return { fullText: "", actions: [] };
+  }
+
+  if (smallTalkRequest && hasIncompleteEnding(fullText)) {
+    const repairedText = await requestSmallTalkRepair({ apiKey, mode, messages, badText: fullText });
+    if (repairedText) {
+      fullText = repairedText;
+      validatedActions = [];
+      await writer.write(encoder.encode(JSON.stringify({ replace: repairedText }) + "\n"));
+    }
+  }
+
+  if (inquiryRequest && needsInquiryRepair(fullText, messages)) {
+    let repairedText = "";
+    let repairSource = fullText;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const candidate = await requestInquiryRepair({ apiKey, mode, messages, memoryContext, badText: repairSource });
+      if (!candidate) break;
+      repairedText = candidate;
+      repairSource = candidate;
+      if (!needsInquiryRepair(candidate, messages)) break;
+    }
+    if (repairedText && !needsInquiryRepair(repairedText, messages)) {
+      fullText = repairedText;
+      validatedActions = [];
+      await writer.write(encoder.encode(JSON.stringify({ replace: repairedText }) + "\n"));
+    }
   }
 
   const promiseCheck = validateAgentText(fullText);
@@ -672,7 +1217,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
     console.warn("[forbidden_promise]", promiseCheck);
     const safeText = "Konkrétní cenu nebo slevu ti tady neslíbím. Napiš Lukášovi na lukas.drsticka@gmail.com a domluvíte termín i podmínky.";
     await writer.write(encoder.encode(JSON.stringify({ replace: safeText }) + "\n"));
-    await writer.write(encoder.encode(JSON.stringify({ m: { action: null, actions: [], done: true, mode, model: OPENAI_CHAT_MODEL, blocked: "forbidden_promise" } }) + "\n"));
+    await writer.write(encoder.encode(JSON.stringify({ m: { action: null, actions: [], done: true, mode, model: response.agentModel || OPENAI_CHAT_MODEL, provider: response.agentProvider, blocked: "forbidden_promise" } }) + "\n"));
     return { fullText: safeText, actions: [] };
   }
 
@@ -688,7 +1233,8 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
           actions: validatedActions,
           done: true,
           mode,
-          model: OPENAI_CHAT_MODEL,
+          model: response.agentModel || OPENAI_CHAT_MODEL,
+          provider: response.agentProvider,
         },
       }) + "\n"
     )
@@ -711,8 +1257,18 @@ export default async (req) => {
       warm: true,
       provider,
       model: OPENAI_CHAT_MODEL,
+      fallback_provider: {
+        provider: "gemma",
+        configured: !!process.env.GEMMA_API_KEY,
+        model: GEMMA_CHAT_MODEL,
+      },
       tools: ENABLE_TOOLS ? TOOLS.map((t) => t.function.name) : [],
       turnstile_required: REQUIRE_TURNSTILE,
+      memory: {
+        opt_in: true,
+        configured: !!(process.env.UPSTASH_REDIS_URL && process.env.UPSTASH_REDIS_TOKEN),
+        ttl_days: VISITOR_TTL_DAYS,
+      },
       knowledge: PUBLIC_KNOWLEDGE,
     });
   }
@@ -780,15 +1336,17 @@ export default async (req) => {
   }));
 
   const visitorId = normalizeVisitorId(body.visitor_id);
+  const memoryConsent = body.memory_consent === true;
   let memoryContext = "";
   let memoryActive = false;
-  if (visitorId) {
+  if (visitorId && memoryConsent) {
     try {
       const memory = await getVisitorMemory(visitorId);
       memoryContext = buildMemoryContext(memory);
-      memoryActive = !!memory;
+      memoryActive = true;
     } catch (err) {
       console.warn("visitor memory load failed:", err);
+      memoryActive = true;
     }
   }
 
