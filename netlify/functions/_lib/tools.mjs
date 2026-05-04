@@ -4,13 +4,19 @@
 const SECTIONS = ["portfolio", "skills", "o-mne", "spoluprace", "kontakt", "ai-asistent"];
 const GALLERY_CATEGORIES = ["all", "foto", "ai", "svatby", "sport", "lifestyle", "produkt", "portret", "akce"];
 const SERVICES = [
+  "fotografie",
   "portretni-foceni",
   "sportovni-foceni",
   "akcni-foceni",
   "produktove-foceni",
+  "webovy-projekt",
+  "ai",
+  "ai-chatbot",
   "ai-builder",
   "ai-konzultace",
   "ai-agent-na-miru",
+  "automatizace",
+  "konzultace",
 ];
 
 const TOOLS = [

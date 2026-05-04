@@ -332,6 +332,213 @@ function isInquiryDraftRequest(text) {
     (includesAny(text, ["napsat", "napis", "sepsat", "objednavku", "zpravu"]) || text.includes("pro lukase"));
 }
 
+function getUserTextThread(messages) {
+  return (Array.isArray(messages) ? messages : [])
+    .filter((message) => message && message.role === "user")
+    .map((message) => String(message.content || ""))
+    .join("\n");
+}
+
+function extractEmail(text) {
+  const match = String(text || "").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  return match ? match[0].trim() : "";
+}
+
+function extractPhone(text) {
+  const match = String(text || "").match(/(?:\+?\d[\s().-]*){7,}/);
+  return match ? match[0].replace(/\s+/g, " ").trim() : "";
+}
+
+function extractName(text) {
+  const raw = String(text || "").trim();
+  const patterns = [
+    /(?:jmenuji se|jmenuju se|jmeno je|jméno je|jmeno:|jméno:)\s+([^\n,.;]{2,80})/i,
+    /(?:moje jmeno je|moje jméno je)\s+([^\n,.;]{2,80})/i,
+    /(?:^|\n)\s*([A-ZÁ-Ž][a-zá-ž]+(?:\s+[A-ZÁ-Ž][a-zá-ž]+){1,3})\s*,?\s*(?:e-?mail|mail|[A-Z0-9._%+-]+@)/i,
+    /(?:jsem)\s+([A-ZÁ-Ž][a-zá-ž]+(?:\s+[A-ZÁ-Ž][a-zá-ž]+){1,3})(?=\s*,|\s+e-?mail|\s+mail|$)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = raw.match(pattern);
+    if (match && match[1]) {
+      return match[1].replace(/\s+/g, " ").trim().slice(0, 80);
+    }
+  }
+
+  return "";
+}
+
+function inferLeadService(normalizedText) {
+  const text = String(normalizedText || "");
+  if (includesAny(text, ["klubovy web", "klubovni web", "web pro klub", "klubove stranky", "klubovy stranky"])) return "webovy-projekt";
+  if (includesAny(text, ["webove stranky", "webovy projekt", "udelat web", "vytvorit web", "novy web", "klubovy web", "web"])) return "webovy-projekt";
+  if (includesAny(text, ["chatbot", "ai agent", "agent na miru"])) return "ai-agent-na-miru";
+  if (includesAny(text, ["automatizace", "automatizovat"])) return "automatizace";
+  if (includesAny(text, ["konzultace", "poradenstvi"])) return "konzultace";
+  if (includesAny(text, ["produktove foceni", "produkt"])) return "produktove-foceni";
+  if (includesAny(text, ["sportovni foceni", "sport", "utkani", "zapas"])) return "sportovni-foceni";
+  if (includesAny(text, ["portretni foceni", "portret", "profilov"])) return "portretni-foceni";
+  if (includesAny(text, ["akce", "event"])) return "akcni-foceni";
+  if (includesAny(text, ["foceni", "fotky", "fotografie", "foto"])) return "fotografie";
+  return "";
+}
+
+function leadServiceLabel(service) {
+  const labels = {
+    "webovy-projekt": "webový projekt",
+    "ai-agent-na-miru": "AI agenta nebo chatbota",
+    "ai-chatbot": "AI chatbota",
+    "ai": "AI řešení",
+    "ai-builder": "AI řešení",
+    "automatizace": "automatizaci",
+    "konzultace": "konzultaci",
+    "portretni-foceni": "portrétní focení",
+    "sportovni-foceni": "sportovní focení",
+    "akcni-foceni": "focení akce",
+    "produktove-foceni": "produktové focení",
+    "fotografie": "focení",
+  };
+  return labels[service] || "spolupráci";
+}
+
+function hasExplicitLeadSendConsent(normalizedText) {
+  const text = String(normalizedText || "");
+  return includesAny(text, [
+    "ano posli",
+    "ano odesli",
+    "muze jit",
+    "muzes poslat",
+    "muzes odeslat",
+    "posli to",
+    "odesli to",
+    "odeslat",
+    "odesli",
+    "poslat",
+    "posli",
+    "potvrzuji",
+  ]);
+}
+
+function isLeadRequestContext(mode, messages) {
+  const lastUser = normalizeText(getLastUserMessage(messages));
+  const thread = normalizeText(getUserTextThread(messages));
+  if (!thread) return false;
+  if (isInquiryRequest(lastUser) || isInquiryRequest(thread)) return true;
+
+  const service = inferLeadService(thread);
+  if (!service) return false;
+
+  return normalizeMode(mode) === "build" || includesAny(thread, [
+    "objednav",
+    "poptav",
+    "formular",
+    "kontakt",
+    "lukas",
+    "lukasem",
+    "spoluprac",
+    "zakazk",
+    "brief",
+    "domluv",
+    "chci",
+    "potrebuji",
+    "potrebujem",
+    "je to pro",
+  ]);
+}
+
+function collectLeadDetails(messages) {
+  const rawThread = getUserTextThread(messages);
+  const normalizedThread = normalizeText(rawThread);
+  const lastUser = getLastUserMessage(messages);
+  const normalizedLast = normalizeText(lastUser);
+  const service = inferLeadService(normalizedThread);
+  const email = extractEmail(rawThread);
+  const phone = extractPhone(rawThread);
+  const name = extractName(rawThread);
+
+  return {
+    service,
+    serviceLabel: leadServiceLabel(service),
+    email,
+    phone,
+    name,
+    sendConsent: hasExplicitLeadSendConsent(normalizedLast),
+    normalizedThread,
+  };
+}
+
+function buildLeadDraft(details) {
+  if (details.service === "webovy-projekt") {
+    const clubPart = details.normalizedThread.includes("klub") ? "klubový web" : "webový projekt";
+    return `Dobrý den Lukáši, mám zájem o ${clubPart}. Zatím nemáme hotové všechny detaily a rádi je domluvíme přímo s vámi. Prosím o návrh dalšího postupu a krátkou domluvu.`;
+  }
+
+  if (details.service === "ai-agent-na-miru" || details.service === "ai-chatbot" || details.service === "ai") {
+    return "Dobrý den Lukáši, mám zájem o AI chatbota nebo agenta na míru. Zatím nemám všechny detaily a rád/ráda je domluvím přímo s vámi. Prosím o návrh dalšího postupu.";
+  }
+
+  if (details.service === "automatizace") {
+    return "Dobrý den Lukáši, mám zájem o automatizaci procesů. Zatím nemám všechny detaily a rád/ráda je domluvím přímo s vámi. Prosím o návrh dalšího postupu.";
+  }
+
+  if (details.service && details.service.includes("foceni")) {
+    return `Dobrý den Lukáši, mám zájem o ${details.serviceLabel}. Zatím nemám všechny detaily a rád/ráda je domluvím přímo s vámi. Prosím o návrh dalšího postupu.`;
+  }
+
+  return "Dobrý den Lukáši, mám zájem o spolupráci. Zatím nemám všechny detaily a rád/ráda je domluvím přímo s vámi. Prosím o návrh dalšího postupu.";
+}
+
+function buildLeadPrefillArgs(details, draft) {
+  const args = { message: draft };
+  if (details.service) args.service = details.service;
+  if (details.name) args.name = details.name;
+  if (details.email) args.email = details.email;
+  return args;
+}
+
+function buildDeterministicLeadResponse(mode, messages) {
+  if (!isLeadRequestContext(mode, messages)) return null;
+
+  const details = collectLeadDetails(messages);
+  const draft = buildLeadDraft(details);
+  const missing = [];
+  if (!details.name) missing.push("jméno");
+  if (!details.email) missing.push("e-mail");
+
+  const prefillArgs = buildLeadPrefillArgs(details, draft);
+
+  if (details.sendConsent && missing.length === 0) {
+    const sendArgs = {
+      name: details.name,
+      email: details.email,
+      message: draft,
+    };
+    if (details.service) sendArgs.service = details.service;
+    if (details.phone) sendArgs.phone = details.phone;
+
+    return {
+      text: `Hotovo, poptávku na ${details.serviceLabel} odesílám Lukášovi. Do formuláře jsem zároveň vložil text poptávky, ať je vidět, co odchází.`,
+      actions: [
+        { tool: "prefill_contact_form", args: prefillArgs },
+        { tool: "send_inquiry", args: sendArgs },
+      ],
+    };
+  }
+
+  const missingText = missing.length
+    ? `K odeslání mi ještě pošli ${missing.join(" a ")}; potom napiš „ano, odešli“.`
+    : "Před odesláním mi ještě potvrď „ano, odešli“.";
+
+  return {
+    text: `Jasně, beru to jako poptávku na ${details.serviceLabel}. Otevírám kontakt a předvyplním zprávu pro Lukáše. ${missingText}`,
+    actions: [
+      { tool: "prefill_contact_form", args: prefillArgs },
+      { tool: "scroll_to", args: { section: "kontakt" } },
+      { tool: "highlight_element", args: { target: "contact-form" } },
+    ],
+  };
+}
+
 function buildInquiryProviderFallback(messages) {
   const normalized = normalizeText(getLastUserMessage(messages));
   if (!isInquiryRequest(normalized)) return null;
@@ -987,6 +1194,18 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
     await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "knowledge-fast-path" });
     return { fullText: fastPath, actions: [] };
   }
+
+  const leadFlow = buildDeterministicLeadResponse(mode, messages);
+  if (leadFlow) {
+    await writeResolvedText(writer, encoder, leadFlow.text, {
+      mode,
+      model: "deterministic-lead-flow",
+      provider: "local",
+      actions: leadFlow.actions,
+    });
+    return { fullText: leadFlow.text, actions: leadFlow.actions };
+  }
+
   const providerFallback = buildInquiryProviderFallback(messages);
 
   const config = getModeConfig(mode);

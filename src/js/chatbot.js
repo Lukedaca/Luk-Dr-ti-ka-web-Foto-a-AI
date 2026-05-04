@@ -1187,7 +1187,7 @@
       var map = {
         'pricing': '#pricing, [data-section="pricing"]',
         'portfolio-grid': '#portfolioGrid, #portfolio-grid, #portfolio',
-        'contact-form': '#contact-form, form[name="contact"]',
+        'contact-form': '#contactForm, #contact-form, form[name="contact"]',
         'skills-grid': '#skills-grid, #skills',
         'showreel': '#showreel'
       };
@@ -1232,16 +1232,12 @@
       if (stats) stats.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
     prefill_contact_form: function(args) {
-      var form = document.querySelector('form[name="contact"], #contact-form');
-      if (!form) return;
-      ['name','email','message','service'].forEach(function(field) {
-        if (args[field] === undefined) return;
-        var input = form.querySelector('[name="' + field + '"], #contact-' + field);
-        if (input) input.value = args[field];
+      chatbotPrefillContactForm(args, {
+        status: 'Formulář je předvyplněný. Zkontrolujte údaje a potvrďte odeslání.'
       });
-      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
     send_inquiry: function(args) {
+      chatbotPrefillContactForm(args, { status: 'Odesílám poptávku přes asistenta...' });
       chatbotPostAgentForm('Poptavka z Lukas AI agenta', {
         type: 'send_inquiry',
         name: args.name,
@@ -1249,6 +1245,12 @@
         phone: args.phone,
         service: args.service,
         message: args.message
+      }).then(function(response) {
+        var status = document.getElementById('contactStatus');
+        if (!status) return;
+        status.textContent = response && response.ok
+          ? 'Poptávka byla odeslána Lukášovi.'
+          : 'Odeslání se nepodařilo. Zkontrolujte formulář a odešlete ho ručně.';
       });
     },
     request_callback: function(args) {
@@ -1605,12 +1607,87 @@
     }).join('\n\n').slice(0, 1800);
   }
 
+  function chatbotFindContactForm() {
+    return document.getElementById('contactForm') || document.querySelector('form[name="contact"], #contact-form');
+  }
+
+  function chatbotFindContactField(form, field) {
+    if (!form) return null;
+    var idMap = {
+      name: 'contactName',
+      email: 'contactEmail',
+      service: 'contactService',
+      message: 'contactMessage'
+    };
+    return document.getElementById(idMap[field]) || form.querySelector('[name="' + field + '"], #contact-' + field);
+  }
+
+  var CHATBOT_SERVICE_LABELS = {
+    'fotografie': 'Fotografie',
+    'portretni-foceni': 'Portrétní focení',
+    'sportovni-foceni': 'Sportovní focení',
+    'akcni-foceni': 'Focení akce',
+    'produktove-foceni': 'Produktové focení',
+    'webovy-projekt': 'Webové stránky',
+    'ai': 'AI chatbot',
+    'ai-chatbot': 'AI chatbot',
+    'ai-agent-na-miru': 'AI agent na míru',
+    'ai-builder': 'AI řešení',
+    'ai-konzultace': 'AI konzultace',
+    'automatizace': 'Automatizace',
+    'konzultace': 'Konzultace'
+  };
+
+  function chatbotEnsureSelectOption(select, value, label) {
+    if (!select || !value) return;
+    var exists = Array.prototype.some.call(select.options || [], function(option) {
+      return option.value === value;
+    });
+    if (!exists) {
+      var option = document.createElement('option');
+      option.value = value;
+      option.textContent = label || value;
+      select.appendChild(option);
+    }
+  }
+
+  function chatbotSetContactField(input, value) {
+    if (!input || value === undefined || value === null || value === '') return;
+    input.value = String(value);
+    input.dispatchEvent(new Event(input.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+  }
+
+  function chatbotPrefillContactForm(args, options) {
+    var form = chatbotFindContactForm();
+    if (!form) return false;
+    var fields = args || {};
+
+    ['name', 'email', 'message'].forEach(function(field) {
+      chatbotSetContactField(chatbotFindContactField(form, field), fields[field]);
+    });
+
+    var serviceInput = chatbotFindContactField(form, 'service');
+    if (serviceInput && fields.service) {
+      var serviceValue = String(fields.service);
+      chatbotEnsureSelectOption(serviceInput, serviceValue, CHATBOT_SERVICE_LABELS[serviceValue] || serviceValue);
+      chatbotSetContactField(serviceInput, serviceValue);
+    }
+
+    var status = document.getElementById('contactStatus');
+    if (status && options && options.status) status.textContent = options.status;
+
+    form.classList.add('ai-highlight');
+    setTimeout(function() { form.classList.remove('ai-highlight'); }, 2600);
+    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return true;
+  }
+
   function chatbotOpenPrefillForm() {
-    var form = document.querySelector('form[name="contact"], #contact-form');
+    var form = chatbotFindContactForm();
     if (form) {
-      var msgInput = form.querySelector('[name="message"], #contact-message');
+      var msgInput = chatbotFindContactField(form, 'message');
       if (msgInput) {
-        msgInput.value = 'Pokračování konverzace s AI asistentem:\n\n' + chatbotBuildConversationSummary();
+        chatbotSetContactField(msgInput, 'Pokračování konverzace s AI asistentem:\n\n' + chatbotBuildConversationSummary());
       }
       form.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
