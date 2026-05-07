@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
-    loadModule('/dist/js/i18n.min.js', () => {
+    loadModule('/dist/js/i18n.min.js?v=7', () => {
         console.log('I18n module loaded');
     });
 
