@@ -1,57 +1,18 @@
-const CACHE_NAME = 'lukas-portfolio-v7';
-const urlsToCache = [
-    '/',
-    '/index.html',
-    '/dist/css/styles.min.css',
-    '/dist/js/core.min.js',
-    '/manifest.json'
-];
+// Pass-through service worker (žádné cachování).
+// Důvod: cachované staré JS způsobovalo, že po deployi se nový kód neprojevil.
+// PWA instalace zůstává, jen se vše tahá z network. HTTP Cache-Control hlavičky
+// (immutable na /dist/*) zajišťují cache na úrovni prohlížeče.
 
-// Install event
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
-            .then(() => self.skipWaiting())
+        caches.keys()
+            .then((names) => Promise.all(names.map((n) => caches.delete(n))))
+            .then(() => self.clients.claim())
     );
 });
 
-// Activate event - clean up old caches
-self.addEventListener('activate', event => {
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
-    );
-});
-
-// Fetch event - NETWORK FIRST strategy
-self.addEventListener('fetch', event => {
-    if (!event.request.url.startsWith(self.location.origin)) {
-        return;
-    }
-
-    event.respondWith(
-        fetch(event.request)
-            .then(response => {
-                // Network success - update cache and return
-                if (response && response.status === 200) {
-                    const responseToCache = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseToCache);
-                    });
-                }
-                return response;
-            })
-            .catch(() => {
-                // Network failed - try cache
-                return caches.match(event.request);
-            })
-    );
-});
+// Žádný fetch handler → prohlížeč jde přímo na síť.
