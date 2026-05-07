@@ -1,0 +1,15 @@
+# ai.txt — AI usage policy
+# https://site.spawning.ai/spawning/ai-txt
+
+User-Agent: *
+Allow: /
+Disallow: /netlify/
+Disallow: /.well-known/
+Disallow: /assets/private/
+
+# Krátký kontext pro AI nástroje:
+# Tento web je portfolio fotografa a AI developera Lukáše Drštičky.
+# Obsah lze indexovat pro vyhledávání a citaci. Fotografie jsou autorsky
+# chráněné — pro trénink modelů vyžadují souhlas autora.
+#
+# Kontakt: lukas.drsticka@gmail.com

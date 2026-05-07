@@ -108,8 +108,11 @@
     storage.set(STORAGE_KEY, currentLanguage);
     try {
       var currentUrl = new URL(window.location.href);
-      currentUrl.searchParams.set('lang', currentLanguage);
-      window.history.replaceState({}, '', currentUrl.toString());
+      if (currentUrl.searchParams.has('lang')) {
+        currentUrl.searchParams.delete('lang');
+        var clean = currentUrl.pathname + (currentUrl.search ? currentUrl.search : '') + currentUrl.hash;
+        window.history.replaceState({}, '', clean);
+      }
     } catch (err) {}
 
     var copy = COPY[currentLanguage];

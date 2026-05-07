@@ -1,0 +1,23 @@
+# Lukáš Drštička — Fotograf & AI Developer
+
+> Portfolio fotografa a AI developera z Přerova. Specializace na portrétní, sportovní a produktovou fotografii, vývoj AI chatbotů, hlasových agentů a automatizaci procesů.
+
+## Stránky
+
+- [Úvod](https://lukasdrsticka-ai-and-foto.com/): Hero sekce, hybridní AI agent (chat + hlas), portfolio, dovednosti, kontakt
+- [Portfolio](https://lukasdrsticka-ai-and-foto.com/#portfolio): Fotografie a AI projekty
+- [Hybridní agent](https://lukasdrsticka-ai-and-foto.com/#ai-asistent): Chatbot a hlasový agent v jednom (čeština + angličtina)
+- [O mně](https://lukasdrsticka-ai-and-foto.com/#o-mne): Profil a zaměření
+- [Spolupráce](https://lukasdrsticka-ai-and-foto.com/#spoluprace): Klubová sportovní fotografie, AI implementace
+- [Kontakt](https://lukasdrsticka-ai-and-foto.com/#kontakt): Formulář, e-mail, Přerov CZ
+
+## Stack
+
+- Vanilla HTML/CSS/JS, Netlify Functions
+- AI backend: Google Gemma 4 (`gemma-4-31b-it`)
+- Hosting: Netlify (auto-deploy z GitHub main)
+
+## Kontakt
+
+- E-mail: lukas.drsticka@gmail.com
+- Lokalita: Přerov, ČR
