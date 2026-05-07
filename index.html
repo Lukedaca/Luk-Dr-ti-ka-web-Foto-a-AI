@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Fotograf Přerov & AI Developer | Lukáš Drštička</title>
 
+    <script>
+    (function(){
+      try {
+        if (sessionStorage.getItem('ld_purged_v1')) return;
+        var hadSomething = false;
+        var done = function(){
+          sessionStorage.setItem('ld_purged_v1', '1');
+          if (hadSomething) location.reload();
+        };
+        var swPromise = (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+          ? navigator.serviceWorker.getRegistrations().then(function(rs){
+              if (rs && rs.length) { hadSomething = true; return Promise.all(rs.map(function(r){ return r.unregister(); })); }
+            })
+          : Promise.resolve();
+        var cachePromise = (window.caches && caches.keys)
+          ? caches.keys().then(function(ns){
+              if (ns && ns.length) { hadSomething = true; return Promise.all(ns.map(function(n){ return caches.delete(n); })); }
+            })
+          : Promise.resolve();
+        Promise.all([swPromise, cachePromise]).then(done, done);
+      } catch (e) {}
+    })();
+    </script>
+
     <!-- SEO Meta Tags -->
     <meta name="description" content="Fotograf Přerov – Lukáš Drštička. Sportovní, portrétní a produktová fotografie v Přerově a okolí. AI developer – chatboty, automatizace a webová řešení na míru.">
     <meta name="keywords" content="fotograf Přerov, AI Přerov, sportovní fotograf Přerov, portrétní fotografie Přerov, AI developer Přerov, chatbot, automatizace, Lukáš Drštička">
