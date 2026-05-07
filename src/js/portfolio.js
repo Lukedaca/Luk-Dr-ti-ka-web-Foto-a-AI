@@ -202,7 +202,7 @@ function renderPortfolio() {
                 <picture>
                     ${optimizedImage ? `<source srcset="${optimizedImage.avif}" type="image/avif">` : ''}
                     ${optimizedImage ? `<source srcset="${optimizedImage.webp}" type="image/webp">` : ''}
-                    <img src="${fallbackImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='${PORTFOLIO_FALLBACK_IMAGE}';">
+                    <img src="${fallbackImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="${PORTFOLIO_FALLBACK_IMAGE}">
                 </picture>
                 <div class="portfolio-overlay">
                     <div class="text-center">
@@ -215,6 +215,9 @@ function renderPortfolio() {
     }).join('');
 
     attachPortfolioEvents();
+    if (typeof window.ldAttachImageFallbacks === 'function') {
+        window.ldAttachImageFallbacks(portfolioGrid);
+    }
     applyPortfolioFilter(activeFilter);
 }
 

@@ -1,33 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Fotograf Přerov & AI Developer | Lukáš Drštička</title>
-
-    <script>
-    (function(){
-      try {
-        if (sessionStorage.getItem('ld_purged_v1')) return;
-        var hadSomething = false;
-        var done = function(){
-          sessionStorage.setItem('ld_purged_v1', '1');
-          if (hadSomething) location.reload();
-        };
-        var swPromise = (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
-          ? navigator.serviceWorker.getRegistrations().then(function(rs){
-              if (rs && rs.length) { hadSomething = true; return Promise.all(rs.map(function(r){ return r.unregister(); })); }
-            })
-          : Promise.resolve();
-        var cachePromise = (window.caches && caches.keys)
-          ? caches.keys().then(function(ns){
-              if (ns && ns.length) { hadSomething = true; return Promise.all(ns.map(function(n){ return caches.delete(n); })); }
-            })
-          : Promise.resolve();
-        Promise.all([swPromise, cachePromise]).then(done, done);
-      } catch (e) {}
-    })();
-    </script>
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="Fotograf Přerov – Lukáš Drštička. Sportovní, portrétní a produktová fotografie v Přerově a okolí. AI developer – chatboty, automatizace a webová řešení na míru.">
@@ -74,9 +50,8 @@
     <!-- Preload critical fonts -->
     <link rel="preload" href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDI1apSCOBt_aeQQ7ftydoaeXYpj_EPk.woff2" as="font" type="font/woff2" crossorigin>
 
-    <!-- Optimized font loading - non-render-blocking -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional"></noscript>
+    <!-- Font stylesheet -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional">
 
     <!-- Critical CSS inline for above-the-fold content -->
     <style>
@@ -255,7 +230,7 @@ body > * {
 
 </head>
 <body class="text-white">
-    <a href="#main-content" class="skip-link">Přeskočit na obsah</a>
+    <a href="#main" class="skip-link">Přeskočit na obsah</a>
     <!-- Scroll Progress Bar -->
     <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
 
@@ -317,82 +292,11 @@ body > * {
                     <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition-transform active:scale-95" data-lang-option="cs">CZ</button>
                     <button type="button" class="lang-switch-btn px-4 py-3 rounded-full text-base font-semibold transition-transform active:scale-95" data-lang-option="en">EN</button>
                 </div>
-                <script>
-                (function(){
-                    var btns = document.querySelectorAll('#langToggleMobileStatic .lang-switch-btn');
-                    btns.forEach(function(btn){
-                        btn.addEventListener('click', function(e){
-                            e.preventDefault();
-                            var lang = btn.getAttribute('data-lang-option');
-                            if(window.ldI18n && window.ldI18n.applyLanguage){
-                                window.ldI18n.applyLanguage(lang);
-                            } else {
-                                try{localStorage.setItem('ld_lang',lang)}catch(x){}
-                                location.reload();
-                            }
-                            var m=document.getElementById('mobileMenu'), b=document.getElementById('mobileMenuBtn');
-                            if(m) m.classList.remove('active');
-                            if(b) b.classList.remove('active');
-                            document.body.style.overflow='';
-                        });
-                    });
-                })();
-                </script>
             </div>
         </nav>
     </div>
 
-    <script>
-    (function () {
-        var mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        var mobileMenu = document.getElementById('mobileMenu');
-        var mobileMenuClose = document.getElementById('mobileMenuClose');
-        if (!mobileMenuBtn || !mobileMenu) return;
-
-        function setMobileMenuState(open) {
-            mobileMenuBtn.classList.toggle('active', open);
-            mobileMenu.classList.toggle('active', open);
-            mobileMenuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-            document.body.style.overflow = open ? 'hidden' : '';
-        }
-
-        window.ldSetMobileMenuState = setMobileMenuState;
-        window.ldToggleMobileMenu = function () {
-            setMobileMenuState(!mobileMenu.classList.contains('active'));
-        };
-        window.ldCloseMobileMenu = function () {
-            setMobileMenuState(false);
-        };
-
-        if (mobileMenuBtn.dataset.menuBound === 'true') return;
-        mobileMenuBtn.dataset.menuBound = 'true';
-
-        mobileMenuBtn.addEventListener('click', function (event) {
-            event.preventDefault();
-            window.ldToggleMobileMenu();
-        }, { passive: false });
-
-        if (mobileMenuClose) {
-            mobileMenuClose.addEventListener('click', function () {
-                window.ldCloseMobileMenu();
-            });
-        }
-
-        mobileMenu.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('click', function () {
-                window.ldCloseMobileMenu();
-            });
-        });
-
-        mobileMenu.addEventListener('click', function (event) {
-            if (event.target === mobileMenu) {
-                window.ldCloseMobileMenu();
-            }
-        });
-    })();
-    </script>
-
-    <main id="main-content" class="pt-20">
+    <main id="main" class="pt-20" tabindex="-1">
         <!-- Hero Section -->
         <section id="hero" class="min-h-screen flex items-center justify-center px-6 relative mesh-gradient">
             <div class="hero-ambient">
@@ -500,7 +404,7 @@ body > * {
                         <picture>
                             <source srcset="dist/images/portfolio/sport-1.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-1.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -513,7 +417,7 @@ body > * {
                         <picture>
                             <source srcset="dist/images/portfolio/sport-2.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-2.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -526,7 +430,7 @@ body > * {
                         <picture>
                             <source srcset="dist/images/portfolio/sport-3.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-3.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -539,7 +443,7 @@ body > * {
                         <picture>
                             <source srcset="dist/images/portfolio/sport-4.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-4.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -551,7 +455,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-5.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-5.jpg" alt="První liga" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-5.jpg" alt="První liga" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -563,7 +467,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-6.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-6.jpg" alt="Sigma vs Slavia" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sport-6.jpg" alt="Sigma vs Slavia" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -575,7 +479,7 @@ body > * {
                     <a href="/galerie/sigma-vs-mainz/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-7" data-project-index="6" aria-label="Otevřít galerii Sigma Olomouc vs Mainz">
                         <picture>
                             <source srcset="dist/images/portfolio/sigma-mainz-01.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sigma-mainz-01.jpg" alt="Sigma Olomouc vs Mainz" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/sigma-mainz-01.jpg" alt="Sigma Olomouc vs Mainz" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -585,7 +489,7 @@ body > * {
                         </div>
                     </a>
                     <a href="/galerie/prerov-vs-brodek/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-8" data-project-index="7" aria-label="Otevřít galerii Přerov vs Brodek">
-                        <img src="assets/portfolio/prerov-brodek/thumbs/IMG_8812.jpg" alt="Přerov vs Brodek" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <img src="assets/portfolio/prerov-brodek/thumbs/IMG_8812.jpg" alt="Přerov vs Brodek" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Přerov vs Brodek</div>
@@ -594,7 +498,7 @@ body > * {
                         </div>
                     </a>
                     <a href="/galerie/prerov-vs-postelmov/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-9" data-project-index="8" aria-label="Otevřít galerii Přerov vs Postřelmov">
-                        <img src="assets/portfolio/prerov-postelmov/thumbs/IMG_8983.jpg" alt="Přerov vs Postřelmov" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                        <img src="assets/portfolio/prerov-postelmov/thumbs/IMG_8983.jpg" alt="Přerov vs Postřelmov" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Přerov vs Postřelmov</div>
@@ -605,7 +509,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
                             <source srcset="dist/images/portfolio/ai-1.webp" type="image/webp">
-                            <img src="dist/images/portfolio/ai-1.jpg" alt="Hybridní Agent" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/ai-1.jpg" alt="Hybridní Agent" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -617,7 +521,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
                             <source srcset="dist/images/portfolio/ai-2.webp" type="image/webp">
-                            <img src="dist/images/portfolio/ai-2.jpg" alt="Zábavní chatbot" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/ai-2.jpg" alt="Zábavní chatbot" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -629,7 +533,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
                             <source srcset="dist/images/portfolio/ai-3.webp" type="image/webp">
-                            <img src="dist/images/portfolio/ai-3.jpg" alt="Fotograf AI" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/ai-3.jpg" alt="Fotograf AI" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -641,7 +545,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/portret-1.webp" type="image/webp">
-                            <img src="dist/images/portfolio/portret-1.jpg" alt="Portrét s kouřem" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/portret-1.jpg" alt="Portrét s kouřem" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -653,7 +557,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/portret-2.webp" type="image/webp">
-                            <img src="dist/images/portfolio/portret-2.jpg" alt="Festival look" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/portret-2.jpg" alt="Festival look" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -665,7 +569,7 @@ body > * {
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/portret-3.webp" type="image/webp">
-                            <img src="dist/images/portfolio/portret-3.jpg" alt="Modrý kouř" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" onerror="this.onerror=null;this.src='assets/fallback.jpg';">
+                            <img src="dist/images/portfolio/portret-3.jpg" alt="Modrý kouř" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -1160,4 +1064,3 @@ body > * {
 
 </body>
 </html>
-

@@ -3,12 +3,51 @@
  * Contains essential functionality for initial page render
  */
 
+// One-time cleanup for old service workers/caches from previous deploys.
+(function purgeLegacyCachesOnce() {
+    try {
+        if (sessionStorage.getItem('ld_purged_v1')) return;
+
+        let hadSomething = false;
+        const done = () => {
+            sessionStorage.setItem('ld_purged_v1', '1');
+            if (hadSomething) {
+                window.ldCachePurgeReloading = true;
+                location.reload();
+            }
+        };
+
+        const swPromise = (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+            ? navigator.serviceWorker.getRegistrations().then((registrations) => {
+                if (!registrations || !registrations.length) return undefined;
+                hadSomething = true;
+                return Promise.all(registrations.map((registration) => registration.unregister()));
+            })
+            : Promise.resolve();
+
+        const cachePromise = (window.caches && caches.keys)
+            ? caches.keys().then((names) => {
+                if (!names || !names.length) return undefined;
+                hadSomething = true;
+                return Promise.all(names.map((name) => caches.delete(name)));
+            })
+            : Promise.resolve();
+
+        window.ldCachePurgePromise = Promise.all([swPromise, cachePromise]).then(done, done);
+    } catch (e) {
+        window.ldCachePurgePromise = Promise.resolve();
+    }
+})();
+
 // Register Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered'))
-            .catch(err => console.log('Service Worker registration failed:', err));
+        Promise.resolve(window.ldCachePurgePromise).then(() => {
+            if (window.ldCachePurgeReloading) return;
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        });
     });
 }
 
@@ -51,6 +90,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         window.setTimeout(callback, 1);
     };
+
+    const attachImageFallbacks = (root = document) => {
+        const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+        scope.querySelectorAll('img[data-fallback-src]').forEach((img) => {
+            if (img.dataset.fallbackBound === 'true') return;
+            img.dataset.fallbackBound = 'true';
+            img.addEventListener('error', () => {
+                const fallbackSrc = img.getAttribute('data-fallback-src');
+                if (!fallbackSrc || img.getAttribute('src') === fallbackSrc) return;
+                const picture = img.parentElement && img.parentElement.tagName === 'PICTURE' ? img.parentElement : null;
+                if (picture) {
+                    picture.querySelectorAll('source').forEach((source) => source.remove());
+                }
+                img.removeAttribute('srcset');
+                img.src = fallbackSrc;
+            }, { once: true });
+        });
+    };
+
+    window.ldAttachImageFallbacks = attachImageFallbacks;
+    attachImageFallbacks(document);
 
     // Clean conflict markers (safety feature)
     function cleanConflictMarkers() {
