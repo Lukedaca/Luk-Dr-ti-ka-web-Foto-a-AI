@@ -21,7 +21,7 @@
         cs: {
       title: 'Lukáš Drštička - Fotograf & AI Developer | Portfolio',
       description: 'Portfolio Lukáše Drštičky - fotograf a AI developer z Přerova. Portrétní, sportovní a produktová fotografie, AI chatboty a automatizace na míru.',
-      nav: ['Hybridní Agent', 'Portfolio', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
+      nav: ['Hybridní Agent', 'Portfolio', 'Weby', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
       hero: ['Fotografie', 'AI Development', 'Automatizace', 'Fotograf & AI Developer', 'Portfolio', 'Hybridní Agent'],
       ai: ['Hybridní Agent', 'Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat'],
       portfolio: ['Portfolio', 'Vše', 'Fotografie', 'AI Projekty'],
@@ -36,7 +36,7 @@
     en: {
       title: 'Lukas Drsticka - Photographer & AI Developer | Portfolio',
       description: 'Portfolio of Lukas Drsticka - photographer and AI developer from Prerov, Czech Republic. Portrait, sports and product photography, AI chatbots and custom automation.',
-      nav: ['Hybrid Agent', 'Portfolio', 'Skills', 'About', 'Collaboration', 'Contact'],
+      nav: ['Hybrid Agent', 'Portfolio', 'Websites', 'Skills', 'About', 'Collaboration', 'Contact'],
       hero: ['Photography', 'AI Development', 'Automation', 'Photographer & AI Developer', 'View portfolio', 'Hybrid Agent'],
       ai: ['Hybrid Agent', 'A chatbot and a voice agent in one. Writes, speaks and instantly proposes the next step. Works in Czech and English.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send'],
       portfolio: ['Portfolio', 'All', 'Photography', 'AI Projects'],
