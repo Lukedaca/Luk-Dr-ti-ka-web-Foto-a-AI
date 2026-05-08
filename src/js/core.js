@@ -112,6 +112,53 @@ document.addEventListener('DOMContentLoaded', () => {
     window.ldAttachImageFallbacks = attachImageFallbacks;
     attachImageFallbacks(document);
 
+    const setupDeferredHeroVideo = () => {
+        const video = document.querySelector('.hero-video[data-src]');
+        if (!video) return;
+
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const canUseMotionMedia =
+            window.matchMedia('(min-width: 768px)').matches &&
+            !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+            !(connection && connection.saveData);
+
+        if (!canUseMotionMedia) {
+            video.removeAttribute('src');
+            return;
+        }
+
+        const loadVideo = () => {
+            if (video.dataset.videoLoaded === 'true') return;
+            const src = video.getAttribute('data-src');
+            if (!src) return;
+
+            video.dataset.videoLoaded = 'true';
+            video.src = src;
+            video.preload = 'metadata';
+            video.autoplay = true;
+
+            const playPromise = video.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {});
+            }
+        };
+
+        const bindIntentLoad = () => {
+            const options = { once: true, passive: true };
+            ['pointermove', 'pointerdown', 'keydown', 'scroll'].forEach((eventName) => {
+                window.addEventListener(eventName, loadVideo, options);
+            });
+        };
+
+        if (document.readyState === 'complete') {
+            runWhenIdle(bindIntentLoad, 2600);
+        } else {
+            window.addEventListener('load', () => runWhenIdle(bindIntentLoad, 2600), { once: true });
+        }
+    };
+
+    setupDeferredHeroVideo();
+
     // Clean conflict markers (safety feature)
     function cleanConflictMarkers() {
         const markers = ['<<<<<<<', '=======', '>>>>>>>'];
@@ -146,17 +193,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const themeToggleMobile = document.getElementById('themeToggleMobile');
 
-    function applyTheme(theme) {
+    function applyTheme(theme, persist = true) {
         const useLight = theme === 'light';
-        document.documentElement.classList.toggle('theme-light', useLight);
-        storage.set('ld_theme', useLight ? 'light' : 'dark');
+        if (document.documentElement.classList.contains('theme-light') !== useLight) {
+            document.documentElement.classList.toggle('theme-light', useLight);
+        }
+        if (persist) storage.set('ld_theme', useLight ? 'light' : 'dark');
         const icon = useLight ? '🌙' : '☀️';
         if (themeToggle) themeToggle.textContent = icon;
         if (themeToggleMobile) themeToggleMobile.textContent = icon;
     }
 
     const savedTheme = storage.get('ld_theme');
-    applyTheme(savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light'));
+    applyTheme(savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light'), false);
 
     function toggleTheme() {
         const nextTheme = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light';
@@ -540,11 +589,18 @@ function lazyLoadModules() {
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
         !window.matchMedia('(hover: none)').matches &&
         window.innerWidth >= 768) {
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=19');
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(startParticles, { timeout: 1500 });
+        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=20');
+        const scheduleParticles = () => {
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(startParticles, { timeout: 3000 });
+            } else {
+                setTimeout(startParticles, 1600);
+            }
+        };
+        if (document.readyState === 'complete') {
+            scheduleParticles();
         } else {
-            setTimeout(startParticles, 600);
+            window.addEventListener('load', scheduleParticles, { once: true });
         }
     }
 
@@ -553,7 +609,7 @@ function lazyLoadModules() {
     if (portfolioSection) {
         const portfolioObserver = new IntersectionObserver((entries, obs) => {
             if (entries[0].isIntersecting) {
-                loadModule('/dist/js/portfolio.min.js?v=9', () => {
+                loadModule('/dist/js/portfolio.min.js?v=10', () => {
                     console.log('Portfolio module loaded');
                 });
                 obs.disconnect();
@@ -636,6 +692,7 @@ function setupChatbotLoader() {
 function loadModule(src, callback, errorCallback) {
     const script = document.createElement('script');
     script.src = src;
+    script.async = true;
     script.onload = callback;
     script.onerror = () => {
         console.error(`Failed to load module: ${src}`);

@@ -12,7 +12,7 @@ module.exports = {
       fontFamily: {
         sans: ['Geist', 'system-ui', 'sans-serif'],
         display: ['Geist', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+        mono: ['ui-monospace', 'SFMono-Regular', 'Cascadia Mono', 'Segoe UI Mono', 'Consolas', 'monospace']
       },
       colors: {
         ink: {

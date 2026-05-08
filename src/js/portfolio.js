@@ -209,7 +209,7 @@ function renderPortfolio() {
                 <picture>
                     ${cardAvif ? `<source srcset="${cardAvif}" type="image/avif">` : ''}
                     ${cardWebp ? `<source srcset="${cardWebp}" type="image/webp">` : ''}
-                    <img src="${fallbackImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="${PORTFOLIO_FALLBACK_IMAGE}">
+                    <img src="${fallbackImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="480" height="320" data-fallback-src="${PORTFOLIO_FALLBACK_IMAGE}">
                 </picture>
                 <div class="portfolio-overlay">
                     <div class="text-center">

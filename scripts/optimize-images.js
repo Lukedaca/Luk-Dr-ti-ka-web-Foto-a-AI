@@ -11,15 +11,16 @@ if (!fs.existsSync(outputDir)) {
 }
 
 const MAX_WIDTH = 1100;
-const CARD_WIDTH = 760;
+const CARD_WIDTH = 480;
+const CARD_HEIGHT = 320;
 const GALLERY_THUMB_WIDTH = 520;
 const LIGHTBOX_WIDTH = 1920;
 const JPEG_QUALITY = 82;
 const WEBP_QUALITY = 72;
 const AVIF_QUALITY = 50;
-const CARD_JPEG_QUALITY = 78;
-const CARD_WEBP_QUALITY = 60;
-const CARD_AVIF_QUALITY = 42;
+const CARD_JPEG_QUALITY = 74;
+const CARD_WEBP_QUALITY = 56;
+const CARD_AVIF_QUALITY = 38;
 const THUMB_JPEG_QUALITY = 76;
 const THUMB_WEBP_QUALITY = 58;
 const THUMB_AVIF_QUALITY = 40;
@@ -36,7 +37,11 @@ let skipped = 0;
 function outputsFresh(inputPath, outputs) {
   try {
     const inputMtime = fs.statSync(inputPath).mtimeMs;
-    return outputs.every(p => fs.existsSync(p) && fs.statSync(p).mtimeMs >= inputMtime);
+    return outputs.every(p => {
+      if (!fs.existsSync(p)) return false;
+      const stat = fs.statSync(p);
+      return stat.size > 0 && stat.mtimeMs >= inputMtime;
+    });
   } catch {
     return false;
   }
@@ -94,7 +99,12 @@ async function processFile(inputPath, outDir, baseName, { lightbox = false } = {
   }
 
   if (cardAvifPath && cardWebpPath && cardJpegPath) {
-    const cardResizeOptions = metadata.width > CARD_WIDTH ? { width: CARD_WIDTH } : {};
+    const cardResizeOptions = {
+      width: CARD_WIDTH,
+      height: CARD_HEIGHT,
+      fit: 'cover',
+      position: sharp.strategy.attention
+    };
 
     await image.clone().resize(cardResizeOptions)
       .avif({ quality: CARD_AVIF_QUALITY, effort: 7 })
@@ -158,7 +168,7 @@ async function optimizeImages() {
     .filter(e => e.isFile() && /\.(jpg|jpeg|png|webp)$/i.test(e.name))
     .map(e => e.name);
 
-  console.log(`Optimizing ${topLevelFiles.length} top-level images (main max ${MAX_WIDTH}px, card max ${CARD_WIDTH}px, concurrency=${CONCURRENCY})...\n`);
+  console.log(`Optimizing ${topLevelFiles.length} top-level images (main max ${MAX_WIDTH}px, card ${CARD_WIDTH}x${CARD_HEIGHT}px, concurrency=${CONCURRENCY})...\n`);
   const topTasks = topLevelFiles.map(file => async () => {
     try {
       const savings = await processFile(
