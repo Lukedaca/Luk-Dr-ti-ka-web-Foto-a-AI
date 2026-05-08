@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
-    loadModule('/dist/js/i18n.min.js?v=7', () => {
+    loadModule('/dist/js/i18n.min.js?v=9', () => {
         console.log('I18n module loaded');
     });
 
@@ -451,7 +451,7 @@ function lazyLoadModules() {
     const neuralCanvas = document.getElementById('neuralCanvas');
     if (neuralCanvas) {
         setTimeout(() => {
-            loadModule('/dist/js/neural.min.js', () => {
+            loadModule('/dist/js/neural.min.js?v=9', () => {
                 console.log('Neural module loaded');
             });
         }, 2000);
@@ -462,7 +462,7 @@ function lazyLoadModules() {
     if (portfolioSection) {
         const portfolioObserver = new IntersectionObserver((entries, obs) => {
             if (entries[0].isIntersecting) {
-                loadModule('/dist/js/portfolio.min.js', () => {
+                loadModule('/dist/js/portfolio.min.js?v=9', () => {
                     console.log('Portfolio module loaded');
                 });
                 obs.disconnect();
@@ -476,7 +476,7 @@ function lazyLoadModules() {
     if (contactSection) {
         const contactObserver = new IntersectionObserver((entries, obs) => {
             if (entries[0].isIntersecting) {
-                loadModule('/dist/js/contact.min.js', () => {
+                loadModule('/dist/js/contact.min.js?v=9', () => {
                     console.log('Contact module loaded');
                 });
                 obs.disconnect();
@@ -485,23 +485,60 @@ function lazyLoadModules() {
         contactObserver.observe(contactSection);
     }
 
-    // Load chatbot immediately (hero AI chatbox needs it on page load)
-    loadModule('/dist/js/turnstile.min.js', () => {
-        console.log('Turnstile module loaded');
-        loadModule('/dist/js/chatbot.min.js', () => {
-            console.log('Chatbot module loaded');
-            loadModule('/dist/js/voice.min.js', () => {
-                console.log('Voice module loaded');
-            });
-        });
-    }, () => {
-        loadModule('/dist/js/chatbot.min.js', () => {
-            console.log('Chatbot module loaded');
-            loadModule('/dist/js/voice.min.js', () => {
-                console.log('Voice module loaded');
-            });
-        });
+    setupChatbotLoader();
+}
+
+let chatbotLoadPromise = null;
+
+function loadChatbotStack() {
+    if (window.aiChat) return Promise.resolve(window.aiChat);
+    if (chatbotLoadPromise) return chatbotLoadPromise;
+
+    chatbotLoadPromise = new Promise((resolve) => {
+        const finish = () => {
+            loadModule('/dist/js/chatbot.min.js?v=9', () => {
+                console.log('Chatbot module loaded');
+                loadModule('/dist/js/voice.min.js?v=9', () => {
+                    console.log('Voice module loaded');
+                });
+                resolve(window.aiChat || null);
+            }, () => resolve(window.aiChat || null));
+        };
+
+        loadModule('/dist/js/turnstile.min.js?v=9', () => {
+            console.log('Turnstile module loaded');
+            finish();
+        }, finish);
     });
+
+    return chatbotLoadPromise;
+}
+
+function setupChatbotLoader() {
+    const chatBtn = document.getElementById('chatBtn');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', (event) => {
+            if (window.aiChat) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            loadChatbotStack().then((chat) => {
+                if (chat && typeof chat.openWidget === 'function') {
+                    chat.openWidget();
+                }
+            });
+        }, true);
+    }
+
+    const aiSection = document.getElementById('ai-asistent');
+    if (aiSection && 'IntersectionObserver' in window) {
+        const chatbotObserver = new IntersectionObserver((entries, obs) => {
+            if (entries[0].isIntersecting) {
+                loadChatbotStack();
+                obs.disconnect();
+            }
+        }, { rootMargin: '240px 0px' });
+        chatbotObserver.observe(aiSection);
+    }
 }
 
 // Helper function to load scripts dynamically

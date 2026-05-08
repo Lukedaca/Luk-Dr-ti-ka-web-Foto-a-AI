@@ -34,9 +34,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg">
     <link rel="manifest" href="/manifest.json">
 
-    <!-- Performance: Preconnect to external domains -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Performance: preconnect only to domains used by interactive flows -->
     <link rel="dns-prefetch" href="https://formspree.io">
 
     <!-- Theme color for mobile browsers -->
@@ -46,12 +44,6 @@
     <!-- Additional SEO -->
     <meta name="format-detection" content="telephone=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <!-- CSS and fonts are preloaded, then applied without blocking first render -->
-    <script src="/dist/js/early.min.js?v=8" defer></script>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional" as="style">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional" media="print" data-async-stylesheet>
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional"></noscript>
 
     <!-- Critical CSS inline for above-the-fold content -->
     <style>
@@ -65,8 +57,8 @@
     --accent-purple: #8b5cf6;
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .theme-light {
@@ -117,14 +109,46 @@ header {
     width: 100%;
     z-index: 100;
     backdrop-filter: blur(12px);
+    min-height: 72px;
+}
+
+.pt-20 {
+    padding-top: 5rem;
+}
+
+.container {
+    width: min(100% - 2rem, 1200px);
+    margin-inline: auto;
 }
 
 .min-h-screen {
-    min-height: 100vh;
+    min-height: 100svh;
 }
 
 .display-text {
     font-family: var(--font-display);
+}
+
+#hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100svh;
+    padding-inline: 1.5rem;
+    position: relative;
+}
+
+.hero-ambient,
+#cursorSpotlight,
+#neuralCanvas {
+    pointer-events: none;
+}
+
+.brand-mark {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 /* Content fade-in */
@@ -152,10 +176,8 @@ body > * {
 .hero-qr:hover { transform: translateY(-2px); background: rgba(255,255,255,0.1); }
         </style>
 
-    <!-- Combined Tailwind + custom CSS (non-render-blocking request) -->
-    <link rel="preload" href="/dist/css/styles.min.css?v=8" as="style">
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=8" media="print" data-async-stylesheet>
-    <noscript><link rel="stylesheet" href="/dist/css/styles.min.css?v=8"></noscript>
+    <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=9">
     
 
     <!-- Schema.org Structured Data -->
@@ -242,8 +264,8 @@ body > * {
     <header class="fixed top-0 w-full z-50 glass">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#" class="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer" aria-label="Zpět na úvodní stránku">
-                <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full h-10 w-10 flex flex-col justify-center items-center font-bold text-xs">
-                    <span>LD</span>
+                <div class="brand-chip rounded-full h-10 w-10 flex flex-col justify-center items-center">
+                    <img src="/assets/brand/ld-mark.svg" alt="" class="brand-mark" width="40" height="40" decoding="async">
                 </div>
                 <span class="text-lg font-semibold">Lukáš Drštička</span>
             </a>
@@ -311,11 +333,11 @@ body > * {
                     <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">Automatizace</span>
                 </div>
 
-                <h1 class="text-5xl sm:text-7xl md:text-8xl font-extrabold mb-6 gradient-text display-text tracking-tight leading-none" style="letter-spacing: -0.03em;">
+                <h1 class="text-5xl sm:text-7xl md:text-8xl font-extrabold mb-6 gradient-text display-text tracking-tight leading-none" style="letter-spacing: 0;">
                     Fotograf &amp; AI Developer
                 </h1>
 
-                <h2 class="text-xl md:text-2xl font-medium text-gray-400 mb-10 tracking-wide uppercase" style="letter-spacing: 0.15em;">
+                <h2 class="text-xl md:text-2xl font-medium text-gray-400 mb-10 tracking-wide uppercase" style="letter-spacing: 0;">
                     Lukáš Drštička
                 </h2>
 
@@ -492,7 +514,11 @@ body > * {
                         </div>
                     </a>
                     <a href="/galerie/prerov-vs-brodek/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-8" data-project-index="7" aria-label="Otevřít galerii Přerov vs Brodek">
-                        <img src="assets/portfolio/prerov-brodek/thumbs/IMG_8812.jpg" alt="Přerov vs Brodek" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                        <picture>
+                            <source srcset="dist/images/portfolio/prerov-brodek/IMG_8812-thumb.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/prerov-brodek/IMG_8812-thumb.webp" type="image/webp">
+                            <img src="dist/images/portfolio/prerov-brodek/IMG_8812-thumb.jpg" alt="Přerov vs Brodek" class="w-full h-80 object-cover" loading="lazy" decoding="async" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Přerov vs Brodek</div>
@@ -501,7 +527,11 @@ body > * {
                         </div>
                     </a>
                     <a href="/galerie/prerov-vs-postelmov/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-9" data-project-index="8" aria-label="Otevřít galerii Přerov vs Postřelmov">
-                        <img src="assets/portfolio/prerov-postelmov/thumbs/IMG_8983.jpg" alt="Přerov vs Postřelmov" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                        <picture>
+                            <source srcset="dist/images/portfolio/prerov-postelmov/IMG_8983-thumb.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/prerov-postelmov/IMG_8983-thumb.webp" type="image/webp">
+                            <img src="dist/images/portfolio/prerov-postelmov/IMG_8983-thumb.jpg" alt="Přerov vs Postřelmov" class="w-full h-80 object-cover" loading="lazy" decoding="async" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                        </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
                                 <div class="portfolio-title">Přerov vs Postřelmov</div>
@@ -948,8 +978,8 @@ body > * {
                 <!-- Brand Column -->
                 <div class="md:col-span-2">
                     <div class="flex items-center space-x-3 mb-4">
-                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full h-12 w-12 flex flex-col justify-center items-center font-bold text-sm">
-                            <span>LD</span>
+                        <div class="brand-chip rounded-full h-12 w-12 flex flex-col justify-center items-center">
+                            <img src="/assets/brand/ld-mark.svg" alt="" class="brand-mark" width="48" height="48" decoding="async">
                         </div>
                         <span class="text-xl font-semibold">Lukáš Drštička</span>
                     </div>
@@ -1068,7 +1098,7 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/core.min.js?v=8" defer></script>
+    <script src="/dist/js/core.min.js?v=9" defer></script>
 
 
 </body>

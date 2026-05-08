@@ -281,6 +281,16 @@
   var chatbotWarmedUp = false;
   var chatbotTtsWarmedUp = false;
 
+  function chatbotScrollToBottom(container) {
+    if (!container) return;
+    if (container.dataset.chatbotScrollPending === 'true') return;
+    container.dataset.chatbotScrollPending = 'true';
+    window.requestAnimationFrame(function() {
+      container.dataset.chatbotScrollPending = 'false';
+      container.scrollTop = container.scrollHeight;
+    });
+  }
+
   function chatbotEscapeHTML(str) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
@@ -858,7 +868,7 @@
       '</div>';
 
     container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    chatbotScrollToBottom(container);
   }
 
   function chatbotCreateAssistantStreamBubble(container) {
@@ -887,7 +897,7 @@
     wrap.appendChild(avatar);
     wrap.appendChild(col);
     container.appendChild(wrap);
-    container.scrollTop = container.scrollHeight;
+    chatbotScrollToBottom(container);
     return bubble;
   }
 
@@ -910,8 +920,8 @@
         if (firstAppend) { clearPending(); firstAppend = false; }
         if (heroBubble) heroBubble.textContent += text;
         if (widgetBubble) widgetBubble.textContent += text;
-        if (chatbotDOM.heroMessages) chatbotDOM.heroMessages.scrollTop = chatbotDOM.heroMessages.scrollHeight;
-        if (chatbotDOM.messages) chatbotDOM.messages.scrollTop = chatbotDOM.messages.scrollHeight;
+        chatbotScrollToBottom(chatbotDOM.heroMessages);
+        chatbotScrollToBottom(chatbotDOM.messages);
       },
       replace: function(text) {
         if (firstAppend) { clearPending(); firstAppend = false; }
@@ -935,7 +945,7 @@
       '</div>';
 
     container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    chatbotScrollToBottom(container);
   }
 
   function chatbotHideTyping(container) {
@@ -1064,7 +1074,7 @@
 
     card.appendChild(actions);
     container.appendChild(card);
-    container.scrollTop = container.scrollHeight;
+    chatbotScrollToBottom(container);
   }
 
   function chatbotMaybeRenderMemoryControls() {
@@ -1723,7 +1733,7 @@
     var host = chatbotDOM.heroMessages || chatbotDOM.messages;
     if (host) {
       host.appendChild(container);
-      host.scrollTop = host.scrollHeight;
+      chatbotScrollToBottom(host);
     }
   }
 

@@ -77,13 +77,15 @@ function getOptimizedImageSources(imagePath) {
     const subPath = pathParts.slice(0, -1).join('/');
     const prefix = subPath ? `dist/images/portfolio/${subPath}` : 'dist/images/portfolio';
 
+    const thumbPrefix = `${prefix}/${baseName}-thumb`;
+
     return {
         avif: `${prefix}/${baseName}.avif`,
         webp: `${prefix}/${baseName}.webp`,
         jpg: `${prefix}/${baseName}.jpg`,
-        cardAvif: subPath ? null : `${prefix}/${baseName}-card.avif`,
-        cardWebp: subPath ? null : `${prefix}/${baseName}-card.webp`,
-        cardJpg: subPath ? null : `${prefix}/${baseName}-card.jpg`
+        cardAvif: subPath ? `${thumbPrefix}.avif` : `${prefix}/${baseName}-card.avif`,
+        cardWebp: subPath ? `${thumbPrefix}.webp` : `${prefix}/${baseName}-card.webp`,
+        cardJpg: subPath ? `${thumbPrefix}.jpg` : `${prefix}/${baseName}-card.jpg`
     };
 }
 

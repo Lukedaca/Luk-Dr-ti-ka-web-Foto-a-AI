@@ -12,6 +12,7 @@ if (!fs.existsSync(outputDir)) {
 
 const MAX_WIDTH = 1100;
 const CARD_WIDTH = 760;
+const GALLERY_THUMB_WIDTH = 520;
 const LIGHTBOX_WIDTH = 1920;
 const JPEG_QUALITY = 82;
 const WEBP_QUALITY = 72;
@@ -19,6 +20,9 @@ const AVIF_QUALITY = 50;
 const CARD_JPEG_QUALITY = 78;
 const CARD_WEBP_QUALITY = 60;
 const CARD_AVIF_QUALITY = 42;
+const THUMB_JPEG_QUALITY = 76;
+const THUMB_WEBP_QUALITY = 58;
+const THUMB_AVIF_QUALITY = 40;
 const LIGHTBOX_WEBP_QUALITY = 78;
 const LIGHTBOX_AVIF_QUALITY = 55;
 const BLUR_SIZE = 20;
@@ -50,8 +54,11 @@ async function processFile(inputPath, outDir, baseName, { lightbox = false } = {
   const cardAvifPath = lightbox ? null : path.join(outDir, `${baseName}-card.avif`);
   const cardWebpPath = lightbox ? null : path.join(outDir, `${baseName}-card.webp`);
   const cardJpegPath = lightbox ? null : path.join(outDir, `${baseName}-card.jpg`);
+  const thumbAvifPath = lightbox ? path.join(outDir, `${baseName}-thumb.avif`) : null;
+  const thumbWebpPath = lightbox ? path.join(outDir, `${baseName}-thumb.webp`) : null;
+  const thumbJpegPath = lightbox ? path.join(outDir, `${baseName}-thumb.jpg`) : null;
   const requiredOutputs = [avifPath, webpPath, jpegPath].concat(
-    blurPath ? [blurPath, cardAvifPath, cardWebpPath, cardJpegPath] : []
+    blurPath ? [blurPath, cardAvifPath, cardWebpPath, cardJpegPath] : [thumbAvifPath, thumbWebpPath, thumbJpegPath]
   );
 
   if (outputsFresh(inputPath, requiredOutputs)) {
@@ -100,6 +107,22 @@ async function processFile(inputPath, outDir, baseName, { lightbox = false } = {
     await image.clone().resize(cardResizeOptions)
       .jpeg({ quality: CARD_JPEG_QUALITY, progressive: true, mozjpeg: true })
       .toFile(cardJpegPath);
+  }
+
+  if (thumbAvifPath && thumbWebpPath && thumbJpegPath) {
+    const thumbResizeOptions = metadata.width > GALLERY_THUMB_WIDTH ? { width: GALLERY_THUMB_WIDTH } : {};
+
+    await image.clone().resize(thumbResizeOptions)
+      .avif({ quality: THUMB_AVIF_QUALITY, effort: 7 })
+      .toFile(thumbAvifPath);
+
+    await image.clone().resize(thumbResizeOptions)
+      .webp({ quality: THUMB_WEBP_QUALITY, effort: 6 })
+      .toFile(thumbWebpPath);
+
+    await image.clone().resize(thumbResizeOptions)
+      .jpeg({ quality: THUMB_JPEG_QUALITY, progressive: true, mozjpeg: true })
+      .toFile(thumbJpegPath);
   }
 
   const webpSize = fs.statSync(webpPath).size;
@@ -158,7 +181,7 @@ async function optimizeImages() {
     const files = fs.readdirSync(subInput).filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f));
     if (files.length === 0) continue;
 
-    console.log(`\nOptimizing gallery "${dir}" — ${files.length} images (lightbox ${LIGHTBOX_WIDTH}px)...`);
+    console.log(`\nOptimizing gallery "${dir}" - ${files.length} images (lightbox ${LIGHTBOX_WIDTH}px, thumb ${GALLERY_THUMB_WIDTH}px)...`);
     const tasks = files.map(file => async () => {
       try {
         const savings = await processFile(
