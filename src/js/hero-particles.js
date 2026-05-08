@@ -52,12 +52,20 @@
 
     function resize() {
         const rect = headline.getBoundingClientRect();
-        W = Math.max(320, Math.floor(rect.width));
-        H = Math.max(200, Math.floor(rect.height));
+        // Canvas roztáhnu na celou šířku viewportu (full-bleed),
+        // aby particles měly prostor a vykreslily text VELKÝ.
+        const vw = window.innerWidth;
+        W = Math.max(320, Math.floor(vw));
+        H = Math.max(280, Math.floor(rect.height));
         canvas.width = W * dpr;
         canvas.height = H * dpr;
         canvas.style.width = W + 'px';
         canvas.style.height = H + 'px';
+        // Centruj canvas na viewport (rodič může být užší, max-w-5xl)
+        canvas.style.left = '50%';
+        canvas.style.right = 'auto';
+        canvas.style.transform = 'translateX(-50%)';
+        canvas.style.maxWidth = 'none';
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         buildText();
     }
@@ -70,24 +78,68 @@
         const fontFamily = h1Style.fontFamily || '"Geist", system-ui, sans-serif';
         const fontWeight = h1Style.fontWeight || '900';
 
-        // Auto-fit font size do 86% šířky
-        let fs = Math.max(30, parseFloat(h1Style.fontSize) || 120);
-        ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
-        while (ctx.measureText(text).width > W * 0.9 && fs > 30) {
-            fs -= 2;
-            ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
+        // VELKÝ viewport-based font; multi-line wrap (cíl 3 řádky pro
+        // "Fotograf" / "& AI" / "Developer"). H1 computed style ignoruji,
+        // protože H1 je hidden a může vrátit bezvýznamnou hodnotu.
+        const lineHeight = 0.92;
+        // Pro známé texty hardcoduju estetický wrap (jinak greedy by dal jiný split).
+        const KNOWN_WRAPS = {
+            'Fotograf & AI Developer': ['Fotograf', '& AI', 'Developer'],
+            'Photographer & AI Developer': ['Photographer', '& AI', 'Developer']
+        };
+        function wrapLines(fontSize) {
+            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+            if (KNOWN_WRAPS[text]) return KNOWN_WRAPS[text].slice();
+            const maxLineWidth = Math.min(W * 0.86, ctx.measureText('M').width * 14);
+            const words = text.split(/\s+/);
+            const out = [];
+            let line = '';
+            for (const w of words) {
+                const test = line ? line + ' ' + w : w;
+                if (ctx.measureText(test).width <= maxLineWidth) {
+                    line = test;
+                } else {
+                    if (line) out.push(line);
+                    line = w;
+                }
+            }
+            if (line) out.push(line);
+            return out;
         }
-        while (ctx.measureText(text).width < W * 0.78 && fs < H * 0.72) {
-            fs += 2;
-            ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
-        }
-        fs = Math.max(30, fs - 2);
-        ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
 
+        // Cíl: text zabírá ~70 % výšky hero. Viewport-based.
+        // Desktop ≥1024: ~22 % šířky viewportu (cap 280px)
+        // Tablet 640-1023: ~15 % vw (cap 160px)
+        // Mobil <640: ~13 % vw (cap 90px)
+        const vw = window.innerWidth;
+        let fs;
+        if (vw >= 1024)      fs = Math.min(vw * 0.22, 280);
+        else if (vw >= 640)  fs = Math.min(vw * 0.15, 160);
+        else                 fs = Math.min(vw * 0.13, 90);
+        fs = Math.max(60, Math.round(fs));
+
+        let lines = wrapLines(fs);
+        // Shrink jen pokud nějaký řádek přesahuje canvas šířku
+        // nebo celková výška překročí canvas. Zachovává VELKÝ font.
+        let safety = 30;
+        while (safety-- > 0 && fs > 60) {
+            ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
+            const totalH = lines.length * fs * lineHeight;
+            const widestLine = Math.max.apply(null, lines.map(l => ctx.measureText(l).width));
+            if (totalH <= H * 0.96 && widestLine <= W * 0.92) break;
+            fs -= 6;
+            lines = wrapLines(fs);
+        }
+
+        ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(text, W / 2, H / 2);
+        const totalHeight = lines.length * fs * lineHeight;
+        const startY = (H - totalHeight) / 2 + (fs * lineHeight) / 2;
+        lines.forEach((line, i) => {
+            ctx.fillText(line, W / 2, startY + i * fs * lineHeight);
+        });
 
         const imgData = ctx.getImageData(0, 0, W * dpr, H * dpr).data;
         const targetCount = Math.min(2400, Math.floor(W * H / 360));
