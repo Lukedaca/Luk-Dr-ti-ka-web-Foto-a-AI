@@ -18,6 +18,7 @@
     const canvas = document.createElement('canvas');
     canvas.className = 'hero-particles';
     canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.pointerEvents = 'none';
     headline.insertBefore(canvas, h1);
 
     const ctx = canvas.getContext('2d', { alpha: true });
@@ -65,17 +66,23 @@
         dots = [];
         ctx.clearRect(0, 0, W, H);
         const text = getText();
-        const fontFamily = '"Geist", system-ui, sans-serif';
+        const h1Style = window.getComputedStyle(h1);
+        const fontFamily = h1Style.fontFamily || '"Geist", system-ui, sans-serif';
+        const fontWeight = h1Style.fontWeight || '900';
 
         // Auto-fit font size do 86% šířky
-        let fs = 30;
-        ctx.font = `900 ${fs}px ${fontFamily}`;
-        while (ctx.measureText(text).width < W * 0.86 && fs < 600) {
-            fs += 2;
-            ctx.font = `900 ${fs}px ${fontFamily}`;
+        let fs = Math.max(30, parseFloat(h1Style.fontSize) || 120);
+        ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
+        while (ctx.measureText(text).width > W * 0.9 && fs > 30) {
+            fs -= 2;
+            ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
         }
-        fs -= 2;
-        ctx.font = `900 ${fs}px ${fontFamily}`;
+        while (ctx.measureText(text).width < W * 0.78 && fs < H * 0.72) {
+            fs += 2;
+            ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
+        }
+        fs = Math.max(30, fs - 2);
+        ctx.font = `${fontWeight} ${fs}px ${fontFamily}`;
 
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
@@ -83,7 +90,7 @@
         ctx.fillText(text, W / 2, H / 2);
 
         const imgData = ctx.getImageData(0, 0, W * dpr, H * dpr).data;
-        const targetCount = Math.min(3200, Math.floor(W * H / 260));
+        const targetCount = Math.min(2400, Math.floor(W * H / 360));
 
         let textPixels = 0;
         const scanGap = 4;
@@ -107,7 +114,7 @@
                         x: x + Math.cos(angle) * scatter,
                         y: y + Math.sin(angle) * scatter,
                         vx: 0, vy: 0,
-                        size: Math.random() * 1.6 + 0.7,
+                        size: Math.random() * 1.25 + 0.55,
                         color: COLORS[Math.floor(Math.random() * COLORS.length)],
                         revealDelay: distFromCenter * 0.0028 + Math.random() * 0.25,
                         revealProgress: 0
@@ -188,7 +195,7 @@
                 d.x += (d.ox - d.x) * ep * 0.08;
                 d.y += (d.oy - d.y) * ep * 0.08;
                 d.vx *= 0.5; d.vy *= 0.5;
-                ctx.fillStyle = `rgba(${d.color},${ep * 0.7})`;
+                ctx.fillStyle = `rgba(${d.color},${ep * 0.38})`;
                 ctx.fillRect(d.x - d.size * 0.5, d.y - d.size * 0.5, d.size, d.size);
                 continue;
             }
@@ -218,7 +225,7 @@
             d.y += d.vy;
 
             const displacement = Math.sqrt((d.x - d.ox) ** 2 + (d.y - d.oy) ** 2);
-            const alpha = Math.min(1, 0.7 + displacement * 0.012);
+            const alpha = Math.min(0.52, 0.28 + displacement * 0.006);
             ctx.fillStyle = `rgba(${d.color},${alpha})`;
             const sz = d.size + (displacement > 18 ? Math.min(displacement * 0.012, 1.4) : 0);
             ctx.fillRect(d.x - sz * 0.5, d.y - sz * 0.5, sz, sz);

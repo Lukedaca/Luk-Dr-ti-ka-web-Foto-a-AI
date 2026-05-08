@@ -206,7 +206,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=23">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=24">
     
 
     <!-- Schema.org Structured Data -->
@@ -381,7 +381,7 @@ body > * {
         <!-- Hero Section -->
         <section id="hero" class="min-h-screen flex items-center justify-center px-6 relative mesh-gradient">
             <div class="text-center max-w-5xl mx-auto relative z-10">
-                <!-- Hero headline: static first paint. Heavy particles/video are intentionally disabled for performance. -->
+                <!-- Hero headline: static first paint; particles load after idle or user intent. -->
                 <div class="hero-headline">
                     <h1 class="hero-h1 mb-6 leading-none">
                         Fotograf <span class="hero-amp">&amp;</span> AI Developer
@@ -1143,7 +1143,7 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/boot.min.js?v=23" defer></script>
+    <script src="/dist/js/boot.min.js?v=24" defer></script>
 
 
 </body>
