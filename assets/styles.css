@@ -2222,6 +2222,10 @@ header.is-scrolled,
             transparent 75%
         ),
         linear-gradient(180deg, #050d1d 0%, #0a1830 60%, #050d1d 100%);
+    /* Posun obsah blíž k vrchu — místo vertikálního center align k top
+       s padding-top, aby particle nadpis seděl výš v viewportu. */
+    align-items: flex-start !important;
+    padding-top: clamp(5rem, 10vh, 7.5rem);
 }
 
 /* Když particles jsou aktivní, statický H1 zmizí (no duplicate).
@@ -2232,10 +2236,12 @@ header.is-scrolled,
     pointer-events: none !important;
 }
 
-/* Když particles aktivní → bump headline min-height aby 3 řádky velkých
-   particles měly prostor (jinak shrink loop v JS sníží font na cca 200px). */
+/* Když particles aktivní → headline min-height pro 3 řádky 4× textu.
+   Menší než dřív, protože fs je teď cap 160px místo 200px. */
 .hero-headline.with-particles {
-    min-height: clamp(440px, 56vw, 760px) !important;
+    min-height: clamp(360px, 44vw, 560px) !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.5rem !important;
 }
 
 /* PRE-PARTICLES STEALTH: skryj statický H1 BY DEFAULT (od prvního paintu),

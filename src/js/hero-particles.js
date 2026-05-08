@@ -120,16 +120,16 @@
             return out;
         }
 
-        // Velikost ~5× původního auto-shrink renderu (desktop cap 200px).
-        // Desktop ≥1024: ~16 % šířky viewportu (cap 200px)
-        // Tablet 640-1023: ~12 % vw (cap 130px)
-        // Mobil <640: ~11 % vw (cap 76px)
+        // Velikost ~4× původního auto-shrink renderu (desktop cap 160px).
+        // Desktop ≥1024: ~13 % šířky viewportu (cap 160px)
+        // Tablet 640-1023: ~10 % vw (cap 108px)
+        // Mobil <640: ~9 % vw (cap 64px)
         const vw = window.innerWidth;
         let fs;
-        if (vw >= 1024)      fs = Math.min(vw * 0.16, 200);
-        else if (vw >= 640)  fs = Math.min(vw * 0.12, 130);
-        else                 fs = Math.min(vw * 0.11, 76);
-        fs = Math.max(50, Math.round(fs));
+        if (vw >= 1024)      fs = Math.min(vw * 0.13, 160);
+        else if (vw >= 640)  fs = Math.min(vw * 0.10, 108);
+        else                 fs = Math.min(vw * 0.09, 64);
+        fs = Math.max(44, Math.round(fs));
 
         let lines = wrapLines(fs);
         // Shrink jen pokud nějaký řádek přesahuje canvas šířku
@@ -155,8 +155,8 @@
         });
 
         const imgData = ctx.getImageData(0, 0, W * dpr, H * dpr).data;
-        // Density bumped: víc bodů na pixel = čitelnější písmo
-        const targetCount = Math.min(5500, Math.floor(W * H / 200));
+        // Density v2: víc bodů → ostřejší obrysy písma
+        const targetCount = Math.min(7500, Math.floor(W * H / 150));
 
         let textPixels = 0;
         const scanGap = 4;
@@ -180,8 +180,8 @@
                         x: x + Math.cos(angle) * scatter,
                         y: y + Math.sin(angle) * scatter,
                         vx: 0, vy: 0,
-                        // Body bumped: 2.0–5.5px (předtím 1.6–4.0)
-                        size: Math.random() * 3.5 + 2.0,
+                        // Body sharper: menší rozsah 1.6–3.6px (víc uniform → ostrý look)
+                        size: Math.random() * 2.0 + 1.6,
                         color: COLORS[Math.floor(Math.random() * COLORS.length)],
                         revealDelay: distFromCenter * 0.0028 + Math.random() * 0.25,
                         revealProgress: 0
@@ -240,9 +240,9 @@
         const rawSpeed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
         mouse.smoothSpeed += (rawSpeed - mouse.smoothSpeed) * 0.15;
 
-        // Motion blur trail (destination-out, transparent canvas)
+        // Motion blur trail — agresivnější fade (0.18→0.36) → kratší trail = ostřejší
         ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillStyle = 'rgba(0,0,0,0.36)';
         ctx.fillRect(0, 0, W, H);
         ctx.globalCompositeOperation = 'source-over';
 
@@ -297,11 +297,11 @@
             const alpha = Math.min(1.0, 0.92 + displacement * 0.006);
             const sz = d.size + (displacement > 18 ? Math.min(displacement * 0.012, 1.4) : 0);
 
-            // Soft glow halo — vykresluje se jen pro větší body (perf-friendly).
-            // 2.6× větší square, low alpha → bloom dojem kolem ostrého jádra.
-            if (sz > 3.2) {
-                ctx.fillStyle = `rgba(${d.color},${alpha * 0.18})`;
-                const haloSz = sz * 2.6;
+            // Subtle halo jen pro největší pohyblivé body — tightnější (1.8×)
+            // a nižší alpha. Cíl: malá záře okolo, ne fuzzy bloom.
+            if (sz > 4.5) {
+                ctx.fillStyle = `rgba(${d.color},${alpha * 0.12})`;
+                const haloSz = sz * 1.8;
                 ctx.fillRect(d.x - haloSz * 0.5, d.y - haloSz * 0.5, haloSz, haloSz);
             }
             // Sharp core
