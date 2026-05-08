@@ -2207,3 +2207,27 @@ header.is-scrolled,
         display: none;
     }
 }
+
+/* ==========================================================================
+   HERO BG — čistá navy + jeden měkký radial glow shora.
+   Nahrazuje busy .mesh-gradient (4 corner gradients) klidnějším pozadím.
+   Aplikuje se přes #hero (.hero-bg-clean), nepřepisuje body bg.
+   ========================================================================== */
+#hero.hero-bg-clean {
+    background:
+        radial-gradient(
+            ellipse 60% 50% at 50% 0%,
+            rgba(78, 162, 224, 0.18) 0%,
+            rgba(44, 126, 192, 0.08) 40%,
+            transparent 75%
+        ),
+        linear-gradient(180deg, #050d1d 0%, #0a1830 60%, #050d1d 100%);
+}
+
+/* Když particles jsou aktivní, statický H1 zmizí (no duplicate).
+   Override přepisuje PERFORMANCE MODE pravidlo, které ho re-zobrazovalo. */
+.hero-headline.with-particles .hero-h1 {
+    visibility: hidden !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
