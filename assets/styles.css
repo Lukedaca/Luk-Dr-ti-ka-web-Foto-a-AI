@@ -1,28 +1,81 @@
+/* ==========================================================================
+   Lukáš Drštička — Portfolio Redesign 2026
+   Paleta dle loga: ink (navy) + silver + signal blue + steel gradient.
+   Žádná fialová, žádná cyan, žádná pink. Markup beze změn.
+   ========================================================================== */
+
 :root {
-    --bg-primary: #0a0e27;
-    --bg-secondary: #1a1f3a;
-    --text-primary: #ffffff;
-    --text-secondary: #6b7280;
-    --accent-blue: #3b82f6;
-    --accent-purple: #8b5cf6;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-bg-hover: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glow-strong: rgba(59, 130, 246, 0.35);
-    --glow-soft: rgba(139, 92, 246, 0.25);
-    --shadow-soft: 0 20px 50px rgba(5, 10, 25, 0.45);
-    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* INK (povrchy) — deep navy z loga */
+    --ink-900: #050d1d;
+    --ink-800: #0a1830;
+    --ink-700: #122544;
+    --ink-600: #1c3258;
+    --ink-500: #29447a;
+
+    /* SILVER (text) */
+    --silver-50:  #ecf1f7;
+    --silver-100: #d8e1ec;
+    --silver-200: #a8b5c5;
+    --silver-300: #7a8aa3;
+    --silver-400: #5a6b86;
+
+    /* SIGNAL (akcent z loga — sky blue z circuit linek) */
+    --signal:        #4ea2e0;
+    --signal-hi:     #6cbcef;
+    --signal-deep:   #2c7ec0;
+    --signal-glow:   rgba(78, 162, 224, 0.38);
+    --signal-soft:   rgba(78, 162, 224, 0.16);
+
+    /* STEEL (gradient z loga — broušený kov shutteru) */
+    --steel-grad: linear-gradient(135deg, #d8e1ec 0%, #a8b5c5 45%, #7a8aa3 100%);
+    --steel-line: linear-gradient(90deg, transparent 0%, rgba(216, 225, 236, 0.6) 50%, transparent 100%);
+
+    /* GLASS (sjednocený) */
+    --glass-bg:        rgba(20, 33, 61, 0.55);
+    --glass-bg-hover:  rgba(31, 45, 77, 0.7);
+    --glass-border:    rgba(232, 238, 246, 0.08);
+    --glass-border-hi: rgba(111, 176, 255, 0.32);
+
+    /* STÍNY */
+    --shadow-soft: 0 24px 60px -20px rgba(5, 10, 20, 0.6);
+    --shadow-signal: 0 22px 50px rgba(74, 144, 226, 0.22);
+    --shadow-deep: 0 30px 80px rgba(3, 8, 18, 0.7);
+
+    /* BACKWARD-COMPAT (legacy proměnné v existujících selektorech) */
+    --bg-primary: var(--ink-800);
+    --bg-secondary: var(--ink-700);
+    --text-primary: var(--silver-50);
+    --text-secondary: var(--silver-300);
+    --accent-blue: var(--signal);
+    --accent-purple: var(--signal);
+    --glow-strong: var(--signal-glow);
+    --glow-soft: var(--signal-soft);
+
+    /* TYPO */
+    --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 .theme-light {
-    --bg-primary: #b7c2d2;
-    --bg-secondary: #9eacbf;
-    --text-primary: #0a101b;
-    --text-secondary: #151f33;
-    --glass-bg: rgba(10, 16, 27, 0.18);
-    --glass-bg-hover: rgba(10, 16, 27, 0.24);
-    --glass-border: rgba(10, 16, 27, 0.34);
+    --ink-900: #b7c2d2;
+    --ink-800: #aab6c8;
+    --ink-700: #95a3b9;
+    --ink-600: #7e8da4;
+    --silver-50:  #0a101b;
+    --silver-100: #14213d;
+    --silver-200: #1f2d4d;
+    --silver-300: #2c3d63;
+    --silver-400: #3e5168;
+    --glass-bg:        rgba(10, 22, 40, 0.10);
+    --glass-bg-hover:  rgba(10, 22, 40, 0.16);
+    --glass-border:    rgba(10, 22, 40, 0.22);
+    --glass-border-hi: rgba(47, 111, 196, 0.45);
+    --shadow-soft: 0 16px 40px -16px rgba(10, 22, 40, 0.32);
+    --bg-primary: var(--ink-900);
+    --bg-secondary: var(--ink-800);
+    --text-primary: var(--silver-50);
+    --text-secondary: var(--silver-200);
 }
 
 * {
@@ -31,11 +84,22 @@
 
 body {
     font-family: var(--font-sans);
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+    background:
+        radial-gradient(1200px 800px at 0% -10%, rgba(74, 144, 226, 0.08), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(111, 176, 255, 0.06), transparent 55%),
+        linear-gradient(180deg, var(--ink-900) 0%, var(--ink-800) 50%, var(--ink-900) 100%);
     color: var(--text-primary);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+    letter-spacing: -0.005em;
+}
+
+.theme-light body {
+    background:
+        radial-gradient(1200px 800px at 0% -10%, rgba(47, 111, 196, 0.10), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(74, 144, 226, 0.08), transparent 55%),
+        linear-gradient(180deg, var(--ink-900) 0%, var(--ink-800) 50%, var(--ink-900) 100%);
 }
 
 .skip-link {
@@ -44,8 +108,8 @@ body {
     left: 12px;
     padding: 10px 16px;
     border-radius: 999px;
-    background: var(--accent-blue);
-    color: #ffffff;
+    background: var(--signal);
+    color: var(--silver-50);
     font-weight: 600;
     z-index: 200;
     transform: translateY(-200%);
@@ -73,7 +137,9 @@ body {
     display: none;
     margin-top: 6px;
     font-size: 0.875rem;
-    color: #fca5a5;
+    color: #ff8b8b;
+    font-family: var(--font-mono);
+    letter-spacing: 0.02em;
 }
 
 .error-message.is-visible {
@@ -81,7 +147,7 @@ body {
 }
 
 :focus-visible {
-    outline: 2px solid var(--accent-blue);
+    outline: 2px solid var(--signal-hi);
     outline-offset: 2px;
 }
 
@@ -93,14 +159,12 @@ body {
     min-height: 44px;
 }
 
-/* Mobile chat fallback */
 @supports not (height: 100dvh) {
     #chatWindow {
         height: min(550px, calc(100vh - 120px)) !important;
     }
 }
 
-/* Chat na úzkých obrazovkách */
 @media (max-width: 400px) {
     #chatWindow {
         width: calc(100vw - 24px) !important;
@@ -108,13 +172,11 @@ body {
     }
 }
 
-/* DVH fallback pro hero sekci */
 .min-h-screen {
     min-height: 100vh;
     min-height: 100dvh;
 }
 
-/* Touch feedback */
 @media (hover: none) {
     .btn-primary:active,
     .glass:active,
@@ -123,13 +185,11 @@ body {
         transform: scale(0.97);
         opacity: 0.9;
     }
-
     .quick-reply-btn:active {
         transform: scale(0.95);
     }
 }
 
-/* Lepší scroll na iOS */
 #messages {
     -webkit-overflow-scrolling: touch;
 }
@@ -140,23 +200,22 @@ body {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
-    .float-animation, .reveal, .hero-orb {
+    .float-animation, .reveal, .hero-orb,
+    .shutter-line, .logo-intro, .signal-pulse {
         animation: none !important;
         transform: none !important;
     }
-
 }
-/* Android backdrop-filter fallback */
+
 @supports not (backdrop-filter: blur(1px)) {
     #mobileMenu {
-        background: rgba(0, 0, 0, 0.98) !important;
+        background: rgba(5, 10, 20, 0.98) !important;
     }
     .glass {
-        background: rgba(20, 25, 45, 0.95) !important;
+        background: rgba(10, 22, 40, 0.95) !important;
     }
 }
 
-/* iOS Safe Area */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
     .fixed.bottom-6 {
         bottom: calc(1.5rem + env(safe-area-inset-bottom));
@@ -169,12 +228,10 @@ body {
     }
 }
 
-/* iOS input zoom prevention */
 input, textarea, select {
     font-size: 16px !important;
 }
 
-/* Lightbox na mobilu */
 @media (max-width: 640px) {
     .lightbox {
         padding: 0.5rem !important;
@@ -193,31 +250,15 @@ input, textarea, select {
     }
 }
 
-/* Velmi male obrazovky */
 @media (max-width: 360px) {
-    h1.text-4xl {
-        font-size: 1.75rem !important;
-    }
-    h2.text-4xl {
-        font-size: 1.5rem !important;
-    }
-    .px-8 {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-    .px-6 {
-        padding-left: 0.75rem !important;
-        padding-right: 0.75rem !important;
-    }
-    .gap-4 {
-        gap: 0.5rem !important;
-    }
-    .text-lg {
-        font-size: 1rem !important;
-    }
+    h1.text-4xl { font-size: 1.75rem !important; }
+    h2.text-4xl { font-size: 1.5rem !important; }
+    .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
+    .px-6 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+    .gap-4 { gap: 0.5rem !important; }
+    .text-lg { font-size: 1rem !important; }
 }
 
-/* Stredne male obrazovky */
 @media (max-width: 480px) {
     #chatWindow {
         width: calc(100vw - 1.5rem) !important;
@@ -225,7 +266,6 @@ input, textarea, select {
     }
 }
 
-/* Landscape mobily */
 @media (max-height: 500px) and (orientation: landscape) {
     .min-h-screen {
         min-height: auto !important;
@@ -241,7 +281,6 @@ input, textarea, select {
     }
 }
 
-/* Vylepseny touch feedback */
 @media (hover: none) and (pointer: coarse) {
     .btn-primary:active,
     .btn-secondary:active {
@@ -257,7 +296,6 @@ input, textarea, select {
     }
 }
 
-/* Disable tap highlight */
 html {
     -webkit-tap-highlight-color: transparent;
 }
@@ -266,7 +304,7 @@ html {
     overscroll-behavior: contain;
 }
 
-
+/* ===== Ambient pozadí (jen ink + signal, žádná fialová) ===== */
 body::before,
 body::after {
     content: '';
@@ -278,18 +316,18 @@ body::after {
 
 body::before {
     background:
-        radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.15), transparent 50%),
-        radial-gradient(circle at 85% 15%, rgba(139, 92, 246, 0.2), transparent 45%),
-        radial-gradient(circle at 80% 80%, rgba(34, 211, 238, 0.2), transparent 55%),
-        radial-gradient(circle at 10% 80%, rgba(59, 130, 246, 0.12), transparent 50%);
-    opacity: 0.8;
-    filter: blur(10px);
+        radial-gradient(circle at 18% 12%, rgba(74, 144, 226, 0.16), transparent 48%),
+        radial-gradient(circle at 82% 18%, rgba(111, 176, 255, 0.10), transparent 50%),
+        radial-gradient(circle at 78% 82%, rgba(47, 111, 196, 0.10), transparent 55%),
+        radial-gradient(circle at 12% 78%, rgba(74, 144, 226, 0.08), transparent 50%);
+    opacity: 0.85;
+    filter: blur(12px);
 }
 
 body::after {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
+    background-image: radial-gradient(rgba(232, 238, 246, 0.045) 1px, transparent 0);
     background-size: 3px 3px;
-    opacity: 0.2;
+    opacity: 0.18;
     mix-blend-mode: soft-light;
 }
 
@@ -301,11 +339,14 @@ body::after {
     height: 100%;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.4;
+    opacity: 0.32;
+    filter: hue-rotate(-15deg) saturate(0.9);
 }
 
 #cursorSpotlight {
     will-change: transform, opacity;
+    background:
+        radial-gradient(circle, rgba(74, 144, 226, 0.18), transparent 60%) !important;
 }
 
 main {
@@ -316,45 +357,87 @@ main {
 header {
     z-index: 100;
 }
-header a.flex {    text-decoration: none;    color: inherit;    position: relative;    z-index: 101;}
 
-header.is-scrolled {
-    box-shadow: 0 16px 40px rgba(6, 10, 24, 0.45);
-    background: rgba(9, 13, 32, 0.65);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+header a.flex {
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    z-index: 101;
 }
 
+header.is-scrolled {
+    box-shadow: 0 18px 50px rgba(3, 8, 18, 0.55);
+    background: rgba(10, 22, 40, 0.78);
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(22px) saturate(140%);
+}
+
+/* ===== Glass (sjednocený, navy tint, steel okraje) ===== */
 .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(22px) saturate(140%);
     border: 1px solid var(--glass-border);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 14px 40px rgba(8, 12, 30, 0.35);
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+                background-color 0.45s ease,
+                border-color 0.45s ease,
+                box-shadow 0.45s ease;
+    box-shadow:
+        inset 0 1px 0 rgba(232, 238, 246, 0.04),
+        var(--shadow-soft);
     contain: layout style;
 }
 
 .glass:hover {
     background: var(--glass-bg-hover);
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
-    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-3px);
+    border-color: var(--glass-border-hi);
+    box-shadow:
+        inset 0 1px 0 rgba(232, 238, 246, 0.06),
+        0 30px 70px -20px rgba(74, 144, 226, 0.28);
 }
 
+.glass-strong {
+    background: rgba(20, 33, 61, 0.78);
+    backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid var(--glass-border-hi);
+    box-shadow:
+        inset 0 1px 0 rgba(232, 238, 246, 0.06),
+        var(--shadow-deep);
+}
+
+/* ===== Typo: gradient text — defaultně shimmer (steel × signal) ===== */
 .gradient-text {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #22d3ee);
+    background: linear-gradient(
+        110deg,
+        var(--silver-50) 0%,
+        var(--silver-50) 30%,
+        var(--signal-hi) 45%,
+        var(--silver-100) 55%,
+        var(--silver-50) 70%,
+        var(--silver-50) 100%
+    );
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: shimmerFlow 7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gradient-text { animation: none; }
 }
 
 .display-text {
     font-family: var(--font-display);
-    letter-spacing: 0;
-    text-shadow: 0 20px 60px rgba(14, 20, 40, 0.45);
+    letter-spacing: -0.02em;
+    text-shadow: 0 24px 60px rgba(3, 8, 18, 0.5);
+    font-weight: 600;
 }
 
 .section-title {
     font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
     position: relative;
     display: inline-block;
 }
@@ -362,14 +445,33 @@ header.is-scrolled {
 .section-title::after {
     content: '';
     display: block;
-    width: 72px;
-    height: 4px;
-    margin: 14px auto 0;
+    width: 88px;
+    height: 2px;
+    margin: 18px auto 0;
     border-radius: 999px;
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.9));
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--signal) 30%,
+        var(--silver-100) 70%,
+        transparent 100%);
+    box-shadow: 0 8px 24px rgba(74, 144, 226, 0.35);
 }
 
+/* ===== Mono pomocná třída (eyebrow, technické popisky) ===== */
+.font-mono,
+.eyebrow {
+    font-family: var(--font-mono);
+}
+
+.eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--silver-300);
+}
+
+/* ===== Hero ambient: redukce na navy + signal, žádná pink/purple ===== */
 .hero-ambient {
     position: absolute;
     inset: 0;
@@ -383,72 +485,98 @@ header.is-scrolled {
 .hero-orb {
     position: absolute;
     border-radius: 999px;
-    filter: blur(20px);
-    opacity: 0.6;
-    animation: float 10s ease-in-out infinite;
+    filter: blur(28px);
+    opacity: 0.55;
+    animation: float 12s ease-in-out infinite;
 }
 
 .hero-orb.one {
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.45), transparent 70%);
-    top: 8%;
-    left: 8%;
+    width: 360px;
+    height: 360px;
+    background: radial-gradient(circle, rgba(74, 144, 226, 0.45), transparent 70%);
+    top: 6%;
+    left: 6%;
 }
 
 .hero-orb.two {
-    width: 420px;
-    height: 420px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.4), transparent 70%);
-    top: 0%;
-    right: 5%;
+    width: 460px;
+    height: 460px;
+    background: radial-gradient(circle, rgba(111, 176, 255, 0.32), transparent 70%);
+    top: -2%;
+    right: 4%;
     animation-delay: -2s;
 }
 
 .hero-orb.three {
-    width: 260px;
-    height: 260px;
-    background: radial-gradient(circle, rgba(34, 211, 238, 0.4), transparent 70%);
-    bottom: 5%;
-    right: 25%;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(47, 111, 196, 0.34), transparent 70%);
+    bottom: 4%;
+    right: 22%;
     animation-delay: -4s;
 }
 
+/* ===== Portfolio ===== */
 .portfolio-item {
     position: relative;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+                box-shadow 0.4s ease,
+                border-color 0.4s ease;
+    border: 1px solid rgba(232, 238, 246, 0.06);
     box-shadow: var(--shadow-soft);
     transform-style: preserve-3d;
     contain: layout style paint;
 }
 
+.portfolio-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--steel-line);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    pointer-events: none;
+    height: 1px;
+    top: auto;
+    bottom: 50%;
+}
+
 .portfolio-item:hover {
-    transform: scale(1.02) translateY(-4px);
-    border-color: rgba(59, 130, 246, 0.35);
-    box-shadow: 0 30px 70px rgba(10, 18, 40, 0.6);
+    transform: translateY(-6px) scale(1.015);
+    border-color: var(--glass-border-hi);
+    box-shadow:
+        0 36px 80px -20px rgba(3, 8, 18, 0.7),
+        0 0 0 1px rgba(111, 176, 255, 0.18),
+        0 0 60px -10px rgba(74, 144, 226, 0.45);
 }
 
 .portfolio-item img {
-    transition: transform 0.5s ease;
+    transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.5s ease;
+    filter: saturate(0.92) contrast(1.02);
 }
 
 .portfolio-item:hover img {
-    transform: scale(1.1);
+    transform: scale(1.06);
+    filter: saturate(1.05) contrast(1.05);
 }
 
 .portfolio-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(168, 85, 247, 0.8));
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    background: linear-gradient(180deg,
+        rgba(5, 10, 20, 0) 0%,
+        rgba(5, 10, 20, 0.35) 55%,
+        rgba(5, 10, 20, 0.86) 100%);
+    opacity: 0.55;
+    transition: opacity 0.4s ease;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 1.25rem;
+    text-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
 }
 
 .portfolio-item:hover .portfolio-overlay {
@@ -456,42 +584,69 @@ header.is-scrolled {
 }
 
 .portfolio-title {
-    font-size: 1.25rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--silver-50);
 }
 
 .portfolio-meta {
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.85);
-    background: rgba(0, 0, 0, 0.25);
+    margin-top: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--silver-200);
+    background: rgba(5, 10, 20, 0.55);
     padding: 4px 10px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(232, 238, 246, 0.14);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.portfolio-meta::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--signal-hi);
+    box-shadow: 0 0 8px var(--signal-hi);
 }
 
 html {
     scroll-behavior: smooth;
 }
 
+/* ===== Filter pills ===== */
 .filter-btn {
     transition: all 0.3s ease;
-    border: 1px solid transparent;
+    border: 1px solid rgba(232, 238, 246, 0.12);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.78rem;
 }
 
 .filter-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(232, 238, 246, 0.06);
     transform: translateY(-2px);
+    border-color: var(--glass-border-hi);
 }
 
 .filter-btn.active {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, var(--signal-deep), var(--signal));
+    border-color: rgba(111, 176, 255, 0.5);
+    color: var(--silver-50);
+    box-shadow: 0 14px 32px rgba(74, 144, 226, 0.32);
 }
 
+/* ===== Nav ===== */
 .nav-link {
     position: relative;
+    font-weight: 500;
 }
 
 .nav-link::after {
@@ -500,33 +655,57 @@ html {
     left: 0;
     bottom: -6px;
     width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    height: 1px;
+    background: var(--steel-line);
     transform: scaleX(0);
     transform-origin: left;
-    transition: transform 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .nav-link:hover::after {
     transform: scaleX(1);
 }
 
+/* ===== Buttons ===== */
 .btn-primary {
-    box-shadow: 0 20px 40px var(--glow-strong);
+    background: linear-gradient(135deg, var(--signal-deep) 0%, var(--signal) 50%, var(--signal-hi) 100%);
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+    box-shadow:
+        0 22px 50px rgba(74, 144, 226, 0.32),
+        inset 0 1px 0 rgba(232, 238, 246, 0.18);
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                box-shadow 0.35s ease,
+                background-position 0.6s ease;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px);
+    background-position: 100% 50%;
+    box-shadow:
+        0 28px 64px rgba(74, 144, 226, 0.42),
+        inset 0 1px 0 rgba(232, 238, 246, 0.24);
 }
 
 .btn-secondary {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: linear-gradient(120deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    border: 1px solid rgba(232, 238, 246, 0.2);
+    background: linear-gradient(120deg, rgba(232, 238, 246, 0.05), rgba(232, 238, 246, 0.02));
+    transition: transform 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+}
+
+.btn-secondary:hover {
+    border-color: var(--glass-border-hi);
+    background: linear-gradient(120deg, rgba(74, 144, 226, 0.10), rgba(232, 238, 246, 0.04));
+    transform: translateY(-2px);
 }
 
 .chip {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 12px 30px rgba(6, 12, 24, 0.4);
+    border: 1px solid rgba(232, 238, 246, 0.12);
+    box-shadow: 0 12px 30px rgba(3, 8, 18, 0.4);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.74rem;
 }
 
 .btn-outline-glow {
@@ -539,15 +718,17 @@ html {
     position: absolute;
     inset: -2px;
     border-radius: inherit;
-    border: 1px solid rgba(59, 130, 246, 0.4);
+    border: 1px solid rgba(74, 144, 226, 0.5);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.35s ease;
+    box-shadow: 0 0 32px rgba(74, 144, 226, 0.4);
 }
 
 .btn-outline-glow:hover::after {
     opacity: 1;
 }
 
+/* ===== Card s steel okrajem ===== */
 .card {
     position: relative;
     contain: layout style;
@@ -558,9 +739,15 @@ html {
     position: absolute;
     inset: -1px;
     border-radius: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    border: 1px solid transparent;
+    background:
+        linear-gradient(var(--ink-700), var(--ink-700)) padding-box,
+        linear-gradient(135deg, rgba(232, 238, 246, 0.18), rgba(74, 144, 226, 0.08) 50%, rgba(232, 238, 246, 0.04)) border-box;
+    -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
     pointer-events: none;
+    opacity: 0.55;
 }
 
 .card::after {
@@ -568,9 +755,11 @@ html {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.1), transparent 60%);
+    background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(74, 144, 226, 0.16),
+        transparent 40%);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.4s ease;
     pointer-events: none;
 }
 
@@ -578,6 +767,21 @@ html {
     opacity: 1;
 }
 
+/* ===== 3D tilt na glass kartách (JS doplní --tx, --ty) ===== */
+.tilt {
+    transform: perspective(1200px) rotateX(var(--ty, 0deg)) rotateY(var(--tx, 0deg)) translateZ(0);
+    transition: transform 0.18s ease-out;
+    will-change: transform;
+}
+
+/* ===== Magnetic CTA (JS doplní --mx-cta, --my-cta) ===== */
+.magnetic {
+    transform: translate3d(var(--mx-cta, 0px), var(--my-cta, 0px), 0);
+    transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform;
+}
+
+/* ===== Section wrap glow (jen blue tóny) ===== */
 .section-wrap {
     position: relative;
 }
@@ -587,33 +791,38 @@ html {
     position: absolute;
     inset: 0;
     border-radius: 32px;
-    background: radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.16), transparent 45%),
-        radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.18), transparent 50%);
-    opacity: 0.6;
-    filter: blur(20px);
+    background:
+        radial-gradient(circle at 15% 10%, rgba(74, 144, 226, 0.16), transparent 45%),
+        radial-gradient(circle at 85% 20%, rgba(111, 176, 255, 0.12), transparent 50%);
+    opacity: 0.55;
+    filter: blur(22px);
     pointer-events: none;
 }
 
+/* ===== Reveal ===== */
 .reveal {
     opacity: 0;
-    transform: translateY(24px) scale(0.98);
-    transition: all 0.8s ease;
+    transform: translateY(28px);
+    transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .reveal.is-visible {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
 }
 
-.reveal-delay-1 { transition-delay: 0.1s; }
-.reveal-delay-2 { transition-delay: 0.2s; }
-.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
 
+/* ===== Lightbox ===== */
 .lightbox {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.95);
+    background: radial-gradient(circle at center, rgba(10, 22, 40, 0.97), rgba(5, 10, 20, 0.99));
+    backdrop-filter: blur(8px);
     z-index: 9999;
     align-items: center;
     justify-content: center;
@@ -630,19 +839,14 @@ html {
     object-fit: contain;
 }
 
+/* ===== Chat (typing, bubliny) ===== */
 .chat-message {
     animation: slideIn 0.3s ease-out;
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .typing-indicator {
@@ -655,25 +859,16 @@ html {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #60a5fa;
+    background: var(--signal-hi);
     animation: bounce 1.4s infinite ease-in-out;
 }
 
-.typing-indicator span:nth-child(1) {
-    animation-delay: -0.32s;
-}
-
-.typing-indicator span:nth-child(2) {
-    animation-delay: -0.16s;
-}
+.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
 
 @keyframes bounce {
-    0%, 80%, 100% {
-        transform: scale(0);
-    }
-    40% {
-        transform: scale(1);
-    }
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
 }
 
 .typing-indicator-inline {
@@ -687,29 +882,30 @@ html {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #60a5fa;
+    background: var(--signal-hi);
     animation: bounce 1.4s infinite ease-in-out;
 }
 
-.typing-indicator-inline span:nth-child(1) {
-    animation-delay: -0.32s;
-}
-
-.typing-indicator-inline span:nth-child(2) {
-    animation-delay: -0.16s;
-}
+.typing-indicator-inline span:nth-child(1) { animation-delay: -0.32s; }
+.typing-indicator-inline span:nth-child(2) { animation-delay: -0.16s; }
 
 .chatbot-streaming-bubble.chatbot-stream-pending {
     min-width: 52px;
 }
 
 .quick-reply-btn {
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.74rem;
 }
 
 .quick-reply-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 8px 22px rgba(74, 144, 226, 0.35);
+    background: rgba(74, 144, 226, 0.12);
+    border-color: var(--glass-border-hi);
 }
 
 .message-avatar {
@@ -725,19 +921,23 @@ html {
 
 .message-time {
     font-size: 10px;
-    color: #9ca3af;
+    color: var(--silver-400);
     margin-top: 4px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
 }
 
 .confidence-indicator {
     font-size: 10px;
-    color: #60a5fa;
+    color: var(--signal-hi);
     margin-top: 2px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.1em;
 }
 
 .ai-suggestion {
-    background: rgba(59, 130, 246, 0.1);
-    border-left: 3px solid #3b82f6;
+    background: rgba(74, 144, 226, 0.10);
+    border-left: 2px solid var(--signal);
     padding: 8px 12px;
     margin-top: 8px;
     border-radius: 8px;
@@ -746,18 +946,18 @@ html {
 }
 
 .ai-suggestion.warning {
-    background: rgba(251, 191, 36, 0.1);
+    background: rgba(251, 191, 36, 0.10);
     border-left-color: #fbbf24;
 }
 
 .ai-suggestion.success {
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(34, 197, 94, 0.10);
     border-left-color: #22c55e;
 }
 
 .ai-generated-text {
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(74, 144, 226, 0.08);
+    border: 1px solid rgba(74, 144, 226, 0.28);
     padding: 12px;
     margin-top: 8px;
     border-radius: 8px;
@@ -766,21 +966,25 @@ html {
 }
 
 .ai-action-btn {
-    background: rgba(59, 130, 246, 0.2);
-    border: 1px solid rgba(59, 130, 246, 0.4);
+    background: rgba(74, 144, 226, 0.18);
+    border: 1px solid rgba(74, 144, 226, 0.4);
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: 999px;
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
     margin-right: 8px;
     margin-top: 8px;
     display: inline-block;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
 }
 
 .ai-action-btn:hover {
-    background: rgba(59, 130, 246, 0.4);
+    background: rgba(74, 144, 226, 0.32);
     transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(74, 144, 226, 0.25);
 }
 
 .contact-textarea {
@@ -788,16 +992,18 @@ html {
     resize: vertical;
 }
 
-/* Mobile Menu Animations */
+/* ===== Mobile menu ===== */
 #mobileMenu {
     pointer-events: none;
+    background: rgba(5, 10, 20, 0.96);
+    backdrop-filter: blur(28px) saturate(160%);
 }
 
 .brand-chip {
     overflow: hidden;
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(18, 31, 52, 0.88));
-    border: 1px solid rgba(125, 211, 252, 0.32);
-    box-shadow: 0 14px 34px rgba(3, 10, 24, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    background: linear-gradient(145deg, rgba(10, 22, 40, 0.94), rgba(20, 33, 61, 0.88));
+    border: 1px solid rgba(111, 176, 255, 0.32);
+    box-shadow: 0 14px 34px rgba(3, 8, 18, 0.5), inset 0 1px 0 rgba(232, 238, 246, 0.08);
 }
 
 .brand-mark {
@@ -847,6 +1053,9 @@ html {
     opacity: 0;
     transform: translateY(20px);
     animation: fadeInUp 0.5s ease forwards;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
 }
 
 .mobile-menu-link:nth-child(1) { animation-delay: 0.1s; }
@@ -861,23 +1070,22 @@ html {
     }
 }
 
-/* Mesh Gradient Background */
+/* ===== Mesh gradient (jen ink + signal) ===== */
 .mesh-gradient {
     background:
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.3) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.3) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(34, 211, 238, 0.3) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.3) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(74, 144, 226, 0.32) 0px, transparent 55%),
+        radial-gradient(at 100% 0%, rgba(111, 176, 255, 0.20) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(47, 111, 196, 0.24) 0px, transparent 55%),
+        radial-gradient(at 0% 100%, rgba(74, 144, 226, 0.18) 0px, transparent 50%);
 }
 
-/* Floating Animation */
 @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    50% { transform: translateY(-22px); }
 }
 
 .float-animation {
-    animation: float 6s ease-in-out infinite;
+    animation: float 8s ease-in-out infinite;
 }
 
 @media (max-width: 767px) {
@@ -885,50 +1093,50 @@ html {
     .hero-orb {
         animation: none;
     }
-
     .hero-ambient {
         transform: none;
         transition: none;
     }
-
     .hero-orb {
-        filter: blur(12px);
-        opacity: 0.35;
+        filter: blur(16px);
+        opacity: 0.3;
     }
-
     .section-wrap::before {
-        filter: blur(10px);
-        opacity: 0.35;
+        filter: blur(12px);
+        opacity: 0.32;
     }
 }
-.theme-light .text-gray-200 { color: #26344a; }
-.theme-light .text-gray-300 { color: #324258; }
+
+/* ===== Theme light overrides (legacy utility classy) ===== */
+.theme-light .text-gray-200 { color: #1f2d4d; }
+.theme-light .text-gray-300 { color: #2c3d63; }
 .theme-light .text-gray-400 { color: #3e5168; }
 .theme-light .text-gray-500 { color: #4a5e77; }
 .theme-light .text-blue-300 { color: #1a46c4; }
 .theme-light .text-blue-400 { color: #163da9; }
-.theme-light .bg-white\/10 { background-color: rgba(10, 16, 27, 0.18); }
-.theme-light .bg-white\/20 { background-color: rgba(10, 16, 27, 0.24); }
-.theme-light .border-white\/10 { border-color: rgba(10, 16, 27, 0.34); }
+.theme-light .bg-white\/10 { background-color: rgba(10, 22, 40, 0.10); }
+.theme-light .bg-white\/20 { background-color: rgba(10, 22, 40, 0.16); }
+.theme-light .border-white\/10 { border-color: rgba(10, 22, 40, 0.22); }
 
-/* ── AI Hero Chat ─────────────────────────────────────── */
+/* ===== AI Hero Chat bubliny ===== */
 #hero-messages .chat-bubble-user {
     margin-left: auto;
     max-width: 80%;
-    background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3));
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 16px 16px 4px 16px;
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.32), rgba(47, 111, 196, 0.28));
+    border: 1px solid rgba(111, 176, 255, 0.32);
+    border-radius: 18px 18px 4px 18px;
     padding: 12px 16px;
-    color: white;
+    color: var(--silver-50);
     animation: slideIn 0.3s ease-out;
+    box-shadow: 0 12px 28px rgba(74, 144, 226, 0.18);
 }
 
 #hero-messages .chat-bubble-assistant {
     max-width: 80%;
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px 16px 16px 4px;
+    background: rgba(20, 33, 61, 0.55);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px 18px 18px 4px;
     padding: 12px 16px;
     color: var(--text-primary);
     line-height: 1.6;
@@ -936,29 +1144,34 @@ html {
 }
 
 .hero-qr {
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     cursor: pointer;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
 }
 
 .hero-qr:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    background: rgba(255,255,255,0.1);
+    box-shadow: 0 8px 22px rgba(74, 144, 226, 0.35);
+    background: rgba(74, 144, 226, 0.12);
+    border-color: var(--glass-border-hi);
 }
 
-/* ── AI Typing Indicator (hero) ──────────────────────── */
+/* ===== AI Typing (hero) ===== */
 .ai-typing {
     display: inline-flex;
     gap: 4px;
     padding: 12px 16px;
 }
+
 .ai-typing span {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.5);
+    background: rgba(232, 238, 246, 0.55);
     animation: aiTypingDot 1s infinite ease-in-out;
 }
+
 .ai-typing span:nth-child(2) { animation-delay: 0.15s; }
 .ai-typing span:nth-child(3) { animation-delay: 0.3s; }
 
@@ -967,14 +1180,916 @@ html {
     40% { transform: scale(1); opacity: 1; }
 }
 
-/* ── AI Page Highlight ───────────────────────────────── */
+/* ===== AI Page Highlight ===== */
 .ai-highlight {
     animation: aiHighlightPulse 0.6s ease-out 3;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.4);
     border-radius: 12px;
 }
 
 @keyframes aiHighlightPulse {
-    0%, 100% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0); }
-    50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3); }
+    0%, 100% { box-shadow: 0 0 0 4px rgba(74, 144, 226, 0); }
+    50% { box-shadow: 0 0 0 8px rgba(74, 144, 226, 0.32); }
+}
+
+/* ==========================================================================
+   SHUTTER LINE — leitmotiv (vertikální páteř webu, kreslí se podle scrollu)
+   JS poháněný `--shutter-progress` 0..1
+   ========================================================================== */
+.shutter-line {
+    position: fixed;
+    top: 0;
+    left: 24px;
+    width: 1px;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(180deg,
+        transparent 0%,
+        rgba(232, 238, 246, 0.06) 8%,
+        rgba(74, 144, 226, 0.16) 50%,
+        rgba(232, 238, 246, 0.06) 92%,
+        transparent 100%);
+}
+
+.shutter-line::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -1px;
+    width: 3px;
+    height: calc(var(--shutter-progress, 0) * 100%);
+    background: linear-gradient(180deg,
+        transparent 0%,
+        var(--signal-hi) 8%,
+        var(--signal) 50%,
+        var(--signal-deep) 92%,
+        transparent 100%);
+    box-shadow: 0 0 16px rgba(74, 144, 226, 0.55), 0 0 32px rgba(74, 144, 226, 0.32);
+    transition: height 0.18s linear;
+}
+
+.shutter-line::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--shutter-progress, 0) * 100% - 6px);
+    left: -5px;
+    width: 11px;
+    height: 11px;
+    border-radius: 999px;
+    background: var(--signal-hi);
+    box-shadow:
+        0 0 0 1px rgba(232, 238, 246, 0.32),
+        0 0 14px rgba(74, 144, 226, 0.85),
+        0 0 36px rgba(74, 144, 226, 0.45);
+    opacity: calc(min(var(--shutter-progress, 0) * 8, 1));
+}
+
+@media (max-width: 768px) {
+    .shutter-line { left: 12px; opacity: 0.55; }
+}
+
+/* ==========================================================================
+   LOGO INTRO — animace shutteru (1× za session, 1.4s)
+   Kontrolováno tělem `.logo-intro-active` na <body>
+   ========================================================================== */
+.logo-intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: radial-gradient(circle at 50% 50%, var(--ink-800), var(--ink-900));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.5s ease 0.9s, visibility 0.5s linear 1.4s;
+}
+
+body:not(.logo-intro-active) .logo-intro-overlay {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.logo-intro-svg {
+    width: clamp(200px, 28vw, 360px);
+    height: auto;
+    overflow: visible;
+}
+
+.logo-intro-svg .li-letter {
+    fill: none;
+    stroke: var(--silver-50);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: liDraw 0.6s cubic-bezier(0.6, 0, 0.4, 1) forwards;
+}
+
+.logo-intro-svg .li-letter.li-d {
+    animation-delay: 0.12s;
+}
+
+.logo-intro-svg .li-shutter {
+    transform-origin: 50% 50%;
+    opacity: 0;
+    animation: liShutterIn 0.4s cubic-bezier(0.6, 0, 0.4, 1) 0.3s forwards;
+}
+
+.logo-intro-svg .li-blade {
+    transform-origin: 50% 50%;
+    transform-box: fill-box;
+    fill: var(--silver-100);
+    opacity: 0.85;
+    animation: liBlade 0.7s cubic-bezier(0.6, 0, 0.4, 1) 0.5s both;
+}
+
+.logo-intro-svg .li-circuit {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 240;
+    stroke-dashoffset: 240;
+    filter: drop-shadow(0 0 6px rgba(74, 144, 226, 0.55));
+    animation: liCircuit 0.5s cubic-bezier(0.6, 0, 0.4, 1) 0.9s forwards;
+}
+
+.logo-intro-svg .li-claim {
+    opacity: 0;
+    animation: liFadeIn 0.4s ease-out 1.2s forwards;
+    fill: var(--silver-200);
+    font-family: var(--font-mono);
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+@keyframes liDraw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes liShutterIn {
+    0% { opacity: 0; transform: scale(0); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes liBlade {
+    0% { transform: rotate(0deg) scale(0.4); opacity: 0; }
+    50% { transform: rotate(45deg) scale(1.05); opacity: 1; }
+    100% { transform: rotate(60deg) scale(1); opacity: 1; }
+}
+
+@keyframes liCircuit {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes liFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .logo-intro-overlay { display: none; }
+}
+
+/* ==========================================================================
+   SIGNAL PULSE — drobný indikátor "online" pro AI status badge
+   ========================================================================== */
+.signal-pulse {
+    position: relative;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--signal-hi);
+    box-shadow: 0 0 10px var(--signal-hi);
+}
+
+.signal-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 999px;
+    border: 1px solid var(--signal-hi);
+    animation: signalPulse 1.8s ease-out infinite;
+}
+
+@keyframes signalPulse {
+    0%   { transform: scale(0.6); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* ==========================================================================
+   SCROLL PROGRESS BAR — překrýt fialovou modrou
+   ========================================================================== */
+#scrollProgress {
+    background: linear-gradient(90deg,
+        var(--signal-deep) 0%,
+        var(--signal) 50%,
+        var(--signal-hi) 100%) !important;
+    box-shadow: 0 0 12px var(--signal-glow);
+}
+
+/* ==========================================================================
+   SPRING easing tokens (CSS native linear() — žádná knihovna)
+   ========================================================================== */
+:root {
+    --ease-spring: linear(
+        0, 0.004, 0.016, 0.035, 0.063, 0.098, 0.141, 0.191,
+        0.25, 0.316, 0.391, 0.472, 0.562, 0.66, 0.765, 0.878,
+        1, 1.046, 1.071, 1.079, 1.071, 1.049, 1.018, 0.981,
+        0.944, 0.91, 0.883, 0.866, 0.858, 0.861, 0.872, 0.89,
+        0.913, 0.939, 0.965, 0.988, 1.006, 1.02, 1.027, 1.029,
+        1.025, 1.018, 1.008, 0.998, 0.989, 0.983, 0.979, 0.979,
+        0.981, 0.986, 0.992, 0.998, 1.003, 1.006, 1.007, 1.006,
+        1.003, 1, 0.998, 0.996, 0.996, 0.997, 0.999, 1, 1
+    );
+    --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+    --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+}
+
+/* ==========================================================================
+   AURORA MESH DRIFT — pomalý 90s loop, fixed background
+   GPU-only (transform/opacity), nahrazuje neural canvas.
+   ========================================================================== */
+.aurora {
+    position: fixed;
+    inset: -10vmax;
+    z-index: 0;
+    pointer-events: none;
+    /* blur 32px stačí na ten samý vzhled, 60px žralo GPU */
+    filter: blur(32px) saturate(135%);
+    opacity: 0.55;
+    background:
+        radial-gradient(40vmax 30vmax at 18% 22%, rgba(78, 162, 224, 0.42), transparent 60%),
+        radial-gradient(38vmax 28vmax at 82% 18%, rgba(108, 188, 239, 0.30), transparent 60%),
+        radial-gradient(45vmax 35vmax at 78% 82%, rgba(44, 126, 192, 0.36), transparent 65%),
+        radial-gradient(42vmax 32vmax at 22% 78%, rgba(78, 162, 224, 0.28), transparent 60%);
+    background-size: 200% 200%;
+    /* Jen background-position, žádné rotate/scale (forcoval full re-paint) */
+    animation: auroraDrift 110s linear infinite alternate;
+    will-change: background-position;
+    transform: translateZ(0);
+}
+
+@keyframes auroraDrift {
+    0%   { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
+    50%  { background-position: 60% 30%, 30% 70%, 40% 30%, 70% 60%; }
+    100% { background-position: 100% 100%, 0% 100%, 0% 0%, 100% 0%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aurora { animation: none; }
+}
+
+@media (max-width: 768px) {
+    .aurora { filter: blur(22px) saturate(130%); opacity: 0.42; }
+}
+
+/* ==========================================================================
+   ACETERNITY DOT-GRID + CURSOR SPOTLIGHT REVEAL
+   Fixed dot grid, kterou vidíš jen v okolí kurzoru (radial mask).
+   ========================================================================== */
+.grid-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle, rgba(216, 225, 236, 0.18) 1px, transparent 1.4px);
+    background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(
+        420px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.4) 35%,
+        rgba(0, 0, 0, 0) 70%
+    );
+    mask-image: radial-gradient(
+        420px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.4) 35%,
+        rgba(0, 0, 0, 0) 70%
+    );
+    transition: opacity 0.4s ease;
+}
+
+.theme-light .grid-bg {
+    background-image:
+        radial-gradient(circle, rgba(10, 24, 48, 0.18) 1px, transparent 1.4px);
+}
+
+@media (max-width: 768px) {
+    .grid-bg { display: none; }
+}
+
+/* ==========================================================================
+   BORDER-BEAM — rotující conic-gradient na klíčových glass kartách
+   Aplikováno automaticky na hero-chat (žádná změna markupu).
+   ========================================================================== */
+#hero-chat,
+.beam {
+    position: relative;
+    isolation: isolate;
+}
+
+#hero-chat::before,
+.beam::before { content: ''; }
+
+#hero-chat::before,
+.beam::before {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+        from var(--beam-angle, 0deg),
+        transparent 0deg,
+        rgba(108, 188, 239, 0.0) 60deg,
+        rgba(108, 188, 239, 0.85) 90deg,
+        rgba(78, 162, 224, 1) 100deg,
+        rgba(108, 188, 239, 0.85) 110deg,
+        rgba(108, 188, 239, 0.0) 140deg,
+        transparent 360deg
+    );
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    /* Beam zpomalen z 4.5s na 8s — méně CPU per frame */
+    animation: beamSpin 8s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.7;
+}
+
+#hero-chat::after,
+#hero-chat::after,
+.beam::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at var(--mx, 50%) var(--my, 50%),
+        rgba(78, 162, 224, 0.14),
+        transparent 50%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#hero-chat:hover::after,
+.beam:hover::after { opacity: 1; }
+
+@property --beam-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+}
+
+@keyframes beamSpin {
+    to { --beam-angle: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .beam::before { animation: none; opacity: 0.45; }
+}
+
+/* ==========================================================================
+   SHIMMER GRADIENT TEXT — animovaný liquid přechod přes nadpisy
+   Použij: <h1 class="gradient-text shimmer">...</h1>
+   ========================================================================== */
+.gradient-text.shimmer {
+    background: linear-gradient(
+        110deg,
+        var(--silver-50) 0%,
+        var(--silver-50) 30%,
+        var(--signal-hi) 45%,
+        var(--silver-100) 55%,
+        var(--silver-50) 70%,
+        var(--silver-50) 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmerFlow 7s linear infinite;
+}
+
+@keyframes shimmerFlow {
+    0%   { background-position: 200% 50%; }
+    100% { background-position: -200% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gradient-text.shimmer { animation: none; }
+}
+
+/* ==========================================================================
+   MARQUEE — nekonečný horizontální ticker (skills, klienti)
+   Použij: <div class="marquee"><div class="marquee-track">...items...</div></div>
+   ========================================================================== */
+.marquee {
+    position: relative;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.marquee-track {
+    display: flex;
+    gap: 3rem;
+    width: max-content;
+    animation: marqueeRoll 38s linear infinite;
+    will-change: transform;
+}
+
+.marquee:hover .marquee-track {
+    animation-play-state: paused;
+}
+
+@keyframes marqueeRoll {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+}
+
+.marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(216, 225, 236, 0.10);
+    background: rgba(18, 37, 68, 0.45);
+    color: var(--silver-200);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+}
+
+.marquee-item::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--signal-hi);
+    box-shadow: 0 0 8px var(--signal-hi);
+}
+
+.marquee-item:hover {
+    border-color: rgba(108, 188, 239, 0.42);
+    color: var(--silver-50);
+    background: rgba(78, 162, 224, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; }
+}
+
+/* ==========================================================================
+   STAGGER LIST — pure CSS stagger pro listy (set --index z JS)
+   ========================================================================== */
+.stagger > * {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: staggerIn 0.5s var(--ease-out-quart) forwards;
+    animation-delay: calc(var(--index, 0) * 70ms);
+}
+
+@keyframes staggerIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   FLOAT GLOW ORB — pro hero (nahrazuje voice orb fialovou)
+   ========================================================================== */
+.glow-orb {
+    position: absolute;
+    border-radius: 999px;
+    background: radial-gradient(circle, var(--signal-hi) 0%, var(--signal) 35%, transparent 70%);
+    filter: blur(40px);
+    opacity: 0.45;
+    animation: floatOrb 12s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes floatOrb {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.45; }
+    33% { transform: translate(40px, -30px) scale(1.1); opacity: 0.6; }
+    66% { transform: translate(-30px, 20px) scale(0.95); opacity: 0.5; }
+}
+
+/* ==========================================================================
+   CARD HOVER LIFT (hi-perf) — replaces translateY on raw .glass
+   ========================================================================== */
+.card-lift {
+    transition: transform 0.5s var(--ease-out-quart), box-shadow 0.5s ease;
+    will-change: transform;
+}
+
+.card-lift:hover {
+    transform: translateY(-6px);
+    box-shadow:
+        0 36px 80px -20px rgba(5, 13, 29, 0.7),
+        0 0 60px -10px rgba(78, 162, 224, 0.45);
+}
+
+/* ==========================================================================
+   FOOTER NOISE — subtle film grain (čistý CSS, žádný PNG)
+   ========================================================================== */
+.noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image:
+        repeating-radial-gradient(circle at 0% 0%, rgba(216, 225, 236, 0.4) 0, rgba(216, 225, 236, 0.4) 1px, transparent 1px, transparent 2px),
+        repeating-radial-gradient(circle at 100% 100%, rgba(78, 162, 224, 0.4) 0, rgba(78, 162, 224, 0.4) 1px, transparent 1px, transparent 2px);
+}
+
+/* ==========================================================================
+   HERO VIDEO — Camera disassembling za nadpisem "Fotograf & AI Developer"
+   Video sedí v středu hero, h1 je nad ním s gradient textem.
+   Trendy 2026: cinematic backdrop, mask gradient, subtle saturation.
+   ========================================================================== */
+/* Full-bleed breakout — vystoupí z max-w-5xl rodiče */
+.hero-headline {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: clamp(360px, 52vw, 720px);
+    margin: 1rem auto 1.5rem;
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    overflow: visible;
+}
+
+.hero-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(100vw, 1700px);
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 28px;
+    filter: saturate(1.15) contrast(1.06) brightness(0.92);
+    /* GPU-accel: dedikovaná vrstva, žádný layout thrash */
+    transform: translate(-50%, -50%) translateZ(0);
+    will-change: transform, filter;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    /* širší elliptická maska — fade jen na okraje */
+    -webkit-mask-image:
+        radial-gradient(ellipse 80% 65% at 50% 50%, #000 0%, #000 45%, rgba(0,0,0,0.7) 70%, transparent 92%);
+    mask-image:
+        radial-gradient(ellipse 80% 65% at 50% 50%, #000 0%, #000 45%, rgba(0,0,0,0.7) 70%, transparent 92%);
+    opacity: 0.88;
+    box-shadow: 0 40px 100px -30px rgba(5, 13, 29, 0.85);
+}
+
+/* Tonal blue overlay přes video — sjednocuje s paletou, GPU-friendly */
+.hero-headline::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        radial-gradient(ellipse 62% 52% at 50% 50%, rgba(78, 162, 224, 0.18), transparent 72%),
+        linear-gradient(180deg, rgba(10, 24, 48, 0.0) 0%, rgba(10, 24, 48, 0.45) 100%);
+    pointer-events: none;
+    border-radius: 28px;
+    -webkit-mask-image:
+        radial-gradient(ellipse 80% 65% at 50% 50%, #000 0%, #000 45%, rgba(0,0,0,0.7) 70%, transparent 92%);
+    mask-image:
+        radial-gradient(ellipse 80% 65% at 50% 50%, #000 0%, #000 45%, rgba(0,0,0,0.7) 70%, transparent 92%);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Hero particle canvas — vyplní hero-headline area, GPU vrstva */
+.hero-particles {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Když je particle canvas mounted, h1 schovat vizuálně (DOM zachován pro SEO/screen readers) */
+.hero-headline.with-particles .hero-h1 {
+    visibility: hidden;
+    position: absolute;
+    pointer-events: none;
+}
+
+/* H1 nad videem — DOMINANTNÍ display + steel gradient + halo glow
+   (Vidíš ho jen když canvas particles nejsou aktivní — mobile / reduced-motion / pre-JS load) */
+.hero-h1 {
+    position: relative;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(2.75rem, 11vw, 10rem);
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+    max-width: 14ch;
+    text-align: center;
+    animation: heroH1FadeIn 1.2s var(--ease-out-quart) both;
+    /* Steel gradient výplň */
+    background: linear-gradient(
+        180deg,
+        var(--silver-50) 0%,
+        var(--silver-50) 38%,
+        var(--silver-100) 55%,
+        var(--silver-200) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    /* Drop-shadow halo */
+    filter:
+        drop-shadow(0 2px 0 rgba(5, 13, 29, 0.55))
+        drop-shadow(0 12px 32px rgba(5, 13, 29, 0.85))
+        drop-shadow(0 0 36px rgba(78, 162, 224, 0.42))
+        drop-shadow(0 0 90px rgba(78, 162, 224, 0.22));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-h1 {
+        filter:
+            drop-shadow(0 2px 0 rgba(5, 13, 29, 0.55))
+            drop-shadow(0 12px 32px rgba(5, 13, 29, 0.85));
+    }
+}
+
+@keyframes heroH1FadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+        filter:
+            drop-shadow(0 2px 0 rgba(5, 13, 29, 0.6))
+            drop-shadow(0 14px 40px rgba(5, 13, 29, 0.9))
+            drop-shadow(0 0 0 rgba(78, 162, 224, 0));
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* "&" znak v hero-h1 — signal blue, italic, větší, jako akcent */
+.hero-amp {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--signal-hi) 0%, var(--signal) 60%, var(--signal-deep) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-style: italic;
+    font-weight: 700;
+    transform: translateY(0.04em);
+    margin: 0 0.04em;
+    filter: drop-shadow(0 0 22px rgba(108, 188, 239, 0.55));
+}
+
+@media (max-width: 767px) {
+    .hero-headline { min-height: clamp(220px, 60vw, 320px); margin: 0.5rem auto 1rem; }
+    .hero-video { display: none; }
+    .hero-h1 {
+        font-size: clamp(2.5rem, 13vw, 4.5rem);
+        line-height: 0.95;
+        max-width: 14ch;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-video { display: none; }
+}
+
+/* ==========================================================================
+   SECTION HEADERS — editorial: eyebrow (mono) + display title + steel line
+   Aplikuje se na .section-title automaticky.
+   ========================================================================== */
+.section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    line-height: 1.05;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 14px;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 96px;
+    height: 1px;
+    margin: 18px auto 0;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--signal) 25%,
+        var(--silver-100) 50%,
+        var(--signal) 75%,
+        transparent 100%);
+    box-shadow: 0 6px 20px rgba(78, 162, 224, 0.42);
+    border-radius: 1px;
+}
+
+/* ==========================================================================
+   PORTFOLIO — vyšší kontrast karet, hover odhalí steel line + foto zoom
+   ========================================================================== */
+.portfolio-item {
+    border-radius: 18px;
+    background: rgba(10, 24, 48, 0.45);
+}
+
+.portfolio-item img {
+    transition: transform 0.8s var(--ease-out-quart), filter 0.6s ease;
+    filter: saturate(0.85) contrast(1.03);
+}
+
+.portfolio-item:hover img {
+    transform: scale(1.08);
+    filter: saturate(1.10) contrast(1.06);
+}
+
+/* Steel sweep při hoveru přes kartu */
+.portfolio-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(110deg,
+        transparent 0%,
+        rgba(216, 225, 236, 0.18) 50%,
+        transparent 100%);
+    transform: skewX(-20deg);
+    transition: left 0.85s var(--ease-out-quart);
+    pointer-events: none;
+    z-index: 3;
+}
+
+.portfolio-item:hover::after {
+    left: 150%;
+}
+
+/* ==========================================================================
+   FILTER PILLS — modernější (radioactive blue dots, mono labely)
+   ========================================================================== */
+.filter-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    border: 1px solid rgba(216, 225, 236, 0.12);
+    background: rgba(18, 37, 68, 0.4);
+    color: var(--silver-200);
+    transition: all 0.35s var(--ease-out-quart);
+}
+
+.filter-btn:hover {
+    border-color: rgba(108, 188, 239, 0.42);
+    color: var(--silver-50);
+    background: rgba(78, 162, 224, 0.10);
+    transform: translateY(-2px);
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, var(--signal-deep), var(--signal));
+    border-color: rgba(108, 188, 239, 0.55);
+    color: var(--silver-50);
+    box-shadow: 0 14px 32px rgba(78, 162, 224, 0.32);
+}
+
+/* ==========================================================================
+   FOOTER — editorial řez (3 sloupce, mono detaily, steel line nahoře)
+   ========================================================================== */
+footer {
+    position: relative;
+    border-top: 1px solid rgba(216, 225, 236, 0.06);
+    margin-top: 4rem;
+    padding-top: 4rem;
+    padding-bottom: 2rem;
+    background:
+        linear-gradient(180deg, transparent 0%, rgba(5, 13, 29, 0.45) 100%);
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(50%, 600px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--signal), transparent);
+    box-shadow: 0 0 24px var(--signal-glow);
+}
+
+/* ==========================================================================
+   GLOBAL HEADING DEFAULTS — letter-spacing tighter, font Geist
+   (pro h1/h2/h3 napříč webem — bez měnění obsahu)
+   ========================================================================== */
+h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+}
+
+h1 { font-weight: 700; }
+h2 { font-weight: 600; }
+h3 { font-weight: 600; }
+
+/* Chip čip styling sjednoceně */
+.chip {
+    background: rgba(18, 37, 68, 0.55) !important;
+    border: 1px solid rgba(216, 225, 236, 0.12) !important;
+    color: var(--silver-100);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    padding: 0.55rem 1.1rem !important;
+    backdrop-filter: blur(12px);
+}
+
+/* CTA tlačítka v hero — překryjeme původní gradient na btn-primary */
+.btn-primary {
+    background: linear-gradient(135deg, var(--signal-deep) 0%, var(--signal) 50%, var(--signal-hi) 100%);
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+    border: 1px solid rgba(108, 188, 239, 0.45);
+}
+
+/* ==========================================================================
+   HERO NAME — velké jméno pod titulkem (Lukáš Drštička)
+   ========================================================================== */
+.hero-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--silver-100);
+    line-height: 1;
+    background: linear-gradient(
+        180deg,
+        var(--silver-50) 0%,
+        var(--silver-100) 50%,
+        var(--silver-200) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 6px 32px rgba(5, 13, 29, 0.5);
+    position: relative;
+    display: inline-block;
+}
+
+.hero-name::before,
+.hero-name::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: clamp(40px, 8vw, 96px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--signal), transparent);
+    box-shadow: 0 0 14px var(--signal-glow);
+}
+
+.hero-name::before {
+    right: calc(100% + 24px);
+}
+
+.hero-name::after {
+    left: calc(100% + 24px);
+}
+
+@media (max-width: 640px) {
+    .hero-name::before,
+    .hero-name::after { display: none; }
 }

@@ -166,23 +166,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
     if (themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
 
-    // Scroll progress and header effects
+    // Scroll progress, header effects + Shutter Line leitmotiv
     const scrollProgress = document.getElementById('scrollProgress');
+    const shutterLine = document.querySelector('.shutter-line');
     const headerEl = document.querySelector('header');
     let scrollTicking = false;
 
     const setupScrollUI = () => {
         const updateScrollUI = () => {
-            if (scrollProgress) {
-                const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                const scrolled = windowHeight > 0 ? (window.scrollY / windowHeight) * 100 : 0;
-                scrollProgress.style.width = scrolled + '%';
-            }
+            const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const ratio = windowHeight > 0 ? Math.max(0, Math.min(1, window.scrollY / windowHeight)) : 0;
+            if (scrollProgress) scrollProgress.style.width = (ratio * 100) + '%';
+            if (shutterLine) shutterLine.style.setProperty('--shutter-progress', ratio.toFixed(4));
             if (headerEl) headerEl.classList.toggle('is-scrolled', window.scrollY > 12);
             scrollTicking = false;
         };
 
-        if (scrollProgress || headerEl) {
+        if (scrollProgress || shutterLine || headerEl) {
             updateScrollUI();
             window.addEventListener('scroll', () => {
                 if (!scrollTicking) {
@@ -195,9 +195,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
     runWhenIdle(setupScrollUI, 1500);
 
-    // Cursor spotlight and hero ambient effects
+    // 3D tilt + Magnetic CTA + radial mouse-follow glow na .glass kartách
+    const setupMicroInteractions = () => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (window.matchMedia('(hover: none)').matches) return;
+
+        const tiltCards = document.querySelectorAll('.glass:not(.no-tilt), .card:not(.no-tilt)');
+        tiltCards.forEach((el) => {
+            el.classList.add('tilt');
+            let raf = 0;
+            const handleMove = (e) => {
+                if (raf) return;
+                raf = requestAnimationFrame(() => {
+                    const rect = el.getBoundingClientRect();
+                    const px = (e.clientX - rect.left) / rect.width;
+                    const py = (e.clientY - rect.top) / rect.height;
+                    const rx = (0.5 - py) * 4;
+                    const ry = (px - 0.5) * 4;
+                    el.style.setProperty('--tx', ry.toFixed(2) + 'deg');
+                    el.style.setProperty('--ty', rx.toFixed(2) + 'deg');
+                    el.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+                    el.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+                    raf = 0;
+                });
+            };
+            const reset = () => {
+                el.style.setProperty('--tx', '0deg');
+                el.style.setProperty('--ty', '0deg');
+            };
+            el.addEventListener('pointermove', handleMove, { passive: true });
+            el.addEventListener('pointerleave', reset);
+        });
+
+        const magnetic = document.querySelectorAll(
+            '.btn-primary, .btn-secondary, #voice-call-btn, #hero-send, .agent-cta-btn'
+        );
+        magnetic.forEach((el) => {
+            el.classList.add('magnetic');
+            let raf = 0;
+            const handleMove = (e) => {
+                if (raf) return;
+                raf = requestAnimationFrame(() => {
+                    const rect = el.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height / 2;
+                    const dx = (e.clientX - cx) * 0.18;
+                    const dy = (e.clientY - cy) * 0.18;
+                    el.style.setProperty('--mx-cta', dx.toFixed(1) + 'px');
+                    el.style.setProperty('--my-cta', dy.toFixed(1) + 'px');
+                    raf = 0;
+                });
+            };
+            const reset = () => {
+                el.style.setProperty('--mx-cta', '0px');
+                el.style.setProperty('--my-cta', '0px');
+            };
+            el.addEventListener('pointermove', handleMove, { passive: true });
+            el.addEventListener('pointerleave', reset);
+        });
+    };
+
+    runWhenIdle(setupMicroInteractions, 1800);
+
+    // Logo intro — 1× za session, ne při SW reload, respektuje reduced-motion
+    const setupLogoIntro = () => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (window.ldCachePurgeReloading) return;
+        try {
+            if (sessionStorage.getItem('ld_logo_intro_v2')) return;
+            sessionStorage.setItem('ld_logo_intro_v2', '1');
+        } catch (e) { /* private mode — pokračuj jednorázově */ }
+        document.body.classList.add('logo-intro-active');
+        setTimeout(() => {
+            document.body.classList.remove('logo-intro-active');
+        }, 1450);
+    };
+
+    setupLogoIntro();
+
+    // Cursor spotlight, hero ambient + dot-grid spotlight reveal
     const cursorSpotlight = document.getElementById('cursorSpotlight');
     const heroAmbient = document.querySelector('.hero-ambient');
+    const gridBg = document.querySelector('.grid-bg');
+    const root = document.documentElement;
     let mouseX = 0, mouseY = 0, mouseTicking = false;
 
     const setupMouseEffects = () => {
@@ -212,6 +292,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 heroAmbient.style.setProperty('--hero-x', `${x}px`);
                 heroAmbient.style.setProperty('--hero-y', `${y}px`);
             }
+            if (gridBg) {
+                gridBg.style.setProperty('--mx', mouseX + 'px');
+                gridBg.style.setProperty('--my', mouseY + 'px');
+            }
+            // Globální --mx/--my pro .beam radial highlight (page-wide)
+            root.style.setProperty('--mx', mouseX + 'px');
+            root.style.setProperty('--my', mouseY + 'px');
             mouseTicking = false;
         };
 
@@ -447,14 +534,18 @@ function lazyLoadModules() {
         console.log('I18n module loaded');
     });
 
-    // Load neural network visualization after 2 seconds (deferred, not critical)
-    const neuralCanvas = document.getElementById('neuralCanvas');
-    if (neuralCanvas) {
-        setTimeout(() => {
-            loadModule('/dist/js/neural.min.js?v=9', () => {
-                console.log('Neural module loaded');
-            });
-        }, 2000);
+    // Hero canvas particles — lazy load po idle (jen desktop, bez reduced-motion)
+    const heroHeadline = document.querySelector('.hero-headline');
+    if (heroHeadline &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        !window.matchMedia('(hover: none)').matches &&
+        window.innerWidth >= 768) {
+        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=19');
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(startParticles, { timeout: 1500 });
+        } else {
+            setTimeout(startParticles, 600);
+        }
     }
 
     // Load portfolio module when portfolio section is visible

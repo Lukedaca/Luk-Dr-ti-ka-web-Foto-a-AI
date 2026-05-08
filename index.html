@@ -38,8 +38,11 @@
     <link rel="dns-prefetch" href="https://formspree.io">
 
     <!-- Theme color for mobile browsers -->
-    <meta name="theme-color" content="#0a0e27" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0a1628" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#b7c2d2" media="(prefers-color-scheme: light)">
+
+    <!-- Self-hosted variable fonts (preload pouze display weight) -->
+    <link rel="preload" href="/dist/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- Additional SEO -->
     <meta name="format-detection" content="telephone=no">
@@ -47,27 +50,48 @@
 
     <!-- Critical CSS inline for above-the-fold content -->
     <style>
-/* Critical CSS - Above the fold styles only */
+/* Critical CSS - paleta PŘESNĚ dle loga (deep navy + sky blue + steel) */
 :root {
-    --bg-primary: #0a0e27;
-    --bg-secondary: #1a1f3a;
-    --text-primary: #ffffff;
-    --text-secondary: #6b7280;
-    --accent-blue: #3b82f6;
-    --accent-purple: #8b5cf6;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --ink-900: #050d1d;
+    --ink-800: #0a1830;
+    --ink-700: #122544;
+    --ink-600: #1c3258;
+    --silver-50:  #ecf1f7;
+    --silver-100: #d8e1ec;
+    --silver-200: #a8b5c5;
+    --silver-300: #7a8aa3;
+    --silver-400: #5a6b86;
+    --signal: #4ea2e0;
+    --signal-hi: #6cbcef;
+    --signal-deep: #2c7ec0;
+    --signal-glow: rgba(78, 162, 224, 0.38);
+    --bg-primary: var(--ink-800);
+    --bg-secondary: var(--ink-700);
+    --text-primary: var(--silver-50);
+    --text-secondary: var(--silver-300);
+    --accent-blue: var(--signal);
+    --accent-purple: var(--signal);
+    --glass-bg: rgba(20, 33, 61, 0.55);
+    --glass-border: rgba(232, 238, 246, 0.08);
+    --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 .theme-light {
-    --bg-primary: #b7c2d2;
-    --bg-secondary: #9eacbf;
-    --text-primary: #0a101b;
-    --text-secondary: #151f33;
-    --glass-bg: rgba(10, 16, 27, 0.18);
-    --glass-border: rgba(10, 16, 27, 0.34);
+    --ink-900: #b7c2d2;
+    --ink-800: #aab6c8;
+    --ink-700: #95a3b9;
+    --silver-50: #0a101b;
+    --silver-100: #14213d;
+    --silver-200: #1f2d4d;
+    --silver-300: #2c3d63;
+    --bg-primary: var(--ink-900);
+    --bg-secondary: var(--ink-800);
+    --text-primary: var(--silver-50);
+    --text-secondary: var(--silver-200);
+    --glass-bg: rgba(10, 22, 40, 0.10);
+    --glass-border: rgba(10, 22, 40, 0.22);
 }
 
 * {
@@ -78,12 +102,16 @@
 
 body {
     font-family: var(--font-sans);
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
+    background:
+        radial-gradient(1200px 800px at 0% -10%, rgba(74, 144, 226, 0.08), transparent 60%),
+        radial-gradient(1000px 700px at 100% 0%, rgba(111, 176, 255, 0.06), transparent 55%),
+        linear-gradient(180deg, var(--ink-900) 0%, var(--ink-800) 50%, var(--ink-900) 100%);
     color: var(--text-primary);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
     line-height: 1.6;
+    letter-spacing: -0.005em;
 }
 
 .skip-link {
@@ -92,8 +120,8 @@ body {
     left: 12px;
     padding: 10px 16px;
     border-radius: 999px;
-    background: var(--accent-blue);
-    color: #ffffff;
+    background: var(--signal);
+    color: var(--silver-50);
     font-weight: 600;
     z-index: 200;
     transform: translateY(-200%);
@@ -140,7 +168,8 @@ header {
 
 .hero-ambient,
 #cursorSpotlight,
-#neuralCanvas {
+.grid-bg,
+.aurora {
     pointer-events: none;
 }
 
@@ -158,26 +187,27 @@ body > * {
 #hero-messages .chat-bubble-user {
     margin-left: auto;
     max-width: 80%;
-    background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.3));
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 16px 16px 4px 16px;
+    background: linear-gradient(135deg, rgba(74,144,226,0.32), rgba(47,111,196,0.28));
+    border: 1px solid rgba(111,176,255,0.32);
+    border-radius: 18px 18px 4px 18px;
     padding: 12px 16px;
-    color: white;
+    color: var(--silver-50);
+    box-shadow: 0 12px 28px rgba(74,144,226,0.18);
 }
 #hero-messages .chat-bubble-assistant {
     max-width: 80%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 16px 16px 16px 4px;
+    background: rgba(20,33,61,0.55);
+    border: 1px solid rgba(232,238,246,0.08);
+    border-radius: 18px 18px 18px 4px;
     padding: 12px 16px;
     line-height: 1.6;
 }
-.hero-qr { cursor: pointer; transition: all 0.2s ease; }
-.hero-qr:hover { transform: translateY(-2px); background: rgba(255,255,255,0.1); }
+.hero-qr { cursor: pointer; transition: all 0.25s ease; }
+.hero-qr:hover { transform: translateY(-2px); background: rgba(74,144,226,0.12); border-color: rgba(111,176,255,0.32); }
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=9">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=19">
     
 
     <!-- Schema.org Structured Data -->
@@ -253,13 +283,47 @@ body > * {
 </head>
 <body class="text-white">
     <a href="#main" class="skip-link">Přeskočit na obsah</a>
+
+
+    <!-- Logo intro overlay (zobrazí se 1× za session, JS přidá .logo-intro-active na <body>) -->
+    <div class="logo-intro-overlay" aria-hidden="true">
+        <svg class="logo-intro-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lukáš Drštička intro">
+            <!-- L -->
+            <path class="li-letter li-l" d="M 40 40 L 40 130 L 95 130" />
+            <!-- D -->
+            <path class="li-letter li-d" d="M 200 40 L 200 130 Q 270 130 270 85 Q 270 40 200 40" />
+            <!-- Shutter krou&#382;ek -->
+            <g class="li-shutter" transform="translate(150 95)">
+                <circle r="32" fill="none" stroke="#cfd8e3" stroke-width="2" opacity="0.7"/>
+                <g class="li-blade">
+                    <polygon points="0,-26 22,-12 14,18 -14,18 -22,-12" fill="#aebccd" opacity="0.85"/>
+                    <polygon points="0,-26 22,-12 14,18 -14,18 -22,-12" fill="#6fb0ff" opacity="0.35" transform="rotate(60)"/>
+                    <polygon points="0,-26 22,-12 14,18 -14,18 -22,-12" fill="#4a90e2" opacity="0.25" transform="rotate(120)"/>
+                </g>
+                <circle r="6" fill="#0a1628" stroke="#6fb0ff" stroke-width="1.5"/>
+            </g>
+            <!-- Circuit linka z objektivu -->
+            <path class="li-circuit" d="M 182 95 L 198 95 L 206 87 L 230 87 M 206 87 L 218 87 L 226 79 M 230 87 L 248 87 L 256 95 L 280 95"/>
+            <circle class="li-circuit-dot" cx="280" cy="95" r="3" fill="#6fb0ff" opacity="0.95"/>
+            <!-- Claim -->
+            <text class="li-claim" x="160" y="172" text-anchor="middle">FOTOGRAFIE  &#183;  AI  &#183;  AUTOMATIZACE</text>
+        </svg>
+    </div>
+
+    <!-- Shutter Line — vertikální leitmotiv (kreslí se podle scroll progress) -->
+    <div class="shutter-line" aria-hidden="true"></div>
+
     <!-- Scroll Progress Bar -->
-    <div id="scrollProgress" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 z-[9999] transition-all duration-300" style="width: 0%"></div>
+    <div id="scrollProgress" class="fixed top-0 left-0 h-1 z-[9999] transition-all duration-300" style="width: 0%"></div>
+
+    <!-- Aurora mesh drift (60s slow loop, GPU-only) -->
+    <div class="aurora" aria-hidden="true"></div>
+
+    <!-- Aceternity-style dot grid s cursor spotlight reveal -->
+    <div class="grid-bg hidden md:block" aria-hidden="true"></div>
 
     <!-- Custom Cursor Spotlight -->
-    <div id="cursorSpotlight" class="hidden md:block pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
-
-    <canvas id="neuralCanvas" class="hidden md:block" aria-hidden="true"></canvas>
+    <div id="cursorSpotlight" class="hidden md:block pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
 
     <header class="fixed top-0 w-full z-50 glass">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -327,23 +391,32 @@ body > * {
                 <span class="hero-orb three" aria-hidden="true"></span>
             </div>
             <div class="text-center max-w-5xl mx-auto relative z-10">
-                <div class="mb-6 flex justify-center gap-4 flex-wrap" aria-label="Hlavní zaměření">
-                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0s;">Fotografie</span>
-                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 0.5s;">AI Development</span>
-                    <span class="glass chip px-4 py-2 rounded-full text-sm float-animation" style="animation-delay: 1s;">Automatizace</span>
+                <!-- Hero headline: full-bleed video + liquid particle canvas + h1 -->
+                <div class="hero-headline">
+                    <video
+                        class="hero-video hidden md:block"
+                        src="/assets/video/hero-camera.mp4"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        preload="auto"
+                        disablepictureinpicture
+                        aria-hidden="true"
+                        poster="/assets/fallback.jpg"></video>
+
+                    <h1 class="hero-h1 mb-6 leading-none">
+                        Fotograf <span class="hero-amp">&amp;</span> AI Developer
+                    </h1>
                 </div>
 
-                <h1 class="text-5xl sm:text-7xl md:text-8xl font-extrabold mb-6 gradient-text display-text tracking-tight leading-none" style="letter-spacing: 0;">
-                    Fotograf &amp; AI Developer
-                </h1>
-
-                <h2 class="text-xl md:text-2xl font-medium text-gray-400 mb-10 tracking-wide uppercase" style="letter-spacing: 0;">
+                <h2 class="hero-name text-4xl sm:text-5xl md:text-6xl font-bold mb-10 uppercase">
                     Lukáš Drštička
                 </h2>
 
                 <div class="flex justify-center gap-4 flex-wrap">
-                    <a href="#portfolio" class="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-semibold hover:opacity-90 transition text-white">Portfolio</a>
-                    <a href="#ai-asistent" class="px-8 py-3 glass rounded-xl font-semibold hover:bg-white/10 transition text-white border border-white/15">Hybridní Agent</a>
+                    <a href="#portfolio" class="btn-primary px-8 py-3 rounded-xl font-semibold transition text-white">Portfolio</a>
+                    <a href="#ai-asistent" class="btn-secondary px-8 py-3 glass rounded-xl font-semibold transition text-white">Hybridní Agent</a>
                 </div>
             </div>
 
@@ -1098,7 +1171,7 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/core.min.js?v=9" defer></script>
+    <script src="/dist/js/core.min.js?v=19" defer></script>
 
 
 </body>
