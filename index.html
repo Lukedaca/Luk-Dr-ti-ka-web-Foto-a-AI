@@ -136,7 +136,6 @@ header {
     top: 0;
     width: 100%;
     z-index: 100;
-    backdrop-filter: blur(12px);
     min-height: 72px;
 }
 
@@ -207,7 +206,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=21">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=22">
     
 
     <!-- Schema.org Structured Data -->
@@ -316,15 +315,6 @@ body > * {
     <!-- Scroll Progress Bar -->
     <div id="scrollProgress" class="fixed top-0 left-0 h-1 z-[9999] transition-all duration-300" style="width: 0%"></div>
 
-    <!-- Aurora mesh drift (60s slow loop, GPU-only) -->
-    <div class="aurora" aria-hidden="true"></div>
-
-    <!-- Aceternity-style dot grid s cursor spotlight reveal -->
-    <div class="grid-bg hidden md:block" aria-hidden="true"></div>
-
-    <!-- Custom Cursor Spotlight -->
-    <div id="cursorSpotlight" class="hidden md:block pointer-events-none fixed w-96 h-96 rounded-full opacity-0 blur-3xl -translate-x-1/2 -translate-y-1/2 z-0 transition-opacity duration-300"></div>
-
     <header class="fixed top-0 w-full z-50 glass">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="#" class="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer" aria-label="Zpět na úvodní stránku">
@@ -390,25 +380,9 @@ body > * {
     <main id="main" class="pt-20" tabindex="-1">
         <!-- Hero Section -->
         <section id="hero" class="min-h-screen flex items-center justify-center px-6 relative mesh-gradient">
-            <div class="hero-ambient">
-                <span class="hero-orb one" aria-hidden="true"></span>
-                <span class="hero-orb two" aria-hidden="true"></span>
-                <span class="hero-orb three" aria-hidden="true"></span>
-            </div>
             <div class="text-center max-w-5xl mx-auto relative z-10">
-                <!-- Hero headline: full-bleed video + liquid particle canvas + h1 -->
+                <!-- Hero headline: static first paint. Heavy particles/video are intentionally disabled for performance. -->
                 <div class="hero-headline">
-                    <video
-                        class="hero-video hidden md:block"
-                        data-src="/assets/video/hero-camera.mp4"
-                        muted
-                        loop
-                        playsinline
-                        preload="none"
-                        disablepictureinpicture
-                        aria-hidden="true"
-                        poster="/assets/fallback.jpg"></video>
-
                     <h1 class="hero-h1 mb-6 leading-none">
                         Fotograf <span class="hero-amp">&amp;</span> AI Developer
                     </h1>
@@ -424,12 +398,6 @@ body > * {
                 </div>
             </div>
 
-            <!-- Scroll Down Indicator -->
-            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-            </div>
         </section>
 
         <!-- Hybridní Agent Section -->
@@ -1175,7 +1143,7 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/core.min.js?v=21" defer></script>
+    <script src="/dist/js/boot.min.js?v=22" defer></script>
 
 
 </body>

@@ -2089,3 +2089,69 @@ h3 { font-weight: 600; }
     .hero-name::before,
     .hero-name::after { display: none; }
 }
+
+/* ==========================================================================
+   FIRST-LOAD PERFORMANCE MODE
+   Keep the first viewport static. Interactivity loads through boot.js after
+   user intent, while heavy visual layers stay disabled on the production home.
+   ========================================================================== */
+body::before,
+body::after,
+.aurora,
+.grid-bg,
+.hero-ambient,
+#cursorSpotlight,
+.hero-video {
+    display: none !important;
+}
+
+header,
+header.is-scrolled,
+.glass,
+.glass-strong,
+.chip {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.glass {
+    transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    box-shadow: inset 0 1px 0 rgba(232, 238, 246, 0.04), 0 14px 34px -24px rgba(5, 13, 29, 0.62);
+    contain: none;
+}
+
+.glass:hover {
+    transform: none;
+    box-shadow: inset 0 1px 0 rgba(232, 238, 246, 0.05), 0 16px 38px -24px rgba(74, 144, 226, 0.24);
+}
+
+.gradient-text,
+.gradient-text.shimmer,
+.marquee-track,
+.hero-orb,
+.beam::before,
+.signal-pulse::after {
+    animation: none !important;
+}
+
+.hero-headline {
+    width: min(100%, 1120px);
+    min-height: clamp(260px, 34vw, 430px);
+    margin: 0 auto 1rem;
+    margin-left: auto;
+    transform: none;
+    overflow: visible;
+}
+
+.hero-headline::before {
+    display: none;
+}
+
+.hero-h1 {
+    filter: none;
+    text-shadow: 0 18px 44px rgba(5, 13, 29, 0.5);
+}
+
+.hero-amp {
+    filter: none;
+}

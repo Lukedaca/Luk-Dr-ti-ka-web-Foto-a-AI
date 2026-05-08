@@ -3,41 +3,7 @@
  * Contains essential functionality for initial page render
  */
 
-// One-time cleanup for old service workers/caches from previous deploys.
-(function purgeLegacyCachesOnce() {
-    try {
-        if (sessionStorage.getItem('ld_purged_v1')) return;
-
-        let hadSomething = false;
-        const done = () => {
-            sessionStorage.setItem('ld_purged_v1', '1');
-            if (hadSomething) {
-                window.ldCachePurgeReloading = true;
-                location.reload();
-            }
-        };
-
-        const swPromise = (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
-            ? navigator.serviceWorker.getRegistrations().then((registrations) => {
-                if (!registrations || !registrations.length) return undefined;
-                hadSomething = true;
-                return Promise.all(registrations.map((registration) => registration.unregister()));
-            })
-            : Promise.resolve();
-
-        const cachePromise = (window.caches && caches.keys)
-            ? caches.keys().then((names) => {
-                if (!names || !names.length) return undefined;
-                hadSomething = true;
-                return Promise.all(names.map((name) => caches.delete(name)));
-            })
-            : Promise.resolve();
-
-        window.ldCachePurgePromise = Promise.all([swPromise, cachePromise]).then(done, done);
-    } catch (e) {
-        window.ldCachePurgePromise = Promise.resolve();
-    }
-})();
+window.ldCachePurgePromise = Promise.resolve();
 
 // The legacy service worker is intentionally purged but not re-registered.
 // sw.js is pass-through, so registering it only adds startup work.
@@ -73,7 +39,10 @@ const storage = {
 // Make storage globally available for other modules
 window.appStorage = storage;
 
-document.addEventListener('DOMContentLoaded', () => {
+function initCore() {
+    if (window.ldCoreReady || window.ldCoreInitializing) return;
+    window.ldCoreInitializing = true;
+
     const runWhenIdle = (callback, timeout = 1200) => {
         if ('requestIdleCallback' in window) {
             window.requestIdleCallback(() => callback(), { timeout });
@@ -259,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (i18nLoading) return;
 
             i18nLoading = true;
-            loadModule('/dist/js/i18n.min.js?v=10', () => {
+            loadModule('/dist/js/i18n.min.js?v=11', () => {
                 i18nLoading = false;
                 if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
                     window.ldI18n.applyLanguage(selectedLang);
@@ -647,9 +616,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Lazy load other modules
     lazyLoadModules();
-});
+
+    window.ldCoreReady = true;
+    window.ldCoreInitializing = false;
+    window.dispatchEvent(new CustomEvent('ld:core-ready'));
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCore, { once: true });
+} else {
+    initCore();
+}
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
@@ -661,7 +639,7 @@ function lazyLoadModules() {
         !window.matchMedia('(hover: none)').matches &&
         window.innerWidth >= 768) {
         let particlesRequested = false;
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=21');
+        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=22');
         const scheduleParticles = () => {
             if (particlesRequested) return;
             particlesRequested = true;
