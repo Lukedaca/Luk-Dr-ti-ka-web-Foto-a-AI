@@ -2237,3 +2237,24 @@ header.is-scrolled,
 .hero-headline.with-particles {
     min-height: clamp(440px, 56vw, 760px) !important;
 }
+
+/* PRE-PARTICLES STEALTH: skryj statický H1 BY DEFAULT (od prvního paintu),
+   aby uživatel neviděl běžný text před tím než particles canvas naběhne.
+   Vyjímky: zařízení kde particles nejedou (mobile <768, reduced-motion,
+   touch-only) — tam zůstane viditelný.
+   Fallback: pokud particles do 1.5s nenaběhnou (JS chyba / pomalá síť),
+   animation re-zobrazí H1, aby hero nebyl prázdný napořád. */
+@media (hover: hover) and (pointer: fine) and (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+    .hero-h1 {
+        visibility: hidden;
+        animation: heroH1Fallback 0.01s linear 1.5s forwards;
+    }
+    /* Jakmile particles aktivní → animation cancel, H1 zůstává hidden napořád */
+    .hero-headline.with-particles .hero-h1 {
+        animation: none !important;
+    }
+}
+
+@keyframes heroH1Fallback {
+    to { visibility: visible; }
+}

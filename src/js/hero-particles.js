@@ -6,6 +6,11 @@
 (function () {
     'use strict';
 
+    // Guard proti double-mount: skript je teď eager-loaded přes <script defer>
+    // i pořád loadable via core.js loadModule. Pustíme jen 1× per session.
+    if (window.__heroParticlesInit) return;
+    window.__heroParticlesInit = true;
+
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     if (window.matchMedia('(hover: none)').matches) return;
     if (window.innerWidth < 768) return;
@@ -142,7 +147,8 @@
         });
 
         const imgData = ctx.getImageData(0, 0, W * dpr, H * dpr).data;
-        const targetCount = Math.min(2400, Math.floor(W * H / 360));
+        // Density bumped: víc bodů na pixel = čitelnější písmo
+        const targetCount = Math.min(5500, Math.floor(W * H / 200));
 
         let textPixels = 0;
         const scanGap = 4;
@@ -166,7 +172,8 @@
                         x: x + Math.cos(angle) * scatter,
                         y: y + Math.sin(angle) * scatter,
                         vx: 0, vy: 0,
-                        size: Math.random() * 1.25 + 0.55,
+                        // Větší body = lépe vidět
+                        size: Math.random() * 2.4 + 1.6,
                         color: COLORS[Math.floor(Math.random() * COLORS.length)],
                         revealDelay: distFromCenter * 0.0028 + Math.random() * 0.25,
                         revealProgress: 0
@@ -247,7 +254,8 @@
                 d.x += (d.ox - d.x) * ep * 0.08;
                 d.y += (d.oy - d.y) * ep * 0.08;
                 d.vx *= 0.5; d.vy *= 0.5;
-                ctx.fillStyle = `rgba(${d.color},${ep * 0.38})`;
+                // Reveal alpha bumped na 0.78 (z 0.38) — viditelnější fade-in
+                ctx.fillStyle = `rgba(${d.color},${ep * 0.78})`;
                 ctx.fillRect(d.x - d.size * 0.5, d.y - d.size * 0.5, d.size, d.size);
                 continue;
             }
@@ -277,7 +285,8 @@
             d.y += d.vy;
 
             const displacement = Math.sqrt((d.x - d.ox) ** 2 + (d.y - d.oy) ** 2);
-            const alpha = Math.min(0.52, 0.28 + displacement * 0.006);
+            // Alpha bumped: base 0.78 → max 0.95 (předtím 0.28 → 0.52, příliš transparent)
+            const alpha = Math.min(0.95, 0.78 + displacement * 0.006);
             ctx.fillStyle = `rgba(${d.color},${alpha})`;
             const sz = d.size + (displacement > 18 ? Math.min(displacement * 0.012, 1.4) : 0);
             ctx.fillRect(d.x - sz * 0.5, d.y - sz * 0.5, sz, sz);
