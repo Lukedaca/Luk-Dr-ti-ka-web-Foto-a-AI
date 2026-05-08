@@ -11,10 +11,14 @@ if (!fs.existsSync(outputDir)) {
 }
 
 const MAX_WIDTH = 1100;
+const CARD_WIDTH = 760;
 const LIGHTBOX_WIDTH = 1920;
 const JPEG_QUALITY = 82;
 const WEBP_QUALITY = 72;
 const AVIF_QUALITY = 50;
+const CARD_JPEG_QUALITY = 78;
+const CARD_WEBP_QUALITY = 60;
+const CARD_AVIF_QUALITY = 42;
 const LIGHTBOX_WEBP_QUALITY = 78;
 const LIGHTBOX_AVIF_QUALITY = 55;
 const BLUR_SIZE = 20;
@@ -43,7 +47,12 @@ async function processFile(inputPath, outDir, baseName, { lightbox = false } = {
   const webpPath = path.join(outDir, `${baseName}.webp`);
   const jpegPath = path.join(outDir, `${baseName}.jpg`);
   const blurPath = lightbox ? null : path.join(outDir, `${baseName}-blur.jpg`);
-  const requiredOutputs = [avifPath, webpPath, jpegPath].concat(blurPath ? [blurPath] : []);
+  const cardAvifPath = lightbox ? null : path.join(outDir, `${baseName}-card.avif`);
+  const cardWebpPath = lightbox ? null : path.join(outDir, `${baseName}-card.webp`);
+  const cardJpegPath = lightbox ? null : path.join(outDir, `${baseName}-card.jpg`);
+  const requiredOutputs = [avifPath, webpPath, jpegPath].concat(
+    blurPath ? [blurPath, cardAvifPath, cardWebpPath, cardJpegPath] : []
+  );
 
   if (outputsFresh(inputPath, requiredOutputs)) {
     totalOriginal += originalSize;
@@ -75,6 +84,22 @@ async function processFile(inputPath, outDir, baseName, { lightbox = false } = {
   if (blurPath) {
     await image.clone().resize({ width: BLUR_SIZE }).blur(5)
       .jpeg({ quality: 30 }).toFile(blurPath);
+  }
+
+  if (cardAvifPath && cardWebpPath && cardJpegPath) {
+    const cardResizeOptions = metadata.width > CARD_WIDTH ? { width: CARD_WIDTH } : {};
+
+    await image.clone().resize(cardResizeOptions)
+      .avif({ quality: CARD_AVIF_QUALITY, effort: 7 })
+      .toFile(cardAvifPath);
+
+    await image.clone().resize(cardResizeOptions)
+      .webp({ quality: CARD_WEBP_QUALITY, effort: 6 })
+      .toFile(cardWebpPath);
+
+    await image.clone().resize(cardResizeOptions)
+      .jpeg({ quality: CARD_JPEG_QUALITY, progressive: true, mozjpeg: true })
+      .toFile(cardJpegPath);
   }
 
   const webpSize = fs.statSync(webpPath).size;
@@ -110,7 +135,7 @@ async function optimizeImages() {
     .filter(e => e.isFile() && /\.(jpg|jpeg|png|webp)$/i.test(e.name))
     .map(e => e.name);
 
-  console.log(`Optimizing ${topLevelFiles.length} top-level images (max ${MAX_WIDTH}px, concurrency=${CONCURRENCY})...\n`);
+  console.log(`Optimizing ${topLevelFiles.length} top-level images (main max ${MAX_WIDTH}px, card max ${CARD_WIDTH}px, concurrency=${CONCURRENCY})...\n`);
   const topTasks = topLevelFiles.map(file => async () => {
     try {
       const savings = await processFile(

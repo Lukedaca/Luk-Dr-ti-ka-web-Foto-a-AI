@@ -80,7 +80,10 @@ function getOptimizedImageSources(imagePath) {
     return {
         avif: `${prefix}/${baseName}.avif`,
         webp: `${prefix}/${baseName}.webp`,
-        jpg: `${prefix}/${baseName}.jpg`
+        jpg: `${prefix}/${baseName}.jpg`,
+        cardAvif: subPath ? null : `${prefix}/${baseName}-card.avif`,
+        cardWebp: subPath ? null : `${prefix}/${baseName}-card.webp`,
+        cardJpg: subPath ? null : `${prefix}/${baseName}-card.jpg`
     };
 }
 
@@ -187,7 +190,9 @@ function renderPortfolio() {
         const type = project.type === 'gallery' ? 'gallery' : 'single';
         const projectName = translateProjectName(project);
         const optimizedImage = getOptimizedImageSources(mainImage);
-        const fallbackImage = optimizedImage?.jpg || mainImage || PORTFOLIO_FALLBACK_IMAGE;
+        const fallbackImage = optimizedImage?.cardJpg || optimizedImage?.jpg || mainImage || PORTFOLIO_FALLBACK_IMAGE;
+        const cardAvif = optimizedImage?.cardAvif || optimizedImage?.avif;
+        const cardWebp = optimizedImage?.cardWebp || optimizedImage?.webp;
         const metaText = type === 'gallery'
             ? (getLanguage() === 'en'
                 ? `Match gallery | ${images.length} photos`
@@ -200,8 +205,8 @@ function renderPortfolio() {
         return `
             <div class="portfolio-item rounded-xl overflow-hidden" data-category="${category}" data-project-id="${projectId}" data-project-index="${index}"${hrefAttr}>
                 <picture>
-                    ${optimizedImage ? `<source srcset="${optimizedImage.avif}" type="image/avif">` : ''}
-                    ${optimizedImage ? `<source srcset="${optimizedImage.webp}" type="image/webp">` : ''}
+                    ${cardAvif ? `<source srcset="${cardAvif}" type="image/avif">` : ''}
+                    ${cardWebp ? `<source srcset="${cardWebp}" type="image/webp">` : ''}
                     <img src="${fallbackImage}" alt="${altText}" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="${PORTFOLIO_FALLBACK_IMAGE}">
                 </picture>
                 <div class="portfolio-overlay">

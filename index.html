@@ -47,11 +47,11 @@
     <meta name="format-detection" content="telephone=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <!-- Preload critical fonts -->
-    <link rel="preload" href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDI1apSCOBt_aeQQ7ftydoaeXYpj_EPk.woff2" as="font" type="font/woff2" crossorigin>
-
-    <!-- Font stylesheet -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional">
+    <!-- CSS and fonts are preloaded, then applied without blocking first render -->
+    <script src="/dist/js/early.min.js?v=8" defer></script>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional" as="style">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional" media="print" data-async-stylesheet>
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=optional"></noscript>
 
     <!-- Critical CSS inline for above-the-fold content -->
     <style>
@@ -152,10 +152,10 @@ body > * {
 .hero-qr:hover { transform: translateY(-2px); background: rgba(255,255,255,0.1); }
         </style>
 
-    <!-- Load Tailwind CSS asynchronously -->
-    
-    <!-- Combined Tailwind + custom CSS (single request) -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=7">
+    <!-- Combined Tailwind + custom CSS (non-render-blocking request) -->
+    <link rel="preload" href="/dist/css/styles.min.css?v=8" as="style">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=8" media="print" data-async-stylesheet>
+    <noscript><link rel="stylesheet" href="/dist/css/styles.min.css?v=8"></noscript>
     
 
     <!-- Schema.org Structured Data -->
@@ -402,9 +402,9 @@ body > * {
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolioGrid">
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/sport-1.avif" type="image/avif">
-                            <source srcset="dist/images/portfolio/sport-1.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-1.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/sport-1-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/sport-1-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-1-card.jpg" alt="Hlavičkový souboj" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -415,9 +415,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/sport-2.avif" type="image/avif">
-                            <source srcset="dist/images/portfolio/sport-2.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-2.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/sport-2-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/sport-2-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-2-card.jpg" alt="Souboj o míč" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -428,9 +428,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/sport-3.avif" type="image/avif">
-                            <source srcset="dist/images/portfolio/sport-3.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-3.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/sport-3-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/sport-3-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-3-card.jpg" alt="Oslava gólu" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -441,9 +441,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/sport-4.avif" type="image/avif">
-                            <source srcset="dist/images/portfolio/sport-4.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-4.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/sport-4-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/sport-4-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-4-card.jpg" alt="Akce před brankou" class="w-full h-80 object-cover" loading="lazy" decoding="async" fetchpriority="low" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -454,8 +454,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/sport-5.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-5.jpg" alt="První liga" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/sport-5-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/sport-5-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-5-card.jpg" alt="První liga" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -466,8 +467,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/sport-6.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sport-6.jpg" alt="Sigma vs Slavia" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/sport-6-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/sport-6-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sport-6-card.jpg" alt="Sigma vs Slavia" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -478,8 +480,9 @@ body > * {
                     </div>
                     <a href="/galerie/sigma-vs-mainz/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-7" data-project-index="6" aria-label="Otevřít galerii Sigma Olomouc vs Mainz">
                         <picture>
-                            <source srcset="dist/images/portfolio/sigma-mainz-01.webp" type="image/webp">
-                            <img src="dist/images/portfolio/sigma-mainz-01.jpg" alt="Sigma Olomouc vs Mainz" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/sigma-mainz-01-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/sigma-mainz-01-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/sigma-mainz-01-card.jpg" alt="Sigma Olomouc vs Mainz" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -508,8 +511,9 @@ body > * {
                     </a>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
-                            <source srcset="dist/images/portfolio/ai-1.webp" type="image/webp">
-                            <img src="dist/images/portfolio/ai-1.jpg" alt="Hybridní Agent" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/ai-1-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/ai-1-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/ai-1-card.jpg" alt="Hybridní Agent" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -520,8 +524,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
-                            <source srcset="dist/images/portfolio/ai-2.webp" type="image/webp">
-                            <img src="dist/images/portfolio/ai-2.jpg" alt="Zábavní chatbot" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/ai-2-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/ai-2-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/ai-2-card.jpg" alt="Zábavní chatbot" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -532,8 +537,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
-                            <source srcset="dist/images/portfolio/ai-3.webp" type="image/webp">
-                            <img src="dist/images/portfolio/ai-3.jpg" alt="Fotograf AI" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/ai-3-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/ai-3-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/ai-3-card.jpg" alt="Fotograf AI" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -544,8 +550,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/portret-1.webp" type="image/webp">
-                            <img src="dist/images/portfolio/portret-1.jpg" alt="Portrét s kouřem" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/portret-1-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/portret-1-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/portret-1-card.jpg" alt="Portrét s kouřem" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -556,8 +563,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/portret-2.webp" type="image/webp">
-                            <img src="dist/images/portfolio/portret-2.jpg" alt="Festival look" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/portret-2-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/portret-2-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/portret-2-card.jpg" alt="Festival look" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -568,8 +576,9 @@ body > * {
                     </div>
                     <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
-                            <source srcset="dist/images/portfolio/portret-3.webp" type="image/webp">
-                            <img src="dist/images/portfolio/portret-3.jpg" alt="Modrý kouř" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
+                            <source srcset="dist/images/portfolio/portret-3-card.avif" type="image/avif">
+                            <source srcset="dist/images/portfolio/portret-3-card.webp" type="image/webp">
+                            <img src="dist/images/portfolio/portret-3-card.jpg" alt="Modrý kouř" class="w-full h-80 object-cover" loading="lazy" width="600" height="320" data-fallback-src="assets/fallback.jpg">
                         </picture>
                         <div class="portfolio-overlay">
                             <div class="text-center">
@@ -1059,7 +1068,7 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/core.min.js?v=7" defer></script>
+    <script src="/dist/js/core.min.js?v=8" defer></script>
 
 
 </body>
