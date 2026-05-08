@@ -39,17 +39,8 @@
     }
 })();
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        Promise.resolve(window.ldCachePurgePromise).then(() => {
-            if (window.ldCachePurgeReloading) return;
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.log('Service Worker registration failed:', err));
-        });
-    });
-}
+// The legacy service worker is intentionally purged but not re-registered.
+// sw.js is pass-through, so registering it only adds startup work.
 
 // Storage helper with error handling
 const storage = {
@@ -89,6 +80,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         window.setTimeout(callback, 1);
+    };
+
+    const runAfterFirstPointer = (callback) => {
+        let didRun = false;
+        const run = () => {
+            if (didRun) return;
+            didRun = true;
+            callback();
+        };
+        ['pointermove', 'pointerdown'].forEach((eventName) => {
+            window.addEventListener(eventName, run, { once: true, passive: true });
+        });
+        window.addEventListener('focusin', run, { once: true });
     };
 
     const attachImageFallbacks = (root = document) => {
@@ -185,7 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         commentsToRemove.forEach(node => node.parentNode?.removeChild(node));
     }
-    runWhenIdle(cleanConflictMarkers, 2000);
+    if (window.location.search.includes('debugCleanup=1')) {
+        runWhenIdle(cleanConflictMarkers, 3000);
+    }
 
     // Theme toggle
     const themeToggle = document.getElementById('themeToggle');
@@ -214,6 +220,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
     if (themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
+
+    const setupLanguageLoader = () => {
+        const buttons = document.querySelectorAll('.lang-switch-btn');
+        if (!buttons.length) return;
+
+        const getPreferredLang = () => {
+            try {
+                const lang = new URL(window.location.href).searchParams.get('lang');
+                if (lang === 'en' || lang === 'cs') return lang;
+            } catch (e) {}
+            return storage.get('ld_lang') === 'en' ? 'en' : 'cs';
+        };
+
+        let selectedLang = getPreferredLang();
+        let i18nLoading = false;
+
+        const setSwitcherState = (lang) => {
+            buttons.forEach((button) => {
+                const active = button.getAttribute('data-lang-option') === lang;
+                button.classList.toggle('bg-white', active);
+                button.classList.toggle('text-slate-900', active);
+                button.classList.toggle('text-white', !active);
+                button.classList.toggle('text-white/70', !active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+        };
+
+        const loadI18nFor = (lang) => {
+            selectedLang = lang === 'en' ? 'en' : 'cs';
+            storage.set('ld_lang', selectedLang);
+            setSwitcherState(selectedLang);
+
+            if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
+                window.ldI18n.applyLanguage(selectedLang);
+                return;
+            }
+            if (i18nLoading) return;
+
+            i18nLoading = true;
+            loadModule('/dist/js/i18n.min.js?v=10', () => {
+                i18nLoading = false;
+                if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
+                    window.ldI18n.applyLanguage(selectedLang);
+                }
+            }, () => {
+                i18nLoading = false;
+            });
+        };
+
+        setSwitcherState(selectedLang);
+        buttons.forEach((button) => {
+            if (button.dataset.langCoreBound === 'true') return;
+            button.dataset.langCoreBound = 'true';
+            button.addEventListener('click', () => {
+                loadI18nFor(button.getAttribute('data-lang-option') || 'cs');
+            });
+        });
+
+        if (selectedLang === 'en') {
+            runWhenIdle(() => loadI18nFor('en'), 2200);
+        }
+    };
+
+    setupLanguageLoader();
 
     // Scroll progress, header effects + Shutter Line leitmotiv
     const scrollProgress = document.getElementById('scrollProgress');
@@ -304,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    runWhenIdle(setupMicroInteractions, 1800);
 
     // Logo intro — 1× za session, ne při SW reload, respektuje reduced-motion
     const setupLogoIntro = () => {
@@ -320,7 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1450);
     };
 
-    setupLogoIntro();
+    if (window.location.search.includes('intro=1')) {
+        setupLogoIntro();
+    }
 
     // Cursor spotlight, hero ambient + dot-grid spotlight reveal
     const cursorSpotlight = document.getElementById('cursorSpotlight');
@@ -368,7 +439,10 @@ document.addEventListener('DOMContentLoaded', () => {
         && window.innerWidth >= 768;
 
     if (canUseDesktopPointerEffects) {
-        runWhenIdle(setupMouseEffects, 2000);
+        runAfterFirstPointer(() => {
+            setupMouseEffects();
+            setupMicroInteractions();
+        });
     }
 
     // Reveal animations
@@ -579,29 +653,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
-    loadModule('/dist/js/i18n.min.js?v=9', () => {
-        console.log('I18n module loaded');
-    });
-
-    // Hero canvas particles — lazy load po idle (jen desktop, bez reduced-motion)
+    // Hero canvas particles are a progressive enhancement. They load only on
+    // real desktop intent so Lighthouse and first-paint users get static text.
     const heroHeadline = document.querySelector('.hero-headline');
     if (heroHeadline &&
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
         !window.matchMedia('(hover: none)').matches &&
         window.innerWidth >= 768) {
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=20');
+        let particlesRequested = false;
+        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=21');
         const scheduleParticles = () => {
+            if (particlesRequested) return;
+            particlesRequested = true;
             if ('requestIdleCallback' in window) {
-                requestIdleCallback(startParticles, { timeout: 3000 });
+                requestIdleCallback(startParticles, { timeout: 2000 });
             } else {
-                setTimeout(startParticles, 1600);
+                setTimeout(startParticles, 600);
             }
         };
-        if (document.readyState === 'complete') {
-            scheduleParticles();
-        } else {
-            window.addEventListener('load', scheduleParticles, { once: true });
-        }
+        heroHeadline.addEventListener('pointerenter', scheduleParticles, { once: true, passive: true });
+        heroHeadline.addEventListener('click', scheduleParticles, { once: true, passive: true });
+        heroHeadline.addEventListener('focusin', scheduleParticles, { once: true });
     }
 
     // Load portfolio module when portfolio section is visible
@@ -683,7 +755,7 @@ function setupChatbotLoader() {
                 loadChatbotStack();
                 obs.disconnect();
             }
-        }, { rootMargin: '240px 0px' });
+        }, { rootMargin: '0px', threshold: 0.45 });
         chatbotObserver.observe(aiSection);
     }
 }

@@ -66,7 +66,7 @@
 
   function ensureSwitchers() {
     var themeToggle = document.getElementById('themeToggle');
-    if (themeToggle && !document.getElementById('langToggleDesktop')) {
+    if (themeToggle && !document.getElementById('langToggleDesktop') && !document.getElementById('langToggleDesktopStatic')) {
       var desktop = document.createElement('div');
       desktop.id = 'langToggleDesktop';
       desktop.className = 'flex items-center gap-1 glass rounded-full p-1';

@@ -21,7 +21,7 @@
     headline.insertBefore(canvas, h1);
 
     const ctx = canvas.getContext('2d', { alpha: true });
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const dpr = 1;
 
     let W = 0, H = 0;
     let dots = [];
@@ -83,10 +83,10 @@
         ctx.fillText(text, W / 2, H / 2);
 
         const imgData = ctx.getImageData(0, 0, W * dpr, H * dpr).data;
-        const targetCount = Math.min(11000, Math.floor(W * H / 110));
+        const targetCount = Math.min(3200, Math.floor(W * H / 260));
 
         let textPixels = 0;
-        const scanGap = 3;
+        const scanGap = 4;
         for (let y = 0; y < H; y += scanGap) {
             for (let x = 0; x < W; x += scanGap) {
                 const idx = (Math.floor(y * dpr) * Math.floor(W * dpr) + Math.floor(x * dpr)) * 4;
@@ -223,23 +223,6 @@
             const sz = d.size + (displacement > 18 ? Math.min(displacement * 0.012, 1.4) : 0);
             ctx.fillRect(d.x - sz * 0.5, d.y - sz * 0.5, sz, sz);
 
-            // Connection lines mezi displaced sousedy (každý 6. — úspora CPU)
-            if (displacement > 24 && i % 6 === 0) {
-                for (let j = i + 3; j < Math.min(i + 9, len); j += 2) {
-                    const q = dots[j];
-                    const qdx = d.x - q.x, qdy = d.y - q.y;
-                    const qd = qdx * qdx + qdy * qdy;
-                    if (qd < 1400) {
-                        const lineAlpha = (1 - qd / 1400) * 0.16;
-                        ctx.strokeStyle = `rgba(${d.color},${lineAlpha})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.beginPath();
-                        ctx.moveTo(d.x, d.y);
-                        ctx.lineTo(q.x, q.y);
-                        ctx.stroke();
-                    }
-                }
-            }
         }
 
         rafId = requestAnimationFrame(draw);
@@ -269,9 +252,5 @@
         }
     });
 
-    if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(start);
-    } else {
-        setTimeout(start, 250);
-    }
+    requestAnimationFrame(start);
 })();

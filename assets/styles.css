@@ -78,10 +78,6 @@
     --text-secondary: var(--silver-200);
 }
 
-* {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
 body {
     font-family: var(--font-sans);
     background:
@@ -1263,13 +1259,15 @@ html {
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    opacity: 1;
-    transition: opacity 0.5s ease 0.9s, visibility 0.5s linear 1.4s;
-}
-
-body:not(.logo-intro-active) .logo-intro-overlay {
     opacity: 0;
     visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+
+body.logo-intro-active .logo-intro-overlay {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s ease;
 }
 
 .logo-intro-svg {
@@ -1811,11 +1809,11 @@ body:not(.logo-intro-active) .logo-intro-overlay {
     font-weight: 900;
     font-size: clamp(2.75rem, 11vw, 10rem);
     line-height: 0.92;
-    letter-spacing: -0.045em;
+    letter-spacing: 0;
     text-wrap: balance;
     max-width: 14ch;
     text-align: center;
-    animation: heroH1FadeIn 1.2s var(--ease-out-quart) both;
+    animation: none;
     /* Steel gradient výplň */
     background: linear-gradient(
         180deg,
@@ -1830,10 +1828,8 @@ body:not(.logo-intro-active) .logo-intro-overlay {
     color: transparent;
     /* Drop-shadow halo */
     filter:
-        drop-shadow(0 2px 0 rgba(5, 13, 29, 0.55))
-        drop-shadow(0 12px 32px rgba(5, 13, 29, 0.85))
-        drop-shadow(0 0 36px rgba(78, 162, 224, 0.42))
-        drop-shadow(0 0 90px rgba(78, 162, 224, 0.22));
+        drop-shadow(0 8px 24px rgba(5, 13, 29, 0.72))
+        drop-shadow(0 0 24px rgba(78, 162, 224, 0.28));
 }
 
 @media (prefers-reduced-motion: reduce) {
