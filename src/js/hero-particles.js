@@ -38,14 +38,22 @@
     const rawMouse = { x: -9999, y: -9999 };
     const mouse = { x: -9999, y: -9999, px: -9999, py: -9999, vx: 0, vy: 0, smoothSpeed: 0 };
 
-    // Paleta z loga (silver tóny + signal blue)
+    // Paleta — vyváženo směr brightness: víc bright signal blue + čisté bílé,
+    // tmavší tóny zachovány jen jako akcent (každé "324..." se objeví jen 1×).
+    // Duplikace bright entries = vyšší pravděpodobnost výběru → text víc září.
     const COLORS = [
+        '255, 255, 255',  // pure white
+        '255, 255, 255',
+        '236, 241, 247',  // silver-50
         '236, 241, 247',
-        '216, 225, 236',
+        '108, 188, 239',  // signal-hi (bright)
         '108, 188, 239',
+        '108, 188, 239',
+        '160, 210, 250',  // light sky
+        '78, 162, 224',   // signal
         '78, 162, 224',
-        '44, 126, 192',
-        '168, 181, 197'
+        '216, 225, 236',  // silver-100
+        '44, 126, 192'    // signal-deep (jediný tmavší accent)
     ];
     const REPEL_RADIUS = 130;
     const REPEL_FORCE = 13;
@@ -112,16 +120,16 @@
             return out;
         }
 
-        // Cíl: text zabírá ~70 % výšky hero. Viewport-based.
-        // Desktop ≥1024: ~22 % šířky viewportu (cap 280px)
-        // Tablet 640-1023: ~15 % vw (cap 160px)
-        // Mobil <640: ~13 % vw (cap 90px)
+        // Velikost ~5× původního auto-shrink renderu (desktop cap 200px).
+        // Desktop ≥1024: ~16 % šířky viewportu (cap 200px)
+        // Tablet 640-1023: ~12 % vw (cap 130px)
+        // Mobil <640: ~11 % vw (cap 76px)
         const vw = window.innerWidth;
         let fs;
-        if (vw >= 1024)      fs = Math.min(vw * 0.22, 280);
-        else if (vw >= 640)  fs = Math.min(vw * 0.15, 160);
-        else                 fs = Math.min(vw * 0.13, 90);
-        fs = Math.max(60, Math.round(fs));
+        if (vw >= 1024)      fs = Math.min(vw * 0.16, 200);
+        else if (vw >= 640)  fs = Math.min(vw * 0.12, 130);
+        else                 fs = Math.min(vw * 0.11, 76);
+        fs = Math.max(50, Math.round(fs));
 
         let lines = wrapLines(fs);
         // Shrink jen pokud nějaký řádek přesahuje canvas šířku
@@ -172,8 +180,8 @@
                         x: x + Math.cos(angle) * scatter,
                         y: y + Math.sin(angle) * scatter,
                         vx: 0, vy: 0,
-                        // Větší body = lépe vidět
-                        size: Math.random() * 2.4 + 1.6,
+                        // Body bumped: 2.0–5.5px (předtím 1.6–4.0)
+                        size: Math.random() * 3.5 + 2.0,
                         color: COLORS[Math.floor(Math.random() * COLORS.length)],
                         revealDelay: distFromCenter * 0.0028 + Math.random() * 0.25,
                         revealProgress: 0
@@ -285,10 +293,19 @@
             d.y += d.vy;
 
             const displacement = Math.sqrt((d.x - d.ox) ** 2 + (d.y - d.oy) ** 2);
-            // Alpha bumped: base 0.78 → max 0.95 (předtím 0.28 → 0.52, příliš transparent)
-            const alpha = Math.min(0.95, 0.78 + displacement * 0.006);
-            ctx.fillStyle = `rgba(${d.color},${alpha})`;
+            // Alpha full bright: 0.92 → 1.0 (předtím 0.78 → 0.95)
+            const alpha = Math.min(1.0, 0.92 + displacement * 0.006);
             const sz = d.size + (displacement > 18 ? Math.min(displacement * 0.012, 1.4) : 0);
+
+            // Soft glow halo — vykresluje se jen pro větší body (perf-friendly).
+            // 2.6× větší square, low alpha → bloom dojem kolem ostrého jádra.
+            if (sz > 3.2) {
+                ctx.fillStyle = `rgba(${d.color},${alpha * 0.18})`;
+                const haloSz = sz * 2.6;
+                ctx.fillRect(d.x - haloSz * 0.5, d.y - haloSz * 0.5, haloSz, haloSz);
+            }
+            // Sharp core
+            ctx.fillStyle = `rgba(${d.color},${alpha})`;
             ctx.fillRect(d.x - sz * 0.5, d.y - sz * 0.5, sz, sz);
 
         }

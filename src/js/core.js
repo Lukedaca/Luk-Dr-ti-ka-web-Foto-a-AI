@@ -639,7 +639,7 @@ function lazyLoadModules() {
         !window.matchMedia('(hover: none)').matches &&
         window.innerWidth >= 768) {
         let particlesRequested = false;
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=27');
+        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=28');
         const scheduleParticles = () => {
             if (particlesRequested) return;
             particlesRequested = true;
