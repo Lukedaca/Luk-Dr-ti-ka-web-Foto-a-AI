@@ -2135,9 +2135,9 @@ header.is-scrolled,
 }
 
 .hero-headline {
-    width: min(100%, 1120px);
-    min-height: clamp(260px, 34vw, 430px);
-    margin: 0 auto 1rem;
+    width: min(100%, 1380px);
+    min-height: clamp(330px, 42vw, 560px);
+    margin: 0 auto 0.5rem;
     margin-left: auto;
     transform: none;
     overflow: visible;
@@ -2148,10 +2148,23 @@ header.is-scrolled,
 }
 
 .hero-h1 {
+    font-size: clamp(4.5rem, 13vw, 13rem);
+    line-height: 0.86;
+    max-width: 13ch;
     filter: none;
     text-shadow: 0 18px 44px rgba(5, 13, 29, 0.5);
 }
 
 .hero-amp {
     filter: none;
+}
+
+.hero-particles {
+    display: none !important;
+}
+
+.hero-headline.with-particles .hero-h1 {
+    visibility: visible;
+    position: relative;
+    pointer-events: auto;
 }

@@ -228,7 +228,7 @@ function initCore() {
             if (i18nLoading) return;
 
             i18nLoading = true;
-            loadModule('/dist/js/i18n.min.js?v=11', () => {
+            loadModule('/dist/js/i18n.min.js?v=12', () => {
                 i18nLoading = false;
                 if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
                     window.ldI18n.applyLanguage(selectedLang);
@@ -634,12 +634,13 @@ function lazyLoadModules() {
     // Hero canvas particles are a progressive enhancement. They load only on
     // real desktop intent so Lighthouse and first-paint users get static text.
     const heroHeadline = document.querySelector('.hero-headline');
-    if (heroHeadline &&
+    const particlesEnabled = window.location.search.includes('particles=1');
+    if (heroHeadline && particlesEnabled &&
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
         !window.matchMedia('(hover: none)').matches &&
         window.innerWidth >= 768) {
         let particlesRequested = false;
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=22');
+        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=23');
         const scheduleParticles = () => {
             if (particlesRequested) return;
             particlesRequested = true;
