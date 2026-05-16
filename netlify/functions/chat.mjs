@@ -533,7 +533,6 @@ function buildDeterministicLeadResponse(mode, messages) {
     text: `Jasně, beru to jako poptávku na ${details.serviceLabel}. Otevírám kontakt a předvyplním zprávu pro Lukáše. ${missingText}`,
     actions: [
       { tool: "prefill_contact_form", args: prefillArgs },
-      { tool: "scroll_to", args: { section: "kontakt" } },
       { tool: "highlight_element", args: { target: "contact-form" } },
     ],
   };
@@ -544,10 +543,10 @@ function buildInquiryProviderFallback(messages) {
   if (!isInquiryRequest(normalized)) return null;
 
   if (isInquirySendRequest(normalized)) {
-    return "Teď nedokážu sestavit plnou AI odpověď na míru, ale pro odeslání poptávky potřebuji jméno, e-mail, typ focení nebo služby, termín, místo a krátkou zprávu. Pošli ty údaje v jedné zprávě, nebo je vyplň ve formuláři níže. [[ACTION:scroll:kontakt]]";
+    return "Teď nedokážu sestavit plnou AI odpověď na míru, ale pro odeslání poptávky potřebuji jméno, e-mail, typ focení nebo služby, termín, místo a krátkou zprávu. Pošli ty údaje v jedné zprávě, nebo je vyplň ve formuláři níže. [[ACTION:scroll:contactform]]";
   }
 
-  return "Teď nedokážu sestavit plnou AI odpověď na míru, ale základ zprávy může být: Ahoj Lukáši, mám zájem o focení. Potřebuji nafotit [co], ideálně [termín], v místě [místo]. Kontakt na mě je [e-mail/telefon]. [[ACTION:scroll:kontakt]]";
+  return "Teď nedokážu sestavit plnou AI odpověď na míru, ale základ zprávy může být: Ahoj Lukáši, mám zájem o focení. Potřebuji nafotit [co], ideálně [termín], v místě [místo]. Kontakt na mě je [e-mail/telefon]. [[ACTION:scroll:contactform]]";
 }
 
 function hasUnsupportedInquirySpecifics(answer, userText) {

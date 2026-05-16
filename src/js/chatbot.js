@@ -905,6 +905,10 @@
     var heroBubble = chatbotCreateAssistantStreamBubble(chatbotDOM.heroMessages);
     var widgetBubble = chatbotCreateAssistantStreamBubble(chatbotDOM.messages);
     var firstAppend = true;
+    var queue = '';
+    var displayed = '';
+    var typing = false;
+
     function clearPending() {
       if (heroBubble) {
         heroBubble.classList.remove('chatbot-stream-pending');
@@ -915,18 +919,49 @@
         widgetBubble.textContent = '';
       }
     }
+
+    function paint() {
+      if (heroBubble) heroBubble.textContent = displayed;
+      if (widgetBubble) widgetBubble.textContent = displayed;
+      chatbotScrollToBottom(chatbotDOM.heroMessages);
+      chatbotScrollToBottom(chatbotDOM.messages);
+    }
+
+    function tick() {
+      if (!queue.length) { typing = false; return; }
+      typing = true;
+      // Adaptivní rychlost: čím delší fronta, tím rychleji typuje (max ~6ms/znak)
+      var batch = queue.length > 120 ? 3 : (queue.length > 60 ? 2 : 1);
+      displayed += queue.slice(0, batch);
+      queue = queue.slice(batch);
+      paint();
+      var delay = queue.length > 120 ? 8 : (queue.length > 30 ? 14 : 22);
+      setTimeout(tick, delay);
+    }
+
     return {
       append: function(text) {
         if (firstAppend) { clearPending(); firstAppend = false; }
-        if (heroBubble) heroBubble.textContent += text;
-        if (widgetBubble) widgetBubble.textContent += text;
-        chatbotScrollToBottom(chatbotDOM.heroMessages);
-        chatbotScrollToBottom(chatbotDOM.messages);
+        if (!text) return;
+        queue += text;
+        if (!typing) tick();
       },
       replace: function(text) {
         if (firstAppend) { clearPending(); firstAppend = false; }
-        if (heroBubble) heroBubble.textContent = text;
-        if (widgetBubble) widgetBubble.textContent = text;
+        text = text || '';
+        var current = displayed + queue;
+        if (text === current) return;
+        if (text.indexOf(displayed) === 0) {
+          // Server nás dohnal, jen doplň zbytek do fronty a nech typewriter dotypovat
+          queue = text.slice(displayed.length);
+          if (!typing) tick();
+        } else {
+          // Úplně jiný text → zruš typing a nastav ihned
+          queue = '';
+          typing = false;
+          displayed = text;
+          paint();
+        }
       }
     };
   }
@@ -1152,8 +1187,14 @@
 
     switch (action.type) {
       case 'scroll':
-        var scrollTarget = document.getElementById(action.target);
-        if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var scrollTargetId = action.target;
+        var scrollBlock = 'start';
+        if (scrollTargetId === 'contactform' || scrollTargetId === 'contact-form') {
+          scrollTargetId = 'contactForm';
+          scrollBlock = 'center';
+        }
+        var scrollTarget = document.getElementById(scrollTargetId);
+        if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: scrollBlock });
         break;
       case 'filter':
         chatbotApplyPortfolioFilter(action.target);
