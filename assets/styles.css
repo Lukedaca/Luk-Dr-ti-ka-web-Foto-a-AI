@@ -81,6 +81,15 @@
 html {
     /* Fallback bg pod body — eliminuje bílé probliky při smooth scrollu přes dlouhý dokument */
     background-color: var(--ink-900);
+    /* Sticky header offset pro všechny anchor scrolly (#contactForm, #kontakt, #portfolio, ...).
+       scrollIntoView a klik na <a href="#id"> tohle respektují automaticky. */
+    scroll-padding-top: 110px;
+}
+
+/* Pojistka pro agentův prefill scroll — když scroll target je #contactForm,
+   ujisti že form končí 110px pod sticky headerem, ne hned u jeho spodního okraje. */
+#contactForm {
+    scroll-margin-top: 110px;
 }
 
 body {

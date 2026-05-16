@@ -1724,22 +1724,20 @@
 
   function chatbotScrollToForm(form) {
     if (!form) return;
-    var headerH = 96;
-    var rect = form.getBoundingClientRect();
-    var absTop = rect.top + window.scrollY;
-    var winH = window.innerHeight;
-    var formH = form.offsetHeight;
-    var target;
-    if (formH + headerH + 60 > winH) {
-      // Formulář je vyšší než viewport → zarovnej horní okraj pod header
-      target = absTop - headerH - 16;
-    } else {
-      // Formulář se vejde → vystřeď ho
-      target = absTop - (winH - formH) / 2;
+    // Použij browser-native scrollIntoView. Offset zajišťuje CSS `scroll-margin-top`
+    // (viz assets/styles.css `#contactForm`). Tohle je deterministic + survives layout shifts.
+    try {
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      // Fallback pro starší browsery bez smooth scroll
+      form.scrollIntoView(true);
     }
-    var maxScroll = Math.max(0, document.documentElement.scrollHeight - winH);
-    target = Math.max(0, Math.min(target, maxScroll));
-    window.scrollTo({ top: target, behavior: 'smooth' });
+    // Re-scroll po dokončení layout shifts (typewriter, AI suggestions, agent reply bubble)
+    setTimeout(function() {
+      try {
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) { /* noop */ }
+    }, 650);
   }
 
   function chatbotPrefillContactForm(args, options) {
@@ -1765,6 +1763,9 @@
     setTimeout(function() { form.classList.remove('ai-highlight'); }, 2600);
     // Počkej na příští frame aby DOM dohnal layout (po prefill), pak scrolluj
     requestAnimationFrame(function() { chatbotScrollToForm(form); });
+    // contactMessage textarea má auto-resize listener → po dispatched 'input' může
+    // form expandovat během dalších 100ms. Re-scroll když layout settled.
+    setTimeout(function() { chatbotScrollToForm(form); }, 120);
     return true;
   }
 
