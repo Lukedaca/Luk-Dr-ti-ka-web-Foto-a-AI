@@ -2225,7 +2225,7 @@ header.is-scrolled,
     /* Posun obsah blíž k vrchu — místo vertikálního center align k top
        s padding-top, aby particle nadpis seděl výš v viewportu. */
     align-items: flex-start !important;
-    padding-top: clamp(5rem, 10vh, 7.5rem);
+    padding-top: clamp(2.5rem, 6vh, 4.5rem);
 }
 
 /* Když particles jsou aktivní, statický H1 zmizí (no duplicate).
@@ -2237,9 +2237,9 @@ header.is-scrolled,
 }
 
 /* Když particles aktivní → headline min-height pro 3 řádky 4× textu.
-   Menší než dřív, protože fs je teď cap 160px místo 200px. */
+   Menší než dřív, aby jméno Lukáš Drštička bylo above-the-fold. */
 .hero-headline.with-particles {
-    min-height: clamp(360px, 44vw, 560px) !important;
+    min-height: clamp(260px, 34vw, 420px) !important;
     margin-top: 0 !important;
     margin-bottom: 0.5rem !important;
 }
