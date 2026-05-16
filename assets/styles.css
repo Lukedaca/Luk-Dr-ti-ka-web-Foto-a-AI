@@ -78,12 +78,19 @@
     --text-secondary: var(--silver-200);
 }
 
+html {
+    /* Fallback bg pod body — eliminuje bílé probliky při smooth scrollu přes dlouhý dokument */
+    background-color: var(--ink-900);
+}
+
 body {
     font-family: var(--font-sans);
-    background:
+    background-color: var(--ink-900);
+    background-image:
         radial-gradient(1200px 800px at 0% -10%, rgba(74, 144, 226, 0.08), transparent 60%),
         radial-gradient(1000px 700px at 100% 0%, rgba(111, 176, 255, 0.06), transparent 55%),
         linear-gradient(180deg, var(--ink-900) 0%, var(--ink-800) 50%, var(--ink-900) 100%);
+    background-attachment: fixed, fixed, scroll;
     color: var(--text-primary);
     min-height: 100vh;
     position: relative;

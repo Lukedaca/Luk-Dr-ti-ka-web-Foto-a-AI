@@ -930,12 +930,21 @@
     function tick() {
       if (!queue.length) { typing = false; return; }
       typing = true;
-      // Adaptivní rychlost: čím delší fronta, tím rychleji typuje (max ~6ms/znak)
-      var batch = queue.length > 120 ? 3 : (queue.length > 60 ? 2 : 1);
+      // Pomalý start (prvních 18 znaků), pak adaptive batching podle délky fronty
+      var batch, delay;
+      if (displayed.length < 18) {
+        batch = 1;
+        delay = 38;
+      } else if (queue.length > 200) {
+        batch = 3; delay = 10;
+      } else if (queue.length > 80) {
+        batch = 2; delay = 16;
+      } else {
+        batch = 1; delay = 26;
+      }
       displayed += queue.slice(0, batch);
       queue = queue.slice(batch);
       paint();
-      var delay = queue.length > 120 ? 8 : (queue.length > 30 ? 14 : 22);
       setTimeout(tick, delay);
     }
 
@@ -1708,6 +1717,26 @@
     input.dispatchEvent(new Event(input.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
   }
 
+  function chatbotScrollToForm(form) {
+    if (!form) return;
+    var headerH = 96;
+    var rect = form.getBoundingClientRect();
+    var absTop = rect.top + window.scrollY;
+    var winH = window.innerHeight;
+    var formH = form.offsetHeight;
+    var target;
+    if (formH + headerH + 60 > winH) {
+      // Formulář je vyšší než viewport → zarovnej horní okraj pod header
+      target = absTop - headerH - 16;
+    } else {
+      // Formulář se vejde → vystřeď ho
+      target = absTop - (winH - formH) / 2;
+    }
+    var maxScroll = Math.max(0, document.documentElement.scrollHeight - winH);
+    target = Math.max(0, Math.min(target, maxScroll));
+    window.scrollTo({ top: target, behavior: 'smooth' });
+  }
+
   function chatbotPrefillContactForm(args, options) {
     var form = chatbotFindContactForm();
     if (!form) return false;
@@ -1729,7 +1758,8 @@
 
     form.classList.add('ai-highlight');
     setTimeout(function() { form.classList.remove('ai-highlight'); }, 2600);
-    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Počkej na příští frame aby DOM dohnal layout (po prefill), pak scrolluj
+    requestAnimationFrame(function() { chatbotScrollToForm(form); });
     return true;
   }
 
@@ -1740,7 +1770,7 @@
       if (msgInput) {
         chatbotSetContactField(msgInput, 'Pokračování konverzace s AI asistentem:\n\n' + chatbotBuildConversationSummary());
       }
-      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      chatbotScrollToForm(form);
       return;
     }
     var subject = encodeURIComponent('Pokračování konverzace z webu');
