@@ -332,16 +332,25 @@ if (contactForm) {
         if (submitBtn) submitBtn.disabled = true;
 
         try {
+            // Netlify Forms vyžadují URL-encoded body a form-name field
             const formData = new FormData(contactForm);
-            const response = await fetch(contactForm.action, {
+            const params = new URLSearchParams();
+            for (const [key, value] of formData.entries()) {
+                params.append(key, typeof value === 'string' ? value : String(value));
+            }
+            if (!params.has('form-name')) params.set('form-name', 'contact');
+
+            const response = await fetch('/', {
                 method: 'POST',
-                body: formData,
+                body: params.toString(),
                 headers: {
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json, text/html;q=0.9'
                 }
             });
 
-            if (response.ok) {
+            // Netlify vrací 200 redirect na thank-you stránku
+            if (response.ok || response.status === 200) {
                 if (statusEl) statusEl.textContent = 'Děkuji! Zpráva byla odeslána.';
                 contactForm.reset();
             } else {

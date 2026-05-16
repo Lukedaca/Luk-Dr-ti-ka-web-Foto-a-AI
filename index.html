@@ -206,7 +206,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=31">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=32">
     
 
     <!-- Schema.org Structured Data -->
@@ -283,6 +283,25 @@ body > * {
 <body class="text-white">
     <a href="#main" class="skip-link">Přeskočit na obsah</a>
 
+    <!-- Netlify Forms detection: statický scaffold aby buildový crawler poznal pole.
+         Reálné odesílání běží JS fetchem z /index.html (kontaktní form) a /AI agenta. -->
+    <form name="lukas-ai-agent" data-netlify="true" data-netlify-honeypot="bot-field" hidden aria-hidden="true">
+        <input type="text" name="form-name" value="lukas-ai-agent">
+        <input type="text" name="bot-field">
+        <input type="text" name="_subject">
+        <input type="text" name="type">
+        <input type="text" name="name">
+        <input type="email" name="email">
+        <input type="tel" name="phone">
+        <input type="text" name="service">
+        <input type="text" name="topic">
+        <input type="text" name="date">
+        <input type="text" name="time">
+        <input type="text" name="time_window">
+        <input type="text" name="source">
+        <textarea name="message"></textarea>
+        <textarea name="brief"></textarea>
+    </form>
 
     <!-- Logo intro overlay (zobrazí se 1× za session, JS přidá .logo-intro-active na <body>) -->
     <div class="logo-intro-overlay" aria-hidden="true">
@@ -931,7 +950,11 @@ body > * {
                             <span class="text-sm text-blue-400">(s hybridním agentem)</span>
                         </h3>
                         
-                        <form id="contactForm" class="space-y-4" action="https://formspree.io/f/movlrlzj" method="POST">
+                        <form id="contactForm" name="contact" class="space-y-4" action="/" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+                            <input type="hidden" name="form-name" value="contact">
+                            <p class="hidden" aria-hidden="true" style="display:none">
+                                <label>Nevyplňujte: <input name="bot-field"></label>
+                            </p>
                             <div>
                                 <label for="contactName" class="block text-sm text-gray-300 mb-2">Jméno</label>
                                 <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Vaše jméno" name="name" required autocomplete="name" aria-describedby="contactNameError">
@@ -969,7 +992,6 @@ body > * {
                                 Odeslat zprávu
                             </button>
                             <p id="contactStatus" class="text-sm text-gray-400" role="status" aria-live="polite"></p>
-                            <input type="hidden" name="_subject" value="Nova zprava z webu">
                         </form>
                     </div>
                 </div>
@@ -1143,9 +1165,9 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/boot.min.js?v=31" defer></script>
+    <script src="/dist/js/boot.min.js?v=32" defer></script>
     <!-- Eager-load particle headline tak aby naběhly hned (ne až po user interakci přes core/boot lazy chain) -->
-    <script src="/dist/js/hero-particles.min.js?v=31" defer></script>
+    <script src="/dist/js/hero-particles.min.js?v=32" defer></script>
 
 
 </body>

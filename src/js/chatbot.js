@@ -5,7 +5,8 @@
 ;(function chatbotIIFE() {
   'use strict';
 
-  var CHATBOT_FORMSPREE_URL = 'https://formspree.io/f/movlrlzj';
+  var CHATBOT_AGENT_FORM_URL = '/';
+  var CHATBOT_AGENT_FORM_NAME = 'lukas-ai-agent';
   var CHATBOT_INACTIVITY_MS = 180000;
   var CHATBOT_API_URL = '/.netlify/functions/chat';
   var CHATBOT_TTS_API_URL = '/.netlify/functions/tts';
@@ -1222,17 +1223,19 @@
   }
 
   function chatbotPostAgentForm(subject, fields) {
-    var formData = new FormData();
-    formData.append('_subject', subject);
+    // Netlify Forms: URL-encoded body, form-name field required
+    var params = new URLSearchParams();
+    params.append('form-name', CHATBOT_AGENT_FORM_NAME);
+    params.append('_subject', subject);
     Object.keys(fields || {}).forEach(function(key) {
       if (fields[key] === undefined || fields[key] === null || fields[key] === '') return;
       var value = typeof fields[key] === 'object' ? JSON.stringify(fields[key], null, 2) : String(fields[key]);
-      formData.append(key, value);
+      params.append(key, value);
     });
-    return fetch(CHATBOT_FORMSPREE_URL, {
+    return fetch(CHATBOT_AGENT_FORM_URL, {
       method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
+      body: params.toString(),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).catch(function(err) {
       console.warn('Agent form action failed:', err);
     });
@@ -1402,14 +1405,16 @@
         : chatbotText('chatbot.transcriptAssistant', 'Asistent')) + ': ' + m.content;
     }).join('\n\n');
 
-    var formData = new FormData();
-    formData.append('_subject', chatbotText('chatbot.transcriptSubject', 'Lukas AI prepis') + ' (' + chatbotState.messages.length + ' zpráv)');
-    formData.append('message', transcript);
+    var params = new URLSearchParams();
+    params.append('form-name', CHATBOT_AGENT_FORM_NAME);
+    params.append('type', 'transcript');
+    params.append('_subject', chatbotText('chatbot.transcriptSubject', 'Lukas AI prepis') + ' (' + chatbotState.messages.length + ' zpráv)');
+    params.append('message', transcript);
 
-    fetch(CHATBOT_FORMSPREE_URL, {
+    fetch(CHATBOT_AGENT_FORM_URL, {
       method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
+      body: params.toString(),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).catch(function() {});
   }
 
