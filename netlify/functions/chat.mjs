@@ -108,9 +108,8 @@ const PUBLIC_KNOWLEDGE = {
     roles: ["fotograf", "AI builder", "webový vývojář", "automatizace"],
   },
   services: [
+    "sportovní fotografie (zápasy, utkání, sportovní akce)",
     "portrétní fotografie",
-    "sportovní a akční fotografie",
-    "produktová fotografie",
     "AI chatboti",
     "AI agenti",
     "automatizace webu a firemních procesů",
@@ -229,7 +228,7 @@ CENY A SLEVY (kriticke)
 - generate_quote_estimate vraci VYHRADNE orientacni rozsah s poznamkou, ze finalni cena je po konzultaci.
 
 KDO JE LUKAS
-- Fotograf z Prerova (portretni, sportovni, akcni, produktova fotografie)
+- Fotograf z Prerova - hlavne sportovni udalosti (zapasy, utkani) a portretni foceni. Produktove ani akcni foceni jako primarni sluzbu nedela; pokud se na to zeptaji, otevrene rekni ze tohle neni jeho zamereni.
 - AI builder - stavi aplikace, agenty a automatizace
 - Projekt: Fotograf AI (AI editor pro fotografy)
 - Kontakt: lukas.drsticka@gmail.com
@@ -768,7 +767,7 @@ function buildFastPathResponse(mode, messages) {
   if (isInquiryRequest(normalized)) return null;
 
   if (normalizedMode === "think" && includesAny(normalized, ["vyber", "vybrat", "vhodny typ foceni", "jaky typ foceni"])) {
-    return "Začni účelem fotek. Portrét je pro osobní značku, sport pro akci a produktové focení pro prodej nebo prezentaci.";
+    return "Lukas dela hlavne dve veci - sportovni udalosti (zapasy, utkani) a portrety. Reknes mi co potrebujes nafotit a navedeme to.";
   }
 
   if (normalizedMode !== "talk") return null;
@@ -793,11 +792,11 @@ function buildFastPathResponse(mode, messages) {
   }
 
   if (includesAny(normalized, ["portfolio", "ukaz portfolio", "show portfolio", "ukaz praci", "prace", "galerie", "galerii", "fotogalerie", "fotogalerii"])) {
-    return "Jasně, ukážu portfolio. Najdeš tam portréty, sport i akční fotky. [[ACTION:scroll:portfolio]]";
+    return "Jasne, kouknem na portfolio. Hlavne tam najdes sportovni zapasy a portrety. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["sluzby", "sluzba", "foceni", "fotograf", "fotky", "photography", "services"])) {
-    return "Lukáš fotí portréty, sport, akce i produkty. Nejlepší je mrknout na ukázky a pak napsat konkrétní termín. [[ACTION:scroll:portfolio]]";
+    return "Lukas foti hlavne sport a portrety. Mrkni na ukazky a pak mi napis co potrebujes nafotit. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["fotograf ai", "ai editor", "ai projekt", "ai projects"])) {
@@ -834,7 +833,7 @@ function buildKnowledgeContent(compact) {
     "WEB_KNOWLEDGE_STRUCNE:",
     "Lukas Drsticka je fotograf a AI builder z Prerova.",
     "Kontakt: lukas.drsticka@gmail.com.",
-    "Foti portrety, sport, akce a produkty.",
+    "Foti hlavne sportovni udalosti (zapasy, utkani) a portrety. Akce a produkty NEJSOU primarni nabidka.",
     "Projekt Fotograf AI je AI editor pro fotografy.",
     `Nejnovejsi galerie: ${LATEST_GALLERY.title}, ${LATEST_GALLERY.photos} fotek.`,
     `Spoluprace: ${PUBLIC_KNOWLEDGE.collaborations.map((item) => item.name).join(", ")}.`,
