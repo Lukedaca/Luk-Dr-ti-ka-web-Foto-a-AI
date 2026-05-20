@@ -1,10 +1,24 @@
-// Email alerting via Resend HTTP API. No SDK dep — plain fetch.
+// Email alerting via Gmail SMTP (nodemailer). Sends from the same Gmail
+// account that receives — so Gmail never marks these as spam.
 // Throttle critical alerts via Netlify Blobs to avoid floods.
 
-const RESEND_API = "https://api.resend.com/emails";
-const DEFAULT_FROM = "Lukas Web Alert <onboarding@resend.dev>";
+import nodemailer from "nodemailer";
+
 const DEFAULT_TO = "lukas.drsticka@gmail.com";
 const THROTTLE_MS = 5 * 60 * 1000;
+
+let _transporter = null;
+function getTransporter() {
+  if (_transporter) return _transporter;
+  const user = process.env.GMAIL_USER || DEFAULT_TO;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!pass) return null;
+  _transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+  return _transporter;
+}
 
 let _throttleStorePromise = null;
 function getThrottleStore() {
@@ -49,32 +63,25 @@ function escapeHtml(value) {
 }
 
 async function sendEmail(subject, html) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn("[alert-sender] RESEND_API_KEY missing — email skipped");
-    return { sent: false, reason: "no_api_key" };
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn("[alert-sender] GMAIL_APP_PASSWORD missing — email skipped");
+    return { sent: false, reason: "no_app_password" };
   }
-  const from = process.env.ALERT_FROM || DEFAULT_FROM;
+  const from = process.env.GMAIL_USER || DEFAULT_TO;
   const to = (process.env.ALERT_EMAIL || DEFAULT_TO)
     .split(",").map((s) => s.trim()).filter(Boolean);
 
   try {
-    const response = await fetch(RESEND_API, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ from, to, subject, html }),
+    const info = await transporter.sendMail({
+      from: `"Lukas Web Alert" <${from}>`,
+      to,
+      subject,
+      html,
     });
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      console.error("[alert-sender] Resend non-ok:", response.status, errText.slice(0, 500));
-      return { sent: false, status: response.status, error: errText.slice(0, 200) };
-    }
-    return { sent: true };
+    return { sent: true, messageId: info.messageId };
   } catch (err) {
-    console.error("[alert-sender] Resend exception:", err.message);
+    console.error("[alert-sender] Gmail SMTP exception:", err.message);
     return { sent: false, error: err.message };
   }
 }
