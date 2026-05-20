@@ -14,7 +14,7 @@
 ## Stack
 
 - Vanilla HTML/CSS/JS, Netlify Functions
-- AI backend: Google Gemma 4 (`gemma-4-31b-it`)
+- AI backend: Google Gemini 3.5 Flash (`gemini-3.5-flash`) s hybridním fallbackem
 - Hosting: Netlify (auto-deploy z GitHub main)
 
 ## Kontakt

@@ -28,10 +28,11 @@ const MAX_MSG_LENGTH = 700;
 const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 const LLM_BASE_URL = (process.env.LLM_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
 const GEMMA_OPENAI_BASE_URL = (process.env.GEMMA_OPENAI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/+$/, "");
-const GEMMA_CHAT_MODEL = process.env.GEMMA_CHAT_MODEL || "gemma-4-27b-it";
-const GEMMA_FALLBACK_MODELS = Array.from(new Set([GEMMA_CHAT_MODEL, "gemini-2.0-flash", "gemini-1.5-flash"].filter(Boolean)));
+const GEMMA_CHAT_MODEL = process.env.GEMMA_CHAT_MODEL || "gemini-3.5-flash";
+const GEMMA_FALLBACK_MODELS = Array.from(new Set([GEMMA_CHAT_MODEL, "gemini-3.5-flash", "gemini-3.1-flash", "gemini-2.0-flash", "gemini-1.5-flash"].filter(Boolean)));
 const GEMINI_NATIVE_MODELS = Array.from(new Set([
   GEMMA_CHAT_MODEL,
+  "gemini-3.5-flash",
   "gemini-3.1-flash",
   "gemini-3.1-flash-preview",
   "gemini-3.1-flash-live-preview",
