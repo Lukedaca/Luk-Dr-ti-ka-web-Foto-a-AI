@@ -2,6 +2,7 @@
 // OpenAI implementation with tool calling, security layer, and opt-in visitor memory.
 
 import { runSecurityChecks, getClientIp, sanitizeInput } from "./_lib/security.mjs";
+import { recordEvent, SEVERITY } from "./_lib/security-monitor.mjs";
 import {
   checkChatLimit,
   checkSessionLimit,
@@ -1510,6 +1511,14 @@ export default async (req) => {
 
   const chatLimit = await checkChatLimit(ip);
   if (!chatLimit.ok) {
+    const burst = chatLimit.count >= chatLimit.max * 2;
+    recordEvent(burst ? "rate_limit_burst" : "rate_limit_hit", {
+      severity: burst ? SEVERITY.CRITICAL : SEVERITY.MEDIUM,
+      ip,
+      ua: req.headers.get("user-agent") || null,
+      count: chatLimit.count,
+      max: chatLimit.max,
+    }).catch(() => {});
     return jsonResponse(429, buildLimitResponse("chat_rate_limit", { ip_remaining: 0, ...chatLimit }));
   }
 

@@ -134,6 +134,13 @@ async function logAnomaly(event) {
     ...event,
   };
   console.warn("[anomaly]", JSON.stringify(entry));
+  try {
+    const { recordEvent } = await import("./security-monitor.mjs");
+    const { kind, ip, ua, ...rest } = entry;
+    await recordEvent(kind || "anomaly", { ip, ua, ...rest });
+  } catch (err) {
+    console.error("[security] recordEvent dispatch failed:", err.message);
+  }
 }
 
 async function runSecurityChecks(req, body, options = {}) {
