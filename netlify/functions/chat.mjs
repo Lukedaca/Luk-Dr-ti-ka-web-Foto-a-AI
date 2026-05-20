@@ -25,21 +25,12 @@ import {
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
-const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
-const LLM_BASE_URL = (process.env.LLM_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
+const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gemini-3.5-flash";
+const LLM_BASE_URL = (process.env.LLM_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/+$/, "");
 const GEMMA_OPENAI_BASE_URL = (process.env.GEMMA_OPENAI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/+$/, "");
 const GEMMA_CHAT_MODEL = process.env.GEMMA_CHAT_MODEL || "gemini-3.5-flash";
-const GEMMA_FALLBACK_MODELS = Array.from(new Set([GEMMA_CHAT_MODEL, "gemini-3.5-flash", "gemini-3.1-flash", "gemini-2.0-flash", "gemini-1.5-flash"].filter(Boolean)));
-const GEMINI_NATIVE_MODELS = Array.from(new Set([
-  GEMMA_CHAT_MODEL,
-  "gemini-3.5-flash",
-  "gemini-3.1-flash",
-  "gemini-3.1-flash-preview",
-  "gemini-3.1-flash-live-preview",
-  "gemini-2.5-flash",
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
-].filter(Boolean)));
+const GEMMA_FALLBACK_MODELS = ["gemini-3.5-flash"];
+const GEMINI_NATIVE_MODELS = ["gemini-3.5-flash"];
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
 
