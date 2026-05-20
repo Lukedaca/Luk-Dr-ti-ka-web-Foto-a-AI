@@ -166,7 +166,7 @@ const PUBLIC_KNOWLEDGE = {
 const MODE_CONFIG = {
   talk: {
     history: 6,
-    maxOutputTokens: 220,
+    maxOutputTokens: 800,
     temperature: 0.85,
     topP: 0.95,
     instruction: [
@@ -180,7 +180,7 @@ const MODE_CONFIG = {
   },
   think: {
     history: 8,
-    maxOutputTokens: 260,
+    maxOutputTokens: 1500,
     temperature: 0.35,
     topP: 0.88,
     instruction: [
@@ -193,7 +193,7 @@ const MODE_CONFIG = {
   },
   build: {
     history: 10,
-    maxOutputTokens: 340,
+    maxOutputTokens: 1500,
     temperature: 0.45,
     topP: 0.88,
     instruction: [
@@ -999,7 +999,7 @@ function openAIToGeminiNativePayload(payload) {
       temperature: typeof payload.temperature === "number" ? payload.temperature : 0.3,
       topP: typeof payload.top_p === "number" ? payload.top_p : 0.9,
       maxOutputTokens: typeof payload.max_tokens === "number" ? payload.max_tokens : 240,
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: { thinkingBudget: -1 },
     },
   };
 }

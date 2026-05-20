@@ -1,11 +1,12 @@
-// OpenAI TTS endpoint for the hybrid agent.
-// Returns base64 PCM16 so the existing browser AudioContext playback can use it directly.
+// Gemini TTS endpoint for the hybrid agent.
+// Returns base64 PCM16 (L16, 24kHz) — the existing browser AudioContext playback
+// already expects this format, so it is a drop-in swap from OpenAI TTS.
 
 const MAX_TTS_CHARS = 360;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 45;
-const TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
-const TTS_VOICE = process.env.OPENAI_TTS_VOICE || "alloy";
+const TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-2.5-flash-preview-tts";
+const TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Puck";
 const TTS_SAMPLE_RATE = 24000;
 const TTS_CACHE_MAX = 80;
 
@@ -71,12 +72,12 @@ function setCachedAudio(key, value) {
   }
 }
 
-function voiceInstructions(lang) {
+function styleHint(lang) {
   const normalized = String(lang || "cs-CZ").toLowerCase();
   if (normalized.startsWith("en")) {
-    return "Clear, natural, brief.";
+    return "Read in a warm, natural, conversational tone: ";
   }
-  return "Česky, přirozeně, krátce.";
+  return "Přečti přirozeným, lidským a přátelským tónem, jako bys mluvil s kamarádem: ";
 }
 
 export default async (req) => {
@@ -88,7 +89,7 @@ export default async (req) => {
     return jsonResponse(200, {
       ok: true,
       warm: true,
-      provider: "openai",
+      provider: "gemini",
       model: TTS_MODEL,
       voice: TTS_VOICE,
       sampleRate: TTS_SAMPLE_RATE,
@@ -109,9 +110,9 @@ export default async (req) => {
     return jsonResponse(429, { error: "Příliš mnoho TTS požadavků. Zkus to za chvíli." });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMMA_API_KEY || process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return jsonResponse(500, { error: "OPENAI_API_KEY není nastavený v Netlify Environment variables." });
+    return jsonResponse(500, { error: "GEMMA_API_KEY není nastavený v Netlify Environment variables." });
   }
 
   let body;
@@ -133,37 +134,47 @@ export default async (req) => {
     return jsonResponse(200, { ...cached, cached: true }, { "Server-Timing": "tts;dur=0;desc=cache" });
   }
 
+  const styledText = `${styleHint(lang)}${text}`;
   const startedAt = Date.now();
   let response;
   try {
-    response = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: TTS_MODEL,
-        voice: TTS_VOICE,
-        input: text,
-        instructions: voiceInstructions(lang),
-        response_format: "pcm",
-        speed: 1.06,
-      }),
-    });
+    response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(TTS_MODEL)}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: styledText }] }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: TTS_VOICE },
+              },
+            },
+          },
+        }),
+      }
+    );
   } catch (err) {
-    console.error("OpenAI TTS fetch error:", err);
+    console.error("Gemini TTS fetch error:", err);
     return jsonResponse(502, { error: "TTS služba teď neodpovídá." });
   }
 
   if (!response.ok) {
     const errText = await response.text().catch(() => "");
-    console.error("OpenAI TTS error:", response.status, errText);
+    console.error("Gemini TTS error:", response.status, errText.slice(0, 500));
     return jsonResponse(502, { error: "TTS se nepodařilo vygenerovat." });
   }
 
-  const arrayBuffer = await response.arrayBuffer();
-  const audio = Buffer.from(arrayBuffer).toString("base64");
+  const data = await response.json().catch(() => null);
+  const part = data?.candidates?.[0]?.content?.parts?.find((p) => p?.inlineData?.data);
+  const audio = part?.inlineData?.data;
+  if (!audio) {
+    console.error("Gemini TTS empty audio:", JSON.stringify(data).slice(0, 500));
+    return jsonResponse(502, { error: "TTS vrátil prázdný audio výstup." });
+  }
+
   const payload = {
     audio,
     sampleRate: TTS_SAMPLE_RATE,
@@ -175,6 +186,6 @@ export default async (req) => {
   setCachedAudio(cacheKey, payload);
 
   return jsonResponse(200, payload, {
-    "Server-Timing": `tts;dur=${Date.now() - startedAt};desc=openai`,
+    "Server-Timing": `tts;dur=${Date.now() - startedAt};desc=gemini`,
   });
 };
