@@ -1052,26 +1052,19 @@ async function fetchGeminiNativeCompletion(payload, label) {
 }
 
 async function fetchChatCompletion(apiKey, payload, label) {
-  const primary = await fetchChatCompletionFrom(LLM_BASE_URL, apiKey, payload, label, "primary");
-  if (primary.ok) return primary;
-
-  console.warn(`[chat] primary non-ok (${primary.status}) for "${label}", trying recovery`);
-
-  if (payload.tools) {
-    const slim = { ...payload };
-    delete slim.tools;
-    delete slim.tool_choice;
-    delete slim.parallel_tool_calls;
-    const retry = await fetchChatCompletionFrom(LLM_BASE_URL, apiKey, slim, `${label}-notools`, "primary-notools");
-    if (retry.ok) return retry;
-  }
-
+  // Primary: native Gemini generateContent API. The OpenAI-compat layer for
+  // Gemini 3.5 Flash returns broken streams (thinking tokens mid-stream,
+  // premature termination), so we go straight to native and synthesize the
+  // OpenAI-shaped response ourselves.
   if (process.env.GEMMA_API_KEY) {
-    const nativeGemini = await fetchGeminiNativeCompletion(payload, label);
-    if (nativeGemini && nativeGemini.ok) return nativeGemini;
+    const native = await fetchGeminiNativeCompletion(payload, label);
+    if (native && native.ok) return native;
+    console.warn(`[chat] native Gemini primary failed for "${label}" — falling back to OpenAI-compat`);
   }
 
-  return primary;
+  const compat = await fetchChatCompletionFrom(LLM_BASE_URL, apiKey, payload, label, "primary-openai-compat");
+  if (compat.ok) return compat;
+  return compat;
 }
 
 async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, badText }) {
