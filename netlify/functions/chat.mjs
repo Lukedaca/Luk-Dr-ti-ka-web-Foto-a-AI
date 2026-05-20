@@ -25,10 +25,10 @@ import {
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
-const OPENAI_CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gemini-3.5-flash";
-const LLM_BASE_URL = (process.env.LLM_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/+$/, "");
-const GEMMA_OPENAI_BASE_URL = (process.env.GEMMA_OPENAI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai").replace(/\/+$/, "");
-const GEMMA_CHAT_MODEL = process.env.GEMMA_CHAT_MODEL || "gemini-3.5-flash";
+const OPENAI_CHAT_MODEL = "gemini-3.5-flash";
+const LLM_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
+const GEMMA_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
+const GEMMA_CHAT_MODEL = "gemini-3.5-flash";
 const GEMMA_FALLBACK_MODELS = ["gemini-3.5-flash"];
 const GEMINI_NATIVE_MODELS = ["gemini-3.5-flash"];
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
@@ -1458,10 +1458,7 @@ export default async (req) => {
   }
 
   if (req.method === "GET") {
-    const provider = LLM_BASE_URL.includes("groq.com") ? "groq"
-      : LLM_BASE_URL.includes("openrouter.ai") ? "openrouter"
-      : LLM_BASE_URL.includes("cerebras.ai") ? "cerebras"
-      : "openai";
+    const provider = "gemini";
     return jsonResponse(200, {
       ok: true,
       warm: true,
@@ -1506,9 +1503,9 @@ export default async (req) => {
   }
   const ip = security.ip || getClientIp(req);
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMMA_API_KEY || process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return jsonResponse(500, { error: "OPENAI_API_KEY není nastavený v Netlify Environment variables." });
+    return jsonResponse(500, { error: "GEMMA_API_KEY není nastavený v Netlify Environment variables." });
   }
 
   const chatLimit = await checkChatLimit(ip);
