@@ -1053,19 +1053,25 @@ async function fetchGeminiNativeCompletion(payload, label) {
 
 async function fetchChatCompletion(apiKey, payload, label) {
   const primary = await fetchChatCompletionFrom(LLM_BASE_URL, apiKey, payload, label, "primary");
-  if (primary.ok || primary.status !== 429 || payload.tools || !process.env.GEMMA_API_KEY) {
-    return primary;
+  if (primary.ok) return primary;
+
+  console.warn(`[chat] primary non-ok (${primary.status}) for "${label}", trying recovery`);
+
+  if (payload.tools) {
+    const slim = { ...payload };
+    delete slim.tools;
+    delete slim.tool_choice;
+    delete slim.parallel_tool_calls;
+    const retry = await fetchChatCompletionFrom(LLM_BASE_URL, apiKey, slim, `${label}-notools`, "primary-notools");
+    if (retry.ok) return retry;
   }
 
-  let lastGemma = null;
-  for (const model of GEMMA_FALLBACK_MODELS) {
-    const gemmaPayload = { ...payload, model };
-    const gemma = await fetchChatCompletionFrom(GEMMA_OPENAI_BASE_URL, process.env.GEMMA_API_KEY, gemmaPayload, `${label}-gemma-${model}`, "gemma");
-    lastGemma = gemma;
-    if (gemma.ok) return gemma;
+  if (process.env.GEMMA_API_KEY) {
+    const nativeGemini = await fetchGeminiNativeCompletion(payload, label);
+    if (nativeGemini && nativeGemini.ok) return nativeGemini;
   }
-  const nativeGemini = await fetchGeminiNativeCompletion(payload, label);
-  return nativeGemini || lastGemma || primary;
+
+  return primary;
 }
 
 async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, badText }) {
