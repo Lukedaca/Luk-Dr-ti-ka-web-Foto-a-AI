@@ -981,6 +981,7 @@ function openAIToGeminiNativePayload(payload) {
       temperature: typeof payload.temperature === "number" ? payload.temperature : 0.3,
       topP: typeof payload.top_p === "number" ? payload.top_p : 0.9,
       maxOutputTokens: typeof payload.max_tokens === "number" ? payload.max_tokens : 240,
+      thinkingConfig: { thinkingBudget: 0 },
     },
   };
 }
