@@ -1264,10 +1264,22 @@
     toggle_theme: function(args) {
       var mode = args && args.mode;
       var root = document.documentElement;
-      if (mode === 'light') root.classList.remove('dark');
-      else if (mode === 'dark') root.classList.add('dark');
-      else root.classList.toggle('dark');
-      try { localStorage.setItem('lukas_theme', root.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+      if (mode === 'toggle' && typeof window.ldToggleTheme === 'function') {
+        window.ldToggleTheme();
+        return;
+      }
+      if ((mode === 'light' || mode === 'dark') && typeof window.ldApplyTheme === 'function') {
+        window.ldApplyTheme(mode);
+        return;
+      }
+      var useLight = mode === 'light' || (mode !== 'dark' && !root.classList.contains('theme-light'));
+      root.classList.toggle('theme-light', useLight);
+      try { localStorage.setItem('ld_theme', useLight ? 'light' : 'dark'); } catch (e) {}
+      var icon = useLight ? '🌙' : '☀️';
+      var desktop = document.getElementById('themeToggle');
+      var mobile = document.getElementById('themeToggleMobile');
+      if (desktop) desktop.textContent = icon;
+      if (mobile) mobile.textContent = icon;
     },
     open_lightbox: function(args) {
       var img = document.querySelector('[data-image-id="' + (args.image_id || '').replace(/"/g,'') + '"], #' + (args.image_id || '').replace(/[^a-z0-9_-]/gi,''));

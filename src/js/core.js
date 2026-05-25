@@ -179,6 +179,8 @@ function initCore() {
         if (themeToggleMobile) themeToggleMobile.textContent = icon;
     }
 
+    window.ldApplyTheme = applyTheme;
+
     const savedTheme = storage.get('ld_theme');
     applyTheme(savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light'), false);
 
@@ -186,6 +188,8 @@ function initCore() {
         const nextTheme = document.documentElement.classList.contains('theme-light') ? 'dark' : 'light';
         applyTheme(nextTheme);
     }
+
+    window.ldToggleTheme = toggleTheme;
 
     if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
     if (themeToggleMobile) themeToggleMobile.addEventListener('click', toggleTheme);
@@ -706,7 +710,7 @@ function loadChatbotStack() {
 
     chatbotLoadPromise = new Promise((resolve) => {
         const finish = () => {
-            loadModule('/dist/js/chatbot.min.js?v=15', () => {
+            loadModule('/dist/js/chatbot.min.js?v=16', () => {
                 console.log('Chatbot module loaded');
                 loadModule('/dist/js/voice.min.js?v=10', () => {
                     console.log('Voice module loaded');
