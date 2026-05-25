@@ -1,5 +1,5 @@
 // Hybrid agent streaming chat endpoint for Netlify Functions v2.
-// OpenAI implementation with tool calling, security layer, and opt-in visitor memory.
+// Gemini-backed implementation with tool calling, security layer, and opt-in visitor memory.
 
 import { runSecurityChecks, getClientIp, sanitizeInput } from "./_lib/security.mjs";
 import { recordEvent, SEVERITY } from "./_lib/security-monitor.mjs";
@@ -26,9 +26,8 @@ import {
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
-const OPENAI_CHAT_MODEL = "gemini-3.5-flash";
-const LLM_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
-const GEMMA_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
+const CHAT_MODEL = "gemini-3.5-flash";
+const GEMINI_COMPAT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
 const GEMMA_CHAT_MODEL = "gemini-3.5-flash";
 const GEMMA_FALLBACK_MODELS = ["gemini-3.5-flash"];
 const GEMINI_NATIVE_MODELS = ["gemini-3.5-flash"];
@@ -382,6 +381,32 @@ function isActionLikeRequest(text) {
   ];
 
   return includesAny(value, actionTerms) && includesAny(value, targetTerms);
+}
+
+function buildDeterministicActionResponse(normalizedText) {
+  const text = String(normalizedText || "");
+  const wantsTheme =
+    includesAny(text, ["rezim", "tema", "vzhled", "web", "stranku", "stranky"]) &&
+    includesAny(text, ["svetly", "tmavy", "light", "dark", "prepn", "zapni", "vypni"]);
+
+  if (wantsTheme) {
+    let mode = "toggle";
+    if (includesAny(text, ["svetly", "light"])) mode = "light";
+    else if (includesAny(text, ["tmavy", "dark"])) mode = "dark";
+
+    const label = mode === "light"
+      ? "světlého režimu"
+      : mode === "dark"
+        ? "tmavého režimu"
+        : "opačného režimu";
+
+    return {
+      text: `Přepínám web do ${label}.`,
+      actions: [{ tool: "toggle_theme", args: { mode } }],
+    };
+  }
+
+  return null;
 }
 
 function isInquirySendRequest(text) {
@@ -1008,7 +1033,7 @@ function buildSystemContent(mode, memoryContext, requestContext) {
   return parts.filter(Boolean).join("\n\n");
 }
 
-function toOpenAIMessages(mode, messages, memoryContext) {
+function toLLMMessages(mode, messages, memoryContext) {
   const requestContext = buildRequestContext(mode, messages);
   return [
     { role: "system", content: buildSystemContent(mode, memoryContext, requestContext) },
@@ -1063,6 +1088,14 @@ function buildActionConfirmationText(actions) {
   return "Provádím požadovanou akci na webu.";
 }
 
+function buildValidationFallbackText(validation, actions) {
+  if (validation?.reason === "prompt_leak") {
+    const actionText = buildActionConfirmationText(actions);
+    return actionText || "Rozumím. Odpověď jsem zastavil kvůli chybě zpracování, aby se do chatu nedostaly interní instrukce. Zkus prosím požadavek zadat ještě jednou stručně.";
+  }
+  return "Konkrétní cenu nebo slevu ti tady neslíbím. Napiš Lukášovi na lukas.drsticka@gmail.com a domluvíte termín i podmínky.";
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -1082,7 +1115,7 @@ async function fetchChatCompletionFrom(baseUrl, apiKey, payload, label, provider
       });
     } catch (err) {
       if (attempt === 1) throw err;
-      console.warn(`OpenAI ${label} fetch retry:`, err?.message || err);
+      console.warn(`LLM ${label} fetch retry:`, err?.message || err);
       await sleep(450);
       continue;
     }
@@ -1095,7 +1128,7 @@ async function fetchChatCompletionFrom(baseUrl, apiKey, payload, label, provider
     lastResponse = new Response(errText, { status: response.status, statusText: response.statusText });
     lastResponse.agentProvider = provider;
     lastResponse.agentModel = payload.model;
-    console.warn(`OpenAI ${label} non-ok:`, response.status, errText.slice(0, 500));
+    console.warn(`LLM ${label} non-ok:`, response.status, errText.slice(0, 500));
     if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 1) {
       return lastResponse;
     }
@@ -1136,7 +1169,7 @@ function geminiNativeText(data) {
   return parts.map((part) => part?.text || "").join("").trim();
 }
 
-function openAICompatibleTextResponse(text, payload, model, provider) {
+function compatibleTextResponse(text, payload, model, provider) {
   if (payload.stream) {
     const encoder = new TextEncoder();
     const sse = `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`;
@@ -1173,7 +1206,7 @@ async function fetchGeminiNativeCompletion(payload, label) {
       if (response.ok) {
         const data = await response.json().catch(() => null);
         const text = geminiNativeText(data);
-        if (text) return openAICompatibleTextResponse(text, payload, model, "gemini-native");
+        if (text) return compatibleTextResponse(text, payload, model, "gemini-native");
         lastResponse = new Response("", { status: 502 });
         lastResponse.agentProvider = "gemini-native";
         lastResponse.agentModel = model;
@@ -1197,17 +1230,19 @@ async function fetchGeminiNativeCompletion(payload, label) {
 }
 
 async function fetchChatCompletion(apiKey, payload, label) {
-  // Primary: native Gemini generateContent API. The OpenAI-compat layer for
-  // Gemini 3.5 Flash returns broken streams (thinking tokens mid-stream,
-  // premature termination), so we go straight to native and synthesize the
-  // OpenAI-shaped response ourselves.
-  if (process.env.GEMMA_API_KEY) {
+  const needsToolCalling = Array.isArray(payload?.tools) && payload.tools.length > 0;
+  // Primary: native Gemini generateContent API. Google's compatibility layer
+  // returns compatibility-shaped streams, so the code normalizes both providers to
+  // one internal response shape. Native Gemini branch is skipped for tool
+  // calling because it can return prompt-planning text instead of structured
+  // tool_calls.
+  if (!needsToolCalling && process.env.GEMMA_API_KEY) {
     const native = await fetchGeminiNativeCompletion(payload, label);
     if (native && native.ok) return native;
-    console.warn(`[chat] native Gemini primary failed for "${label}" — falling back to OpenAI-compat`);
+    console.warn(`[chat] native Gemini primary failed for "${label}" - falling back to Gemini compat`);
   }
 
-  const compat = await fetchChatCompletionFrom(LLM_BASE_URL, apiKey, payload, label, "primary-openai-compat");
+  const compat = await fetchChatCompletionFrom(GEMINI_COMPAT_BASE_URL, apiKey, payload, label, "gemini-compat");
   if (compat.ok) return compat;
   return compat;
 }
@@ -1237,7 +1272,7 @@ async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, bad
   ].filter(Boolean).join("\n");
 
   const repairPayload = {
-    model: OPENAI_CHAT_MODEL,
+    model: CHAT_MODEL,
     messages: [
       { role: "system", content: repairSystem },
       {
@@ -1259,7 +1294,7 @@ async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, bad
     const response = await fetchChatCompletion(apiKey, repairPayload, "repair");
 
     if (!response.ok) {
-      console.warn("OpenAI repair error:", response.status, await response.text().catch(() => ""));
+      console.warn("LLM repair error:", response.status, await response.text().catch(() => ""));
       return "";
     }
 
@@ -1268,12 +1303,12 @@ async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, bad
     if (!repaired) return "";
     const promiseCheck = validateAgentText(repaired);
     if (!promiseCheck.ok) {
-      console.warn("[forbidden_promise_repair]", promiseCheck);
+      console.warn("[blocked_text_repair]", promiseCheck);
       return "";
     }
     return repaired.trim();
   } catch (err) {
-    console.error("OpenAI repair fetch error:", err);
+    console.error("LLM repair fetch error:", err);
     return "";
   }
 }
@@ -1283,7 +1318,7 @@ async function requestSmallTalkRepair({ apiKey, mode, messages, badText }) {
   if (!lastUser) return "";
 
   const payload = {
-    model: OPENAI_CHAT_MODEL,
+    model: CHAT_MODEL,
     messages: [
       {
         role: "system",
@@ -1325,12 +1360,23 @@ async function requestSmallTalkRepair({ apiKey, mode, messages, badText }) {
   }
 }
 
-async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip, writer, encoder }) {
+async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, writer, encoder }) {
   const normalizedLastUser = normalizeText(getLastUserMessage(messages));
 
   if (isTechnicalSupportRequest(normalizedLastUser)) {
     await writeResolvedText(writer, encoder, TECHNICAL_REFUSAL, { mode, fastPath: true, model: "policy-fast-path" });
     return { fullText: TECHNICAL_REFUSAL, actions: [] };
+  }
+
+  const deterministicAction = buildDeterministicActionResponse(normalizedLastUser);
+  if (deterministicAction) {
+    await writeResolvedText(writer, encoder, deterministicAction.text, {
+      mode,
+      model: "deterministic-action-flow",
+      provider: "local",
+      actions: deterministicAction.actions,
+    });
+    return { fullText: deterministicAction.text, actions: deterministicAction.actions };
   }
 
   const leadFlow = buildDeterministicLeadResponse(mode, messages);
@@ -1357,8 +1403,8 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
   const inquiryRequest = isInquiryRequest(normalizedLastUser);
   const smallTalkRequest = !inquiryRequest && isSmallTalkRequest(normalizedLastUser);
   const payload = {
-    model: OPENAI_CHAT_MODEL,
-    messages: toOpenAIMessages(mode, messages, memoryContext),
+    model: CHAT_MODEL,
+    messages: toLLMMessages(mode, messages, memoryContext),
     temperature: inquiryRequest ? Math.max(config.temperature, 0.35) : smallTalkRequest ? Math.max(config.temperature, 0.45) : config.temperature,
     top_p: config.topP,
     max_tokens: inquiryRequest ? Math.max(config.maxOutputTokens, 520) : smallTalkRequest ? Math.min(Math.max(config.maxOutputTokens, 260), 360) : config.maxOutputTokens,
@@ -1372,7 +1418,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
 
   if (inquiryRequest) {
     let fullText = "";
-    let llmModel = OPENAI_CHAT_MODEL;
+    let llmModel = CHAT_MODEL;
     let llmProvider = "primary";
     try {
       const response = await fetchChatCompletion(apiKey, { ...payload, stream: false }, "inquiry");
@@ -1380,7 +1426,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
       llmProvider = response.agentProvider || llmProvider;
       if (!response.ok) {
         const errText = await response.text().catch(() => "");
-        console.error("OpenAI inquiry error:", response.status, errText);
+        console.error("LLM inquiry error:", response.status, errText);
         if (providerFallback) {
           await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback", provider_status: response.status });
           return { fullText: providerFallback, actions: [] };
@@ -1390,7 +1436,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
         fullText = stripInlineFunctionTags(data?.choices?.[0]?.message?.content || "");
       }
     } catch (err) {
-      console.error("OpenAI inquiry fetch error:", err);
+      console.error("LLM inquiry fetch error:", err);
       if (providerFallback) {
         await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback", provider_error: "fetch_error" });
         return { fullText: providerFallback, actions: [] };
@@ -1423,9 +1469,9 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
 
     const promiseCheck = validateAgentText(fullText);
     if (!promiseCheck.ok) {
-      console.warn("[forbidden_promise]", promiseCheck);
-      const safeText = "Konkrétní cenu nebo slevu ti tady neslíbím. Napiš Lukášovi na lukas.drsticka@gmail.com a domluvte termín i podmínky.";
-      await writeResolvedText(writer, encoder, safeText, { mode, model: llmModel, provider: llmProvider, blocked: "forbidden_promise" });
+      console.warn("[blocked_text]", promiseCheck);
+      const safeText = buildValidationFallbackText(promiseCheck);
+      await writeResolvedText(writer, encoder, safeText, { mode, model: llmModel, provider: llmProvider, blocked: promiseCheck.reason || "blocked_text" });
       return { fullText: safeText, actions: [] };
     }
 
@@ -1437,7 +1483,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
   try {
     response = await fetchChatCompletion(apiKey, payload, "stream");
   } catch (err) {
-    console.error("OpenAI fetch error:", err);
+    console.error("LLM fetch error:", err);
     if (providerFallback) {
       await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback" });
       return { fullText: providerFallback, actions: [] };
@@ -1448,7 +1494,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
 
   if (!response.ok || !response.body) {
     const errText = await response.text().catch(() => "");
-    console.error("OpenAI stream error:", response.status, errText);
+    console.error("LLM stream error:", response.status, errText);
     if (providerFallback) {
       await writeResolvedText(writer, encoder, providerFallback, { mode, fallback: true, model: "provider-fallback" });
       return { fullText: providerFallback, actions: [] };
@@ -1508,7 +1554,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
       }
     }
   } catch (err) {
-    console.error("OpenAI stream read error:", err);
+    console.error("LLM stream read error:", err);
   }
 
   const visibleTail = streamFilter.flush();
@@ -1584,10 +1630,10 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
 
   const promiseCheck = validateAgentText(fullText);
   if (!promiseCheck.ok) {
-    console.warn("[forbidden_promise]", promiseCheck);
-    const safeText = "Konkrétní cenu nebo slevu ti tady neslíbím. Napiš Lukášovi na lukas.drsticka@gmail.com a domluvíte termín i podmínky.";
+    console.warn("[blocked_text]", promiseCheck);
+    const safeText = buildValidationFallbackText(promiseCheck, validatedActions);
     await writer.write(encoder.encode(JSON.stringify({ replace: safeText }) + "\n"));
-    await writer.write(encoder.encode(JSON.stringify({ m: { action: null, actions: [], done: true, mode, model: response.agentModel || OPENAI_CHAT_MODEL, provider: response.agentProvider, blocked: "forbidden_promise" } }) + "\n"));
+    await writer.write(encoder.encode(JSON.stringify({ m: { action: null, actions: [], done: true, mode, model: response.agentModel || CHAT_MODEL, provider: response.agentProvider, blocked: promiseCheck.reason || "blocked_text" } }) + "\n"));
     return { fullText: safeText, actions: [] };
   }
 
@@ -1603,7 +1649,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
           actions: validatedActions,
           done: true,
           mode,
-          model: response.agentModel || OPENAI_CHAT_MODEL,
+          model: response.agentModel || CHAT_MODEL,
           provider: response.agentProvider,
         },
       }) + "\n"
@@ -1623,7 +1669,7 @@ export default async (req) => {
       ok: true,
       warm: true,
       provider,
-      model: OPENAI_CHAT_MODEL,
+      model: CHAT_MODEL,
       fallback_provider: {
         provider: "gemma",
         configured: !!process.env.GEMMA_API_KEY,
@@ -1663,7 +1709,7 @@ export default async (req) => {
   }
   const ip = security.ip || getClientIp(req);
 
-  const apiKey = process.env.GEMMA_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMMA_API_KEY;
   if (!apiKey) {
     return jsonResponse(500, { error: "GEMMA_API_KEY není nastavený v Netlify Environment variables." });
   }
@@ -1732,7 +1778,7 @@ export default async (req) => {
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
 
-  streamOpenAIResponse({ apiKey, mode, messages: trimmed, memoryContext, ip, writer, encoder })
+  streamLLMResponse({ apiKey, mode, messages: trimmed, memoryContext, ip, writer, encoder })
     .then(async (result) => {
       if (memoryActive && result?.fullText) {
         try {

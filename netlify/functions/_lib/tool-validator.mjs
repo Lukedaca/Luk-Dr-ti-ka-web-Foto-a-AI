@@ -15,6 +15,18 @@ const FORBIDDEN_PROMISE_PATTERNS = [
   /\bdiscount\b/i,
 ];
 
+const PROMPT_LEAK_PATTERNS = [
+  /\btool\s+call\b/i,
+  /\bsystem\s+handle\b/i,
+  /\blet'?s\s+draft\b/i,
+  /\bdraft\s+the\s+response\b/i,
+  /\binternal\s+(instruction|prompt|reasoning)\b/i,
+  /\bsystem\s+prompt\b/i,
+  /\bdeveloper\s+message\b/i,
+  /\bfunction\s+call\b/i,
+  /\bthe\s+response\s*:\s*["“]/i,
+];
+
 function validateValue(value, schema, path) {
   const errors = [];
   if (schema.type === "string") {
@@ -94,6 +106,15 @@ function detectForbiddenPromise(text) {
   return { detected: matches.length > 0, patterns: matches };
 }
 
+function detectPromptLeak(text) {
+  if (typeof text !== "string") return { detected: false };
+  const matches = [];
+  for (const re of PROMPT_LEAK_PATTERNS) {
+    if (re.test(text)) matches.push(re.source);
+  }
+  return { detected: matches.length > 0, patterns: matches };
+}
+
 function sanitizeToolCalls(rawCalls) {
   if (!Array.isArray(rawCalls)) return { actions: [], errors: ["tool_calls not an array"] };
   const errors = [];
@@ -125,6 +146,11 @@ function sanitizeToolCalls(rawCalls) {
 }
 
 function validateAgentText(text) {
+  const promptLeak = detectPromptLeak(text);
+  if (promptLeak.detected) {
+    return { ok: false, reason: "prompt_leak", patterns: promptLeak.patterns };
+  }
+
   const promise = detectForbiddenPromise(text);
   if (promise.detected) {
     return { ok: false, reason: "forbidden_promise", patterns: promise.patterns };
@@ -135,7 +161,9 @@ function validateAgentText(text) {
 export {
   validateToolArgs,
   detectForbiddenPromise,
+  detectPromptLeak,
   sanitizeToolCalls,
   validateAgentText,
   FORBIDDEN_PROMISE_PATTERNS,
+  PROMPT_LEAK_PATTERNS,
 };
