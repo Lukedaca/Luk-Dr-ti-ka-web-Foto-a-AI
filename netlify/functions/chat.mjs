@@ -837,6 +837,50 @@ function buildFastPathResponse(mode, messages) {
     return "Umím ukázat Lukášovo portfolio, najít vhodnou fotogalerii, poradit s výběrem služby, vysvětlit Fotograf AI a připravit poptávku. Můžu také přepnout jazyk, změnit vzhled webu, spustit hlasový režim nebo otevřít konkrétní část stránky.";
   }
 
+  const asksWellbeing = includesAny(normalized, [
+    "jak se mas",
+    "jak je",
+    "co delas",
+    "how are you",
+    "how are u",
+    "how is it going",
+  ]);
+
+  if (asksWellbeing) {
+    return "Funguji normálně a jsem připravený pomoct. Můžu tě navést na portfolio, vysvětlit Fotograf AI nebo připravit poptávku pro Lukáše.";
+  }
+
+  const greetingOnly = [
+    "ahoj",
+    "cau",
+    "cus",
+    "zdravim",
+    "dobry den",
+    "dobry vecer",
+    "hello",
+    "hi",
+    "hey",
+  ].includes(normalized);
+
+  if (greetingOnly) {
+    return "Ahoj, napiš mi, co potřebuješ zjistit, a navedu tě dál. Můžu pomoct s portfoliem, Fotograf AI nebo kontaktem na Lukáše.";
+  }
+
+  const thanksOnly = [
+    "dik",
+    "diky",
+    "dekuju",
+    "dekuji",
+    "super diky",
+    "ok diky",
+    "thanks",
+    "thank you",
+  ].includes(normalized);
+
+  if (thanksOnly) {
+    return "Rádo se stalo. Když budeš chtít pokračovat, můžu otevřít portfolio, vysvětlit konkrétní službu nebo připravit poptávku.";
+  }
+
   const asksLatestGallery =
     includesAny(normalized, ["nejnovejsi", "posledni", "aktualni", "latest", "newest"]) &&
     includesAny(normalized, ["fotogalerii", "fotogalerie", "galerii", "galerie", "fotky", "portfolio"]);
