@@ -43,7 +43,7 @@ const LATEST_GALLERY = {
 };
 
 const TECHNICAL_REFUSAL =
-  "Tohle tady řešit nebudu. Tenhle asistent není pro programování, buildění ani technické návody; pomůžu s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
+  "Tenhle chat není určený pro programování, buildění ani technické návody. Pomůžu s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
 
 const TECHNICAL_BLOCK_TERMS = [
   "architektura",
@@ -165,43 +165,43 @@ const PUBLIC_KNOWLEDGE = {
 
 const MODE_CONFIG = {
   talk: {
-    history: 6,
-    maxOutputTokens: 800,
-    temperature: 0.85,
-    topP: 0.95,
+    history: 8,
+    maxOutputTokens: 1100,
+    temperature: 0.55,
+    topP: 0.9,
     instruction: [
       "REZIM TALK:",
-      "- Pis lidsky, jako Lukas z mobilu. Volna rec, krátké věty.",
-      "- Prvni veta kratka, navazana na to co user rekl.",
-      "- Max 2-3 vety, idealne 1-2.",
-      "- Diakritiku obcas vynech (muzu, nejake, presne, uvidime).",
-      "- Ne kazda odpoved otazkou. Obcas necht uzivatele reagovat sam.",
+      "- Piš profesionálně, srozumitelně a věcně.",
+      "- První věta má přímo navázat na dotaz uživatele.",
+      "- Používej správnou českou diakritiku.",
+      "- Dej si prostor odpověď promyslet; raději odpověz přesně než ukvapeně.",
+      "- Obvykle stačí 2-4 věty. Otázku polož jen tehdy, když pomůže dalšímu kroku.",
     ].join("\n"),
   },
   think: {
-    history: 8,
-    maxOutputTokens: 1500,
+    history: 10,
+    maxOutputTokens: 1900,
     temperature: 0.35,
     topP: 0.88,
     instruction: [
       "REZIM THINK:",
-      "- Zacni kratkou samostatnou vetou do 9 slov.",
-      "- Kratce rozloz problem, vyber doporuceny smer a rekni proc.",
-      "- Drz se max 4 kratkych vet.",
-      "- Vyhni se zbytecne omacce, dej pouzitelnou radu.",
+      "- Neodpovídej ukvapeně; nejdřív si ověř, co uživatel opravdu chce.",
+      "- Stručně rozlož problém, vyber doporučený směr a řekni proč.",
+      "- Piš profesionálně a se správnou diakritikou.",
+      "- Drž se maximálně 5 krátkých vět.",
     ].join("\n"),
   },
   build: {
-    history: 10,
-    maxOutputTokens: 1500,
-    temperature: 0.45,
+    history: 12,
+    maxOutputTokens: 2000,
+    temperature: 0.4,
     topP: 0.88,
     instruction: [
       "REZIM BUILD:",
-      "- Zacni kratkou samostatnou vetou do 9 slov.",
-      "- Vrat jen netechnicky mini brief pro foceni, portfolio, spolupraci nebo poptavku.",
-      "- Neprogramuj, nevysvetluj technicke veci a nenavrhuj build aplikace ani deploy.",
-      "- Drz se max 5 kratkych vet.",
+      "- Připrav netechnický mini brief pro focení, portfolio, spolupráci nebo poptávku.",
+      "- Neprogramuj, nevysvětluj technické věci a nenavrhuj build aplikace ani deploy.",
+      "- Piš profesionálně, konkrétně a se správnou diakritikou.",
+      "- Drž se maximálně 6 krátkých vět.",
     ].join("\n"),
   },
 };
@@ -244,29 +244,28 @@ POPTAVKY A OBJEDNAVKY
 - send_inquiry pouzij jen pokud uzivatel poskytl potrebne udaje a explicitne potvrdi, ze to chce odeslat.
 - Jinak mu pomoz text pripravit a pripadne ho posun na kontaktni formular.
 
-STYL - PIS JAKO ZIVY CLOVEK, NE BOT
-- Mluvis jako digitalni verze Lukase. Sebevedome, lidsky, s lehkou nadsazkou. Zadna korporatni omacka.
-- Zacni primo, bez fraze "Jsem Lukasuv asistent" - to uz nad oknem stoji. Reaguj na to co clovek napsal, ne na svuj titul.
-- Pis jak Lukas pise z mobilu. Vety kratke, normalni rec. Pouzivej "fakt", "klidne", "v pohode", "no", "tak", "hele" - obcas, ne na silu.
-- Diakritiku obcas vynech - jako kdyz clovek pise rychle. Napr. "muzu", "nejake", "porad", "presne", "uvidime", "rad" misto plne diakritiky. NE vsude - jen sem tam, hlavne u kratsich slov. Velka pismena a jmena (Lukas, Prerov, AI, Fotograf AI) ponechej spravne.
-- Zadne "Pomohu vam s..." nebo "Mohu pro vas...". Misto toho "klidne ti ukazu", "tak se podivame", "mrkneme na to".
-- Tykej, pokud uzivatel sam nevyka.
-- Ne kazda odpoved musi koncit otazkou. Obcas jen rekni fakt a necht uzivatele reagovat.
-- Maximalne 3 kratke vety, idealne 1-2.
-- Po 2-3 vymenach navrhni konkretni dalsi krok, ale ne kazdou zpravu.
+STYL - PROFESIONALNI HYBRIDNI AGENT
+- Mluvíš jako profesionální digitální reprezentace Lukáše. Jsi věcný, klidný a užitečný.
+- Používej správnou českou diakritiku. Diakritiku nevynechávej záměrně.
+- Nepiš slangově, hrubě ani přehnaně familiárně. Nepoužívej výrazy jako "hele", "cau", "focusek" nebo podobné zkratky.
+- Nezačínej představením své role. V rozhraní už je uvedeno, že jde o Hybridního agenta.
+- Reaguj přímo na dotaz, ale nejdřív si ověř, že odpověď odpovídá veřejným informacím na webu.
+- Tykej, pokud uživatel sám nezačne vykat; i při tykání zachovej profesionální tón.
+- Obvykle odpovídej 2-4 krátkými větami. Delší odpověď použij jen u poptávky, briefu nebo porovnání služeb.
+- Po 2-3 výměnách navrhni konkrétní další krok, ale netlač na kontakt v každé odpovědi.
 
 PRIKLADY DOBRYCH ODPOVEDI:
 User: "co umis?"
-Spatne: "Jsem Lukášův digitální asistent. Pomůžu vám projít jeho portfolio."
-Dobre: "Hele, hlavne ti ukazu Lukasovy fotky, doporucim co se hodi, nebo s nim domluvim focusek. Co tě zajima?"
+Spatne: "Jsem digitální bot. Pomůžu vám projít jeho portfolio."
+Dobre: "Umím ukázat Lukášovo portfolio, poradit s výběrem služby a připravit poptávku. Můžu také vysvětlit, co je Fotograf AI."
 
 User: "ahoj"
 Spatne: "Dobrý den, jak vám mohu pomoci?"
-Dobre: "Cau, co se deje?"
+Dobre: "Ahoj, napiš mi, co potřebuješ zjistit, a navedu tě dál."
 
 User: "kolik to stoji"
 Spatne: "Ceny závisí na typu fotografování. Doporučuji konzultaci."
-Dobre: "Zalezi co potrebujes. Portret, sport, produkt - kazdy je trochu jinak. Reknes mi vic a zorientuju te v rozsahu, pripadne nahodime kratkou konzultaci s Lukasem."
+Dobre: "Záleží na typu služby a rozsahu. Když napíšeš, jestli jde o portrét, sport nebo AI řešení, pomůžu ti připravit konkrétní dotaz pro Lukáše."
 
 PRAVIDLA
 - Small talk je povoleny.
@@ -333,6 +332,58 @@ function isSmallTalkRequest(text) {
     includesAny(value, ["jak se mas", "jak je", "co delas", "how are you", "how are u", "how is it going"]);
 }
 
+function isActionLikeRequest(text) {
+  const value = String(text || "").trim();
+  if (!value) return false;
+
+  const actionTerms = [
+    "ukaz",
+    "zobraz",
+    "otevri",
+    "spust",
+    "pust",
+    "prehraj",
+    "filtruj",
+    "vyfiltruj",
+    "prepn",
+    "zapni",
+    "vypni",
+    "vypln",
+    "predvypln",
+    "dopln",
+    "zvyrazni",
+    "porovnej",
+    "zkontroluj",
+    "najdi",
+    "posun",
+    "scroll",
+  ];
+  const targetTerms = [
+    "portfolio",
+    "galerie",
+    "galerii",
+    "fotky",
+    "projekt",
+    "detail",
+    "kontakt",
+    "formular",
+    "cenik",
+    "ceny",
+    "dostupnost",
+    "tema",
+    "rezim",
+    "svetly",
+    "tmavy",
+    "showreel",
+    "lightbox",
+    "ai projekty",
+    "sport",
+    "portrety",
+  ];
+
+  return includesAny(value, actionTerms) && includesAny(value, targetTerms);
+}
+
 function isInquirySendRequest(text) {
   return isInquiryRequest(text) && includesAny(text, ["odeslat", "odeslanim", "odesli", "poslat", "posli"]);
 }
@@ -364,6 +415,7 @@ function extractName(text) {
   const raw = String(text || "").trim();
   const patterns = [
     /(?:jmenuji se|jmenuju se|jmeno je|jméno je|jmeno:|jméno:)\s+([^\n,.;]{2,80})/i,
+    /(?:jmeno|jméno)\s+([^\n,.;]{2,80})/i,
     /(?:moje jmeno je|moje jméno je)\s+([^\n,.;]{2,80})/i,
     /(?:^|\n)\s*([A-ZÁ-Ž][a-zá-ž]+(?:\s+[A-ZÁ-Ž][a-zá-ž]+){1,3})\s*,?\s*(?:e-?mail|mail|[A-Z0-9._%+-]+@)/i,
     /(?:jsem)\s+([A-ZÁ-Ž][a-zá-ž]+(?:\s+[A-ZÁ-Ž][a-zá-ž]+){1,3})(?=\s*,|\s+e-?mail|\s+mail|$)/i,
@@ -767,10 +819,23 @@ function buildFastPathResponse(mode, messages) {
   if (isInquiryRequest(normalized)) return null;
 
   if (normalizedMode === "think" && includesAny(normalized, ["vyber", "vybrat", "vhodny typ foceni", "jaky typ foceni"])) {
-    return "Lukas dela hlavne dve veci - sportovni udalosti (zapasy, utkani) a portrety. Reknes mi co potrebujes nafotit a navedeme to.";
+    return "Lukáš dělá hlavně dvě věci: sportovní události a portréty. Napiš, co potřebuješ nafotit, a navedu tě na vhodný postup.";
   }
 
   if (normalizedMode !== "talk") return null;
+
+  const asksCapabilities = includesAny(normalized, [
+    "co umis",
+    "co dokazes",
+    "s cim pomuzes",
+    "s cim mi pomuzes",
+    "jak mi pomuzes",
+    "what can you do",
+  ]);
+
+  if (asksCapabilities) {
+    return "Umím ukázat Lukášovo portfolio, najít vhodnou fotogalerii, poradit s výběrem služby, vysvětlit Fotograf AI a připravit poptávku. Můžu také přepnout jazyk, změnit vzhled webu, spustit hlasový režim nebo otevřít konkrétní část stránky.";
+  }
 
   const asksLatestGallery =
     includesAny(normalized, ["nejnovejsi", "posledni", "aktualni", "latest", "newest"]) &&
@@ -788,15 +853,15 @@ function buildFastPathResponse(mode, messages) {
   }
 
   if (includesAny(normalized, ["kontakt", "email", "mail", "kontaktovat", "contact"])) {
-    return "Jasně, kontakt je jednoduchý. Napiš na lukas.drsticka@gmail.com nebo skoč níže na kontakt. [[ACTION:scroll:kontakt]]";
+    return "Kontakt je jednoduchý: napiš na lukas.drsticka@gmail.com nebo přejdi na kontaktní formulář níže. [[ACTION:scroll:kontakt]]";
   }
 
   if (includesAny(normalized, ["portfolio", "ukaz portfolio", "show portfolio", "ukaz praci", "prace", "galerie", "galerii", "fotogalerie", "fotogalerii"])) {
-    return "Jasne, kouknem na portfolio. Hlavne tam najdes sportovni zapasy a portrety. [[ACTION:scroll:portfolio]]";
+    return "Otevírám portfolio. Najdeš v něm hlavně sportovní zápasy a portréty. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["sluzby", "sluzba", "foceni", "fotograf", "fotky", "photography", "services"])) {
-    return "Lukas foti hlavne sport a portrety. Mrkni na ukazky a pak mi napis co potrebujes nafotit. [[ACTION:scroll:portfolio]]";
+    return "Lukáš se zaměřuje hlavně na sport a portréty. Otevírám portfolio, ať vidíš konkrétní ukázky. [[ACTION:scroll:portfolio]]";
   }
 
   if (includesAny(normalized, ["fotograf ai", "ai editor", "ai projekt", "ai projects"])) {
@@ -831,12 +896,12 @@ function buildKnowledgeContent(compact) {
   }
   return [
     "WEB_KNOWLEDGE_STRUCNE:",
-    "Lukas Drsticka je fotograf a AI builder z Prerova.",
+    "Lukáš Drštička je fotograf a AI builder z Přerova.",
     "Kontakt: lukas.drsticka@gmail.com.",
-    "Foti hlavne sportovni udalosti (zapasy, utkani) a portrety. Akce a produkty NEJSOU primarni nabidka.",
+    "Fotí hlavně sportovní události (zápasy, utkání) a portréty. Akce a produkty NEJSOU primární nabídka.",
     "Projekt Fotograf AI je AI editor pro fotografy.",
-    `Nejnovejsi galerie: ${LATEST_GALLERY.title}, ${LATEST_GALLERY.photos} fotek.`,
-    `Spoluprace: ${PUBLIC_KNOWLEDGE.collaborations.map((item) => item.name).join(", ")}.`,
+    `Nejnovější galerie: ${LATEST_GALLERY.title}, ${LATEST_GALLERY.photos} fotek.`,
+    `Spolupráce: ${PUBLIC_KNOWLEDGE.collaborations.map((item) => item.name).join(", ")}.`,
   ].join("\n");
 }
 
@@ -865,18 +930,19 @@ function buildRequestContext(mode, messages) {
       "- Odpoved musi obsahovat bud konkretni navrh zpravy, nebo konkretni seznam udaju k doplneni.",
       "- Nezacinej odpoved slovy 'Chces...'.",
       "- Bez techto udaju nic neodesilej. Dej mu jasny dalsi krok.",
-      "- Pouzij jen cestinu. Zadna anglicka, indoneska ani jina cizi slova.",
-      "- Odpovez 3-5 kratkymi vetami, ciste textem, bez markdownu.",
+      "- Použij jen češtinu a správnou českou diakritiku.",
+      "- Odpověz profesionálně, 3-5 krátkými větami, čistě textem, bez markdownu.",
     ].join("\n");
   }
 
   if (isSmallTalkRequest(normalized)) {
     return [
       "AKTUALNI DOTAZ JE SMALL TALK.",
-      "- Odpovez pres LLM prirozene, lidsky a kratce.",
-      "- Nevolej zadne nastroje, nepouzivej inline function tagy a neprovadej navigaci po webu.",
-      "- Nenabizej programovani, buildeni ani technicke navody.",
-      "- Pokud navrhnes dalsi krok, drz ho u foceni, portfolia, spoluprace nebo kontaktu.",
+      "- Odpověz přirozeně, profesionálně a krátce.",
+      "- Používej správnou českou diakritiku.",
+      "- Nevolej žádné nástroje, nepoužívej inline function tagy a neprováděj navigaci po webu.",
+      "- Nenabízej programování, buildění ani technické návody.",
+      "- Pokud navrhneš další krok, drž ho u focení, portfolia, spolupráce nebo kontaktu.",
     ].join("\n");
   }
 
@@ -935,6 +1001,22 @@ function parseStreamedToolCalls(toolCallBuffer) {
     calls.push({ id: buf.id, name: buf.name, args });
   }
   return calls;
+}
+
+function buildActionConfirmationText(actions) {
+  const tools = new Set((Array.isArray(actions) ? actions : []).map((action) => action?.tool).filter(Boolean));
+  if (!tools.size) return "";
+  if (tools.has("send_inquiry")) return "Odesílám poptávku Lukášovi.";
+  if (tools.has("prefill_contact_form")) return "Předvyplňuji kontaktní formulář.";
+  if (tools.has("filter_gallery")) return "Filtruji portfolio podle tvého zadání.";
+  if (tools.has("show_project_detail")) return "Otevírám detail vybraného projektu.";
+  if (tools.has("toggle_theme")) return "Přepínám vzhled webu.";
+  if (tools.has("show_pricing")) return "Otevírám ceník a zvýrazňuji vybranou službu.";
+  if (tools.has("compare_services")) return "Otevírám porovnání vybraných služeb.";
+  if (tools.has("check_availability")) return "Otevírám orientační dostupnost.";
+  if (tools.has("scroll_to")) return "Přesouvám tě na příslušnou sekci webu.";
+  if (tools.has("highlight_element")) return "Zvýrazňuji příslušnou část stránky.";
+  return "Provádím požadovanou akci na webu.";
 }
 
 function sleep(ms) {
@@ -1094,19 +1176,19 @@ async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, bad
   const wantsSend = isInquirySendRequest(normalizedUser);
 
   const repairSystem = [
-    "Jsi Lukas AI pro osobni web fotografa a AI buildera Lukase Drsticky.",
-    "Oprav predchozi slabou odpoved na poptavku nebo objednavku.",
-    "Slaba odpoved jen zopakovala zamer uzivatele nebo se zeptala prilis obecne.",
-    "Vrat rovnou uzitecnou odpoved na miru: bud navrh kratke zpravy pro Lukase, nebo konkretni seznam udaju k doplneni pro odeslani poptavky.",
-    wantsDraft ? "Tento dotaz chce napsat objednavku nebo zpravu. Odpoved musi obsahovat 'Navrh zpravy:' a konkretni text zacinajici 'Ahoj Lukasi,'." : "",
-    wantsSend ? "Tento dotaz chce pomoct s odeslanim poptavky. Odpoved musi vyjmenovat presne tyto chybejici udaje: jmeno, email, typ foceni/sluzby, termin, misto a kratka zprava." : "",
-    "Nevymyslej si chybejici udaje. Pokud uzivatel nenapsal typ foceni, termin, misto nebo kontakt, pouzij presne placeholdery [typ foceni/sluzby], [termin], [misto], [email/telefon].",
-    "Lukas je z Prerova. Nepouzivej Prahu, pristi tyden, portretni foceni, ceny ani jiny konkretni detail, pokud ho uzivatel nenapsal.",
-    "Nezacinej odpoved slovy 'Chces'. Zacni rovnou navrhem nebo vetou 'K odeslani poptavky potrebuji...'.",
-    "Nikdy neposilej poptavku bez jmena, emailu, typu foceni/sluzby, terminu, mista a kratke zpravy.",
-    "Neprogramuj, nevysvetluj technicke veci, nepouzivej markdown a nepouzivej function tagy.",
-    "Pouzij jen cestinu. Zadna anglicka, indoneska ani jina cizi slova.",
-    "Odpovez cesky, 3 az 5 kratkymi vetami.",
+    "Jsi Lukas AI pro osobní web fotografa a AI buildera Lukáše Drštičky.",
+    "Oprav předchozí slabou odpověď na poptávku nebo objednávku.",
+    "Slabá odpověď jen zopakovala záměr uživatele nebo se zeptala příliš obecně.",
+    "Vrať rovnou užitečnou odpověď na míru: buď návrh krátké zprávy pro Lukáše, nebo konkrétní seznam údajů k doplnění pro odeslání poptávky.",
+    wantsDraft ? "Tento dotaz chce napsat objednávku nebo zprávu. Odpověď musí obsahovat 'Návrh zprávy:' a konkrétní text začínající 'Ahoj Lukáši,'." : "",
+    wantsSend ? "Tento dotaz chce pomoct s odesláním poptávky. Odpověď musí vyjmenovat přesně tyto chybějící údaje: jméno, email, typ focení/služby, termín, místo a krátká zpráva." : "",
+    "Nevymýšlej si chybějící údaje. Pokud uživatel nenapsal typ focení, termín, místo nebo kontakt, použij přesně placeholdery [typ focení/služby], [termín], [místo], [email/telefon].",
+    "Lukáš je z Přerova. Nepoužívej Prahu, příští týden, portrétní focení, ceny ani jiný konkrétní detail, pokud ho uživatel nenapsal.",
+    "Nezačínej odpověď slovy 'Chceš'. Začni rovnou návrhem nebo větou 'K odeslání poptávky potřebuji...'.",
+    "Nikdy neposílej poptávku bez jména, emailu, typu focení/služby, termínu, místa a krátké zprávy.",
+    "Neprogramuj, nevysvětluj technické věci, nepoužívej markdown a nepoužívej function tagy.",
+    "Použij jen češtinu a správnou českou diakritiku.",
+    "Odpověz profesionálně česky, 3 až 5 krátkými větami.",
     memoryContext || "",
   ].filter(Boolean).join("\n");
 
@@ -1117,9 +1199,9 @@ async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, bad
       {
         role: "user",
         content: [
-          `Dotaz uzivatele: ${lastUser}`,
-          `Predchozi slaba odpoved: ${stripInlineFunctionTags(badText) || "(prazdna odpoved)"}`,
-          "Vrat opravenou odpoved.",
+          `Dotaz uživatele: ${lastUser}`,
+          `Předchozí slabá odpověď: ${stripInlineFunctionTags(badText) || "(prázdná odpověď)"}`,
+          "Vrať opravenou odpověď.",
         ].join("\n"),
       },
     ],
@@ -1162,18 +1244,19 @@ async function requestSmallTalkRepair({ apiKey, mode, messages, badText }) {
       {
         role: "system",
         content: [
-          "Jsi Lukas AI pro osobni web Lukase Drsticky.",
-          "Oprav useknutou nebo nedokoncenou small talk odpoved.",
-          "Odpovez prirozene cesky, 1 az 2 kratke vety.",
-          "Neprogramuj, nepouzivej tool tagy, nepis technicke veci.",
+          "Jsi Lukas AI pro osobní web Lukáše Drštičky.",
+          "Oprav useknutou nebo nedokončenou small talk odpověď.",
+          "Odpověz profesionálně česky, 1 až 2 krátké věty.",
+          "Používej správnou českou diakritiku.",
+          "Neprogramuj, nepoužívej tool tagy, nepiš technické věci.",
         ].join("\n"),
       },
       {
         role: "user",
         content: [
-          `Dotaz uzivatele: ${lastUser}`,
-          `Predchozi useknuta odpoved: ${stripInlineFunctionTags(badText) || "(prazdna odpoved)"}`,
-          "Vrat hotovou odpoved.",
+          `Dotaz uživatele: ${lastUser}`,
+          `Předchozí useknutá odpověď: ${stripInlineFunctionTags(badText) || "(prázdná odpověď)"}`,
+          "Vrať hotovou odpověď.",
         ].join("\n"),
       },
     ],
@@ -1199,10 +1282,11 @@ async function requestSmallTalkRepair({ apiKey, mode, messages, badText }) {
 }
 
 async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip, writer, encoder }) {
-  const fastPath = buildFastPathResponse(mode, messages);
-  if (fastPath) {
-    await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "knowledge-fast-path" });
-    return { fullText: fastPath, actions: [] };
+  const normalizedLastUser = normalizeText(getLastUserMessage(messages));
+
+  if (isTechnicalSupportRequest(normalizedLastUser)) {
+    await writeResolvedText(writer, encoder, TECHNICAL_REFUSAL, { mode, fastPath: true, model: "policy-fast-path" });
+    return { fullText: TECHNICAL_REFUSAL, actions: [] };
   }
 
   const leadFlow = buildDeterministicLeadResponse(mode, messages);
@@ -1216,10 +1300,16 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
     return { fullText: leadFlow.text, actions: leadFlow.actions };
   }
 
+  const shouldUseToolRouting = ENABLE_TOOLS && isActionLikeRequest(normalizedLastUser);
+  const fastPath = shouldUseToolRouting ? null : buildFastPathResponse(mode, messages);
+  if (fastPath) {
+    await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "knowledge-fast-path" });
+    return { fullText: fastPath, actions: [] };
+  }
+
   const providerFallback = buildInquiryProviderFallback(messages);
 
   const config = getModeConfig(mode);
-  const normalizedLastUser = normalizeText(getLastUserMessage(messages));
   const inquiryRequest = isInquiryRequest(normalizedLastUser);
   const smallTalkRequest = !inquiryRequest && isSmallTalkRequest(normalizedLastUser);
   const payload = {
@@ -1227,7 +1317,7 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
     messages: toOpenAIMessages(mode, messages, memoryContext),
     temperature: inquiryRequest ? Math.max(config.temperature, 0.35) : smallTalkRequest ? Math.max(config.temperature, 0.45) : config.temperature,
     top_p: config.topP,
-    max_tokens: inquiryRequest ? Math.max(config.maxOutputTokens, 380) : smallTalkRequest ? Math.min(Math.max(config.maxOutputTokens, 120), 180) : config.maxOutputTokens,
+    max_tokens: inquiryRequest ? Math.max(config.maxOutputTokens, 520) : smallTalkRequest ? Math.min(Math.max(config.maxOutputTokens, 260), 360) : config.maxOutputTokens,
     stream: true,
   };
   if (!smallTalkRequest && !inquiryRequest && ENABLE_TOOLS && Array.isArray(TOOLS) && TOOLS.length) {
@@ -1413,6 +1503,13 @@ async function streamOpenAIResponse({ apiKey, mode, messages, memoryContext, ip,
     }
     await writeFinalMessage(writer, encoder, "Teď zrovna nedokážu odpovědět. Zkus to prosím za chvíli.", { action: null, error: true, mode });
     return { fullText: "", actions: [] };
+  }
+
+  if (!fullText.trim() && validatedActions.length) {
+    fullText = buildActionConfirmationText(validatedActions);
+    if (fullText) {
+      await writer.write(encoder.encode(JSON.stringify({ t: fullText }) + "\n"));
+    }
   }
 
   if (smallTalkRequest && hasIncompleteEnding(fullText)) {

@@ -48,7 +48,7 @@
       modeMeta: {
         talk: {
           label: 'Talk',
-          badge: isEn ? 'Public assistant' : 'Veřejný asistent',
+          badge: isEn ? 'Hybrid agent' : 'Hybridní agent',
           helper: isEn
             ? 'Talk to me like a digital version of Lukas. English when needed, Czech by default.'
             : 'Povídej si se mnou jako s digitální verzí Lukáše. Česky defaultně, anglicky podle potřeby.',
@@ -111,8 +111,8 @@
         talkSteps: isEn ? ['Start the conversation', 'Choose a useful direction', 'Move things forward'] : ['Navážu konverzaci', 'Vyberu užitečný směr', 'Posunu to dál']
       },
       helperNoteHtml: isEn
-        ? 'Click <strong class="text-white/85 font-semibold">Talk by voice</strong> for a live voice call or enable <strong class="text-white/85 font-semibold">voice replies</strong> when you want to type and hear answers aloud. The assistant works in <strong class="text-white/85 font-semibold">CZ / EN</strong>.'
-        : 'Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Asistent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.',
+        ? 'Click <strong class="text-white/85 font-semibold">Talk by voice</strong> for a live voice call or enable <strong class="text-white/85 font-semibold">voice replies</strong> when you want to type and hear answers aloud. The hybrid agent works in <strong class="text-white/85 font-semibold">CZ / EN</strong>.'
+        : 'Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Hybridní agent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.',
       voiceOutputUnsupported: isEn ? 'Voice replies unavailable' : 'Hlasové odpovědi nejsou dostupné',
       voiceOutputOn: isEn ? 'Voice replies: on' : 'Hlasové odpovědi: zapnuto',
       voiceOutputOff: isEn ? 'Voice replies: off' : 'Hlasové odpovědi: vypnuto',
@@ -120,8 +120,8 @@
       voiceShortOff: isEn ? 'Voice off' : 'Hlas vyp.',
       voiceEnabledMessage: isEn ? 'Voice replies are enabled. Keep typing and I will answer aloud as well.' : 'Hlasové odpovědi jsou zapnuté. Klidně piš, budu odpovídat i nahlas.',
       voiceDisabledMessage: isEn ? 'Voice replies are disabled. I will answer only in text now.' : 'Hlasové odpovědi jsou vypnuté. Budu už jen psát.',
-      publicAssistantBadge: isEn ? 'Public assistant' : 'Veřejný asistent',
-      widgetAssistantBadge: isEn ? 'Assistant' : 'Asistent',
+      publicAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
+      widgetAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
       defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslím to s tebou a navrhnu další krok.'
     };
   }
@@ -985,7 +985,7 @@
     div.className = 'chat-message mb-4 flex gap-2 chatbot-typing';
     div.innerHTML =
       '<div class="message-avatar glass">\u{1F916}</div>' +
-      '<div class="glass rounded-xl typing-indicator" aria-live="polite" aria-label="' + chatbotEscapeHTML(chatbotText('chatbot.typing', 'Asistent pise...')) + '">' +
+      '<div class="glass rounded-xl typing-indicator" aria-live="polite" aria-label="' + chatbotEscapeHTML(chatbotText('chatbot.typing', 'Hybridní agent píše...')) + '">' +
         '<span></span><span></span><span></span>' +
       '</div>';
 
@@ -1300,7 +1300,7 @@
       });
     },
     send_inquiry: function(args) {
-      chatbotPrefillContactForm(args, { status: 'Odesílám poptávku přes asistenta...' });
+      chatbotPrefillContactForm(args, { status: 'Odesílám poptávku přes Hybridního agenta...' });
       chatbotPostAgentForm('Poptavka z Lukas AI agenta', {
         type: 'send_inquiry',
         name: args.name,
@@ -1402,7 +1402,7 @@
     var transcript = chatbotState.messages.map(function(m) {
       return (m.role === 'user'
         ? chatbotText('chatbot.transcriptUser', 'Uzivatel')
-        : chatbotText('chatbot.transcriptAssistant', 'Asistent')) + ': ' + m.content;
+        : chatbotText('chatbot.transcriptAssistant', 'Hybridní agent')) + ': ' + m.content;
     }).join('\n\n');
 
     var params = new URLSearchParams();
@@ -1668,7 +1668,7 @@
 
   function chatbotBuildConversationSummary() {
     return chatbotState.messages.map(function(m) {
-      return (m.role === 'user' ? 'Uživatel' : 'Asistent') + ': ' + (m.content || '');
+      return (m.role === 'user' ? 'Uživatel' : 'Hybridní agent') + ': ' + (m.content || '');
     }).join('\n\n').slice(0, 1800);
   }
 
@@ -1774,7 +1774,7 @@
     if (form) {
       var msgInput = chatbotFindContactField(form, 'message');
       if (msgInput) {
-        chatbotSetContactField(msgInput, 'Pokračování konverzace s AI asistentem:\n\n' + chatbotBuildConversationSummary());
+        chatbotSetContactField(msgInput, 'Pokračování konverzace s Hybridním agentem:\n\n' + chatbotBuildConversationSummary());
       }
       chatbotScrollToForm(form);
       return;

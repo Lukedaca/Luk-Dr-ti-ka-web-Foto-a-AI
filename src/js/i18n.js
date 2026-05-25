@@ -242,16 +242,16 @@
         'chatbot.quickReplyLabel': currentLanguage === 'en' ? 'Quick reply' : 'Rychlá odpověď',
         'chatbot.serverError': currentLanguage === 'en' ? 'Server error' : 'Chyba serveru',
         'chatbot.fallback': currentLanguage === 'en' ? "I can't answer properly right now. Try again in a moment or send me a shorter prompt." : 'Teď zrovna nemůžu odpovědět tak, jak bych chtěl. Zkus to za chvíli nebo mi dej krátké zadání znovu.',
-        'chatbot.typing': currentLanguage === 'en' ? 'Assistant is typing...' : 'Asistent píše...',
+        'chatbot.typing': currentLanguage === 'en' ? 'Hybrid agent is typing...' : 'Hybridní agent píše...',
         'chatbot.transcriptUser': currentLanguage === 'en' ? 'User' : 'Uživatel',
-        'chatbot.transcriptAssistant': currentLanguage === 'en' ? 'Assistant' : 'Asistent',
+        'chatbot.transcriptAssistant': currentLanguage === 'en' ? 'Hybrid agent' : 'Hybridní agent',
         'chatbot.transcriptSubject': currentLanguage === 'en' ? 'Lukas AI transcript' : 'Lukáš AI přepis',
         'voice.connecting': currentLanguage === 'en' ? 'Connecting...' : 'Připojuji...',
         'voice.active': currentLanguage === 'en' ? 'Call active' : 'Hovor aktivní',
         'voice.ending': currentLanguage === 'en' ? 'Ending...' : 'Ukončuji...',
         'voice.connectionFailed': currentLanguage === 'en' ? 'Connection failed' : 'Nepodařilo se navázat spojení',
         'voice.userLabel': currentLanguage === 'en' ? 'You' : 'Vy',
-        'voice.assistantLabel': currentLanguage === 'en' ? 'AI' : 'AI',
+        'voice.assistantLabel': currentLanguage === 'en' ? 'Hybrid agent' : 'Hybridní agent',
         'accessibility.sectionVisiblePrefix': currentLanguage === 'en' ? 'Visible section' : 'Zobrazená sekce'
       };
       return Object.prototype.hasOwnProperty.call(map, path) ? map[path] : fallback;
