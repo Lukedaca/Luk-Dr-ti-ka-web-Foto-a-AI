@@ -1,7 +1,7 @@
 // Tool catalog for GPT 5.4 mini function calling.
 // 21 tools split into navigation, portfolio, acquisition, smart, info.
 
-const SECTIONS = ["portfolio", "skills", "o-mne", "spoluprace", "kontakt", "ai-asistent"];
+const SECTIONS = ["portfolio", "skills", "o-mne", "spoluprace", "kontakt", "hybridni-agent"];
 const GALLERY_CATEGORIES = ["all", "foto", "ai", "svatby", "sport", "lifestyle", "produkt", "portret", "akce"];
 const SERVICES = [
   "fotografie",

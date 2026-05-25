@@ -1,6 +1,6 @@
 /**
  * Contact module - lazy loaded on scroll
- * AI Writing Assistant and contact form handling
+ * Hybrid agent writing helper and contact form handling
  */
 
 function getLanguage() {
@@ -365,5 +365,5 @@ if (contactForm) {
     });
 }
 
-// Initialize AI Writing Assistant
+// Initialize hybrid agent writing helper
 const writingAssistant = new AIWritingAssistant();

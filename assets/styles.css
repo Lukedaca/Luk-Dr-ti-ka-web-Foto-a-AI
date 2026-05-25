@@ -1026,7 +1026,7 @@ html {
 }
 
 @supports (content-visibility: auto) {
-    #ai-asistent,
+    #hybridni-agent,
     #portfolio,
     #skills,
     #o-mne,

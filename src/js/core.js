@@ -228,7 +228,7 @@ function initCore() {
             if (i18nLoading) return;
 
             i18nLoading = true;
-            loadModule('/dist/js/i18n.min.js?v=13', () => {
+            loadModule('/dist/js/i18n.min.js?v=14', () => {
                 i18nLoading = false;
                 if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
                     window.ldI18n.applyLanguage(selectedLang);
@@ -672,7 +672,7 @@ function lazyLoadModules() {
     if (portfolioSection) {
         const portfolioObserver = new IntersectionObserver((entries, obs) => {
             if (entries[0].isIntersecting) {
-                loadModule('/dist/js/portfolio.min.js?v=10', () => {
+                loadModule('/dist/js/portfolio.min.js?v=11', () => {
                     console.log('Portfolio module loaded');
                 });
                 obs.disconnect();
@@ -686,7 +686,7 @@ function lazyLoadModules() {
     if (contactSection) {
         const contactObserver = new IntersectionObserver((entries, obs) => {
             if (entries[0].isIntersecting) {
-                loadModule('/dist/js/contact.min.js?v=9', () => {
+                loadModule('/dist/js/contact.min.js?v=10', () => {
                     console.log('Contact module loaded');
                 });
                 obs.disconnect();
@@ -706,7 +706,7 @@ function loadChatbotStack() {
 
     chatbotLoadPromise = new Promise((resolve) => {
         const finish = () => {
-            loadModule('/dist/js/chatbot.min.js?v=14', () => {
+            loadModule('/dist/js/chatbot.min.js?v=15', () => {
                 console.log('Chatbot module loaded');
                 loadModule('/dist/js/voice.min.js?v=10', () => {
                     console.log('Voice module loaded');
@@ -739,7 +739,7 @@ function setupChatbotLoader() {
         }, true);
     }
 
-    const aiSection = document.getElementById('ai-asistent');
+    const aiSection = document.getElementById('hybridni-agent');
     if (aiSection && 'IntersectionObserver' in window) {
         const chatbotObserver = new IntersectionObserver((entries, obs) => {
             if (entries[0].isIntersecting) {

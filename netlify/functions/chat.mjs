@@ -127,7 +127,7 @@ const PUBLIC_KNOWLEDGE = {
       description: "Chatbot pro doporučování filmů, seriálů, her a knih podle dotazu uživatele.",
     },
     {
-      name: "Hybridní Agent / Lukáš AI",
+      name: "Hybridní agent / Lukáš AI",
       type: "webový AI agent",
       description: "Veřejný agent na osobním webu, který umí odpovídat textem i hlasem a navigovat uživatele po webu.",
     },

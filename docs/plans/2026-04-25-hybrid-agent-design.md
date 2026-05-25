@@ -65,7 +65,7 @@ Browser ──▶ Netlify Function /api/chat
 ## Katalog 21 akcí
 
 **Navigace + UX (5):**
-- `scroll_to(section)` — `portfolio | skills | o-mne | spoluprace | kontakt | ai-asistent`
+- `scroll_to(section)` — `portfolio | skills | o-mne | spoluprace | kontakt | hybridni-agent`
 - `highlight_element(selector)` — pulse animace
 - `toggle_theme()` — light/dark
 - `open_lightbox(image_id)` — zvětšení fotky

@@ -6,7 +6,7 @@
 
 - [Úvod](https://lukasdrsticka-ai-and-foto.com/): Hero sekce, hybridní AI agent (chat + hlas), portfolio, dovednosti, kontakt
 - [Portfolio](https://lukasdrsticka-ai-and-foto.com/#portfolio): Fotografie a AI projekty
-- [Hybridní agent](https://lukasdrsticka-ai-and-foto.com/#ai-asistent): Chatbot a hlasový agent v jednom (čeština + angličtina)
+- [Hybridní agent](https://lukasdrsticka-ai-and-foto.com/#hybridni-agent): Chatbot a hlasový agent v jednom (čeština + angličtina)
 - [O mně](https://lukasdrsticka-ai-and-foto.com/#o-mne): Profil a zaměření
 - [Spolupráce](https://lukasdrsticka-ai-and-foto.com/#spoluprace): Klubová sportovní fotografie, AI implementace
 - [Kontakt](https://lukasdrsticka-ai-and-foto.com/#kontakt): Formulář, e-mail, Přerov CZ

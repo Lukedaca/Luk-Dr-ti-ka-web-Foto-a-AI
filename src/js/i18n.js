@@ -21,9 +21,9 @@
         cs: {
       title: 'Lukáš Drštička - Fotograf & AI Developer | Portfolio',
       description: 'Portfolio Lukáše Drštičky - fotograf a AI developer z Přerova. Portrétní, sportovní a produktová fotografie, AI chatboty a automatizace na míru.',
-      nav: ['Hybridní Agent', 'Portfolio', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
-      hero: ['Fotografie', 'AI Development', 'Automatizace', 'Fotograf & AI Developer', 'Portfolio', 'Hybridní Agent'],
-      ai: ['Hybridní Agent', 'Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat'],
+      nav: ['Hybridní agent', 'Portfolio', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
+      hero: ['Fotografie', 'AI Development', 'Automatizace', 'Fotograf & AI Developer', 'Portfolio', 'Hybridní agent'],
+      ai: ['Hybridní agent', 'Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat'],
       portfolio: ['Portfolio', 'Vše', 'Fotografie', 'AI Projekty'],
       skills: ['Dovednosti & Technologie', 'Specializuji se na sportovní a portrétní fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI.', 'Fotografie', 'AI & Tech', 'Nástroje'],
       process: ['Jak pracuji', 'Jednoduchý proces od návrhu po realizaci', '1. Konzultace', 'Probereme vaše představy, cíle a požadavky projektu', '2. Plánování', 'Vytvoříme detailní plán a časový harmonogram', '3. Realizace', 'Fotografie, kód nebo AI řešení podle plánu', '4. Dokončení', 'Finální úpravy a předání hotového projektu'],
@@ -36,9 +36,9 @@
     en: {
       title: 'Lukas Drsticka - Photographer & AI Developer | Portfolio',
       description: 'Portfolio of Lukas Drsticka - photographer and AI developer from Prerov, Czech Republic. Portrait, sports and product photography, AI chatbots and custom automation.',
-      nav: ['Hybrid Agent', 'Portfolio', 'Skills', 'About', 'Collaboration', 'Contact'],
-      hero: ['Photography', 'AI Development', 'Automation', 'Photographer & AI Developer', 'View portfolio', 'Hybrid Agent'],
-      ai: ['Hybrid Agent', 'A chatbot and a voice agent in one. Writes, speaks and instantly proposes the next step. Works in Czech and English.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send'],
+      nav: ['Hybrid agent', 'Portfolio', 'Skills', 'About', 'Collaboration', 'Contact'],
+      hero: ['Photography', 'AI Development', 'Automation', 'Photographer & AI Developer', 'View portfolio', 'Hybrid agent'],
+      ai: ['Hybrid agent', 'A chatbot and a voice agent in one. Writes, speaks and instantly proposes the next step. Works in Czech and English.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send'],
       portfolio: ['Portfolio', 'All', 'Photography', 'AI Projects'],
       skills: ['Skills & Technology', 'I focus on sports and portrait photography. My Fotograf AI app speeds up post-production and practical AI delivery.', 'Photography', 'AI & Tech', 'Tools'],
       process: ['How I work', 'A simple process from concept to delivery', '1. Consultation', 'We go through your goals, expectations and project requirements.', '2. Planning', 'We prepare a clear plan and realistic timeline.', '3. Delivery', 'Photography, code or AI solution delivered according to plan.', '4. Final handoff', 'Final polish and delivery of the finished project.'],
@@ -135,10 +135,10 @@
     setTexts(document.querySelectorAll('#hero .mb-6 .chip'), copy.hero.slice(0, 3));
     setText(document.querySelector('#hero h1'), copy.hero[3]);
     setText(document.querySelector('#hero .text-center a[href="#portfolio"]'), copy.hero[4]);
-    setText(document.querySelector('#hero .text-center a[href="#ai-asistent"]'), copy.hero[5]);
+    setText(document.querySelector('#hero .text-center a[href="#hybridni-agent"]'), copy.hero[5]);
 
-    setText(document.querySelector('#ai-asistent > div > h2'), copy.ai[0]);
-    setText(document.querySelector('#ai-asistent > div > p'), copy.ai[1]);
+    setText(document.querySelector('#hybridni-agent > div > h2'), copy.ai[0]);
+    setText(document.querySelector('#hybridni-agent > div > p'), copy.ai[1]);
     setText(document.querySelector('#hero-chat h3'), copy.ai[2]);
     setAttr(document.getElementById('hero-input'), 'placeholder', copy.ai[3]);
     setText(document.querySelector('#voice-call-btn span'), copy.ai[4]);

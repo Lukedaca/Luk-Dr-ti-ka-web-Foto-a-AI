@@ -1944,7 +1944,7 @@
       });
     }
 
-    var heroSection = document.getElementById('ai-asistent');
+    var heroSection = document.getElementById('hybridni-agent');
     if (heroSection) {
       var observer = new IntersectionObserver(function(entries) {
         entries.forEach(function(entry) {
@@ -2027,7 +2027,7 @@
   function chatbotSetupPrewarm() {
     // Keep-warm: prefetchni chat funkci jakmile je uživatel blízko sekce hybridního agenta,
     // nebo jakmile poprvé klikne do vstupu. Zabíjí Netlify cold start.
-    var heroSection = document.getElementById('ai-asistent');
+    var heroSection = document.getElementById('hybridni-agent');
     if (heroSection && 'IntersectionObserver' in window) {
       var io = new IntersectionObserver(function(entries) {
         for (var i = 0; i < entries.length; i++) {
