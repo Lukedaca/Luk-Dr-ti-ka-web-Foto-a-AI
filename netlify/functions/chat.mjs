@@ -1072,6 +1072,9 @@ function parseStreamedToolCalls(toolCallBuffer) {
   return calls;
 }
 
+// Vizuální tooly jen doprovázejí odpověď (scroll/zvýraznění) — nikdy nesmí být JEDINOU odpovědí.
+const VISUAL_ONLY_TOOLS = new Set(["scroll_to", "highlight_element"]);
+
 function buildActionConfirmationText(actions) {
   const tools = new Set((Array.isArray(actions) ? actions : []).map((action) => action?.tool).filter(Boolean));
   if (!tools.size) return "";
@@ -1360,6 +1363,62 @@ async function requestSmallTalkRepair({ apiKey, mode, messages, badText }) {
   }
 }
 
+// Když model na dotaz odpoví prázdným textem a zavolá jen vizuální tool (scroll_to / highlight_element),
+// vyžádáme si skutečnou textovou odpověď na dotaz — vizuál je jen doprovod, ne náhrada odpovědi.
+async function requestVisualActionAnswer({ apiKey, mode, messages, memoryContext, actions }) {
+  const lastUser = getLastUserMessage(messages);
+  if (!lastUser) return "";
+
+  const sectionHints = (Array.isArray(actions) ? actions : [])
+    .map((action) => action?.args?.section || action?.args?.target)
+    .filter(Boolean);
+
+  const payload = {
+    model: CHAT_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: [
+          "Jsi hybridní agent na osobním webu fotografa a AI buildera Lukáše Drštičky.",
+          "Uživatel položil dotaz a web zároveň odscrolloval nebo zvýraznil příslušnou sekci.",
+          "Tvým úkolem je dotaz SKUTEČNĚ zodpovědět, ne jen oznámit navigaci.",
+          "Nikdy nevracej jako celou odpověď větu typu 'Přesouvám tě na sekci' nebo 'Zvýrazňuji část stránky' — rovnou odpověz na obsah dotazu.",
+          "Odpověz lidsky a věcně česky, 1 až 3 krátké věty, správná česká diakritika.",
+          "Neprogramuj, nevysvětluj technické ani programátorské věci a nepoužívej markdown ani function tagy.",
+          "Neslibuj ceny ani slevy.",
+          memoryContext || "",
+        ].filter(Boolean).join("\n"),
+      },
+      {
+        role: "user",
+        content: [
+          `Dotaz uživatele: ${lastUser}`,
+          sectionHints.length ? `Web právě zvýraznil sekci: ${sectionHints.join(", ")}` : "",
+          "Vrať hotovou textovou odpověď na dotaz.",
+        ].filter(Boolean).join("\n"),
+      },
+    ],
+    temperature: Math.max(getModeConfig(mode).temperature, 0.4),
+    top_p: 0.9,
+    max_tokens: 200,
+    stream: false,
+  };
+
+  try {
+    const response = await fetchChatCompletion(apiKey, payload, "visual-action-answer");
+    if (!response.ok) return "";
+    const data = await response.json().catch(() => null);
+    const answer = stripInlineFunctionTags(data?.choices?.[0]?.message?.content || "");
+    if (!answer || hasIncompleteEnding(answer)) return "";
+    const promiseCheck = validateAgentText(answer);
+    if (!promiseCheck.ok) return "";
+    return answer.trim();
+  } catch (err) {
+    console.error("Visual action answer fetch error:", err);
+    return "";
+  }
+}
+
 async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, writer, encoder }) {
   const normalizedLastUser = normalizeText(getLastUserMessage(messages));
 
@@ -1596,9 +1655,19 @@ async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, wr
   }
 
   if (!fullText.trim() && validatedActions.length) {
-    fullText = buildActionConfirmationText(validatedActions);
-    if (fullText) {
-      await writer.write(encoder.encode(JSON.stringify({ t: fullText }) + "\n"));
+    const onlyVisual = validatedActions.every((action) => VISUAL_ONLY_TOOLS.has(action.tool));
+    if (onlyVisual) {
+      const answer = await requestVisualActionAnswer({ apiKey, mode, messages, memoryContext, actions: validatedActions });
+      if (answer) {
+        fullText = answer;
+        await writer.write(encoder.encode(JSON.stringify({ t: fullText }) + "\n"));
+      }
+    }
+    if (!fullText.trim()) {
+      fullText = buildActionConfirmationText(validatedActions);
+      if (fullText) {
+        await writer.write(encoder.encode(JSON.stringify({ t: fullText }) + "\n"));
+      }
     }
   }
 
