@@ -21,6 +21,7 @@ const PORTFOLIO_NAME_TRANSLATIONS = {
     'sport-5': { en: 'First league' },
     'sport-8': { en: 'Prerov vs Brodek 14 Mar 2026' },
     'sport-9': { en: 'Prerov vs Postrelmov 28 Mar 2026' },
+    'sport-14': { en: 'Prerov vs Zelatovice 29 May 2026' },
     'ai-1': { en: 'Hybrid agent' },
     'ai-2': { en: 'Entertainment chatbot' },
     'portret-1': { en: 'Portrait with smoke' },
