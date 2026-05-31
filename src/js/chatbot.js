@@ -18,7 +18,8 @@
   var CHATBOT_MEMORY_CONSENT_KEY = 'lukas_ai_memory_consent';
   var CHATBOT_MEMORY_PROMPT_KEY = 'lukas_ai_memory_prompted';
   var CHATBOT_CAN_NATIVE_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
-  var CHATBOT_CAN_SPEAK = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
+  var CHATBOT_CAN_SERVER_TTS = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
+  var CHATBOT_CAN_SPEAK = !!(CHATBOT_CAN_NATIVE_SPEAK || CHATBOT_CAN_SERVER_TTS);
   var CHATBOT_TTS_SAMPLE_RATE = 24000;
   var CHATBOT_TTS_FIRST_STRONG_MIN = 4;
   var CHATBOT_TTS_FIRST_SOFT_MIN = 24;
@@ -26,6 +27,7 @@
   var CHATBOT_TTS_NEXT_STRONG_MIN = 48;
   var CHATBOT_TTS_NEXT_SOFT_MIN = 140;
   var CHATBOT_TTS_NEXT_HARD_MAX = 300;
+  var CHATBOT_FAST_NATIVE_VOICE_KEY = 'lukas_ai_fast_native_voice';
 
   function chatbotText(path, fallback) {
     return typeof window.ldGetText === 'function' ? window.ldGetText(path, fallback) : fallback;
@@ -501,8 +503,17 @@
     }
   }
 
+  function chatbotUseNativeSpeechFirst() {
+    if (!CHATBOT_CAN_NATIVE_SPEAK) return false;
+    try {
+      return window.localStorage.getItem(CHATBOT_FAST_NATIVE_VOICE_KEY) !== 'off';
+    } catch (err) {
+      return true;
+    }
+  }
+
   function chatbotEnsurePlaybackContext() {
-    if (!CHATBOT_CAN_SPEAK) return null;
+    if (!CHATBOT_CAN_SERVER_TTS) return null;
     if (!chatbotPlaybackCtx || chatbotPlaybackCtx.state === 'closed') {
       var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
       chatbotPlaybackCtx = new AudioContextCtor({ sampleRate: CHATBOT_TTS_SAMPLE_RATE });
@@ -516,7 +527,7 @@
   }
 
   function chatbotWarmPlaybackContext() {
-    if (!CHATBOT_CAN_SPEAK) return;
+    if (!CHATBOT_CAN_SERVER_TTS) return;
     try {
       var ctxPromise = chatbotEnsurePlaybackContext();
       if (ctxPromise && ctxPromise.catch) ctxPromise.catch(function() {});
@@ -526,7 +537,7 @@
   }
 
   function chatbotPrewarmTts() {
-    if (!CHATBOT_CAN_SPEAK || chatbotTtsWarmedUp) return;
+    if (!CHATBOT_CAN_SERVER_TTS || chatbotTtsWarmedUp) return;
     chatbotTtsWarmedUp = true;
     try {
       fetch(CHATBOT_TTS_API_URL, { method: 'GET', cache: 'no-store' }).catch(function() {
@@ -651,6 +662,10 @@
 
   function chatbotQueueSentenceSpeech(text, lang, requestId) {
     if (!CHATBOT_CAN_SPEAK || !text) return;
+    if (chatbotUseNativeSpeechFirst() && chatbotSpeakNativeText(text, lang, requestId, false)) {
+      return;
+    }
+    if (!CHATBOT_CAN_SERVER_TTS) return;
     // Placeholder, ať se pořadí vět zachová i kdyby druhý request dorazil dřív
     var slot = { audio: null, sampleRate: CHATBOT_TTS_SAMPLE_RATE, requestId: requestId, ready: false };
     chatbotAudioQueue.push(slot);
@@ -667,6 +682,7 @@
       })
       .catch(function(err) {
         console.error('Chatbot TTS error:', err);
+        chatbotSpeakNativeText(text, lang, requestId, false);
         slot.ready = true;
         slot.audio = null;
         chatbotDrainAudioQueue();

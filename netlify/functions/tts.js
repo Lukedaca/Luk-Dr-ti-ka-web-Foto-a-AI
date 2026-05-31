@@ -1,18 +1,34 @@
-const MODEL = "gemini-2.5-flash-preview-tts";
+const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-2.5-flash-preview-tts";
+const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Puck";
 const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
 const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "coral";
 const OPENAI_SPEECH_URL = "https://api.openai.com/v1/audio/speech";
-const MAX_TEXT_LENGTH = 1800;
+const MAX_TEXT_LENGTH = 360;
+const TTS_SAMPLE_RATE = 24000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 60;
+const TTS_CACHE_MAX = 80;
 
 const ipHits = new Map();
+const audioCache = new Map();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
+
+function jsonResponse(statusCode, body, extraHeaders) {
+  return {
+    statusCode,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      ...(extraHeaders || {}),
+    },
+    body: JSON.stringify(body),
+  };
+}
 
 function isRateLimited(ip) {
   const now = Date.now();
@@ -27,44 +43,59 @@ function isRateLimited(ip) {
   return false;
 }
 
-function buildPrompt(text, lang) {
-  const isEnglish = String(lang || "").toLowerCase().startsWith("en");
-  const accentLine = isEnglish
-    ? "Accent: neutral international English, natural and modern, never radio-announcer style."
-    : "Accent: clear contemporary Czech, natural and civil, never synthetic or overacted.";
+function cleanTextForSpeech(value) {
+  return String(value || "")
+    .replace(/\[\[ACTION:[^\]]+\]\]/gi, "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_TEXT_LENGTH);
+}
 
+function makeCacheKey(provider, text, lang) {
   return [
-    "# AUDIO PROFILE: Lukas AI",
-    "A warm, modern digital voice for Lukas AI. It should sound human, calm, confident and premium.",
-    "### DIRECTOR'S NOTES",
-    "Style: friendly, natural, intelligent, non-robotic, non-salesy, no exaggerated hype.",
-    accentLine,
-    "Pacing: conversational, smooth and slightly brisk, with short natural pauses.",
-    "Delivery: speak exactly the transcript below, keep articulation clean and intimate.",
-    "### TRANSCRIPT",
+    provider,
+    provider === "openai" ? OPENAI_TTS_MODEL : GEMINI_TTS_MODEL,
+    provider === "openai" ? OPENAI_TTS_VOICE : GEMINI_TTS_VOICE,
+    String(lang || "cs-CZ").toLowerCase(),
     text,
-  ].join("\n");
+  ].join("::");
+}
+
+function getCachedAudio(key) {
+  if (!audioCache.has(key)) return null;
+  const value = audioCache.get(key);
+  audioCache.delete(key);
+  audioCache.set(key, value);
+  return value;
+}
+
+function setCachedAudio(key, value) {
+  audioCache.set(key, value);
+  while (audioCache.size > TTS_CACHE_MAX) {
+    const firstKey = audioCache.keys().next().value;
+    audioCache.delete(firstKey);
+  }
 }
 
 function buildOpenAiInstructions(lang) {
   const isEnglish = String(lang || "").toLowerCase().startsWith("en");
   return isEnglish
     ? "Voice for Lukas AI: natural, warm, clear, modern, calm and confident. Neutral international English accent. Keep a conversational pace and speak exactly the input text."
-    : "Hlas pro Lukas AI: prirozeny, prijemny, jasny, moderni, klidny a sebejisty. Mluv cesky, civilne, bez prehnane reklamnich intonaci. Drz konverzacni tempo a precti presne zadany text.";
+    : "Hlas pro Lukas AI: přirozený, příjemný, jasný, moderní, klidný a sebejistý. Mluv česky, civilně, bez přehnané reklamní intonace. Drž konverzační tempo a přečti přesně zadaný text.";
+}
+
+function buildGeminiPrompt(text, lang) {
+  const isEnglish = String(lang || "").toLowerCase().startsWith("en");
+  return [
+    isEnglish
+      ? "Read in a warm, natural, conversational tone. Speak exactly this text:"
+      : "Přečti přirozeným, lidským a přátelským tónem. Mluv přesně tento text:",
+    text,
+  ].join("\n");
 }
 
 async function generateOpenAiSpeechPayload(apiKey, text, lang) {
-  const safeText = typeof text === "string" ? text.trim() : "";
-  const safeLang = typeof lang === "string" && lang.trim() ? lang.trim() : "cs-CZ";
-
-  if (!safeText) {
-    throw new Error("Text is required");
-  }
-
-  if (safeText.length > MAX_TEXT_LENGTH) {
-    throw new Error("Text is too long");
-  }
-
   const response = await fetch(OPENAI_SPEECH_URL, {
     method: "POST",
     headers: {
@@ -74,95 +105,102 @@ async function generateOpenAiSpeechPayload(apiKey, text, lang) {
     body: JSON.stringify({
       model: OPENAI_TTS_MODEL,
       voice: OPENAI_TTS_VOICE,
-      input: safeText,
-      instructions: buildOpenAiInstructions(safeLang),
+      input: text,
+      instructions: buildOpenAiInstructions(lang),
       response_format: "pcm",
     }),
   });
 
   if (!response.ok) {
     const errText = await response.text().catch(() => "");
-    console.error("OpenAI TTS error:", response.status, errText);
-    throw new Error("OpenAI TTS service unavailable");
+    console.error("OpenAI TTS error:", response.status, errText.slice(0, 500));
+    throw new Error(`OpenAI TTS failed: ${response.status}`);
   }
 
   const audioBuffer = Buffer.from(await response.arrayBuffer());
   if (!audioBuffer.length) {
-    throw new Error("No audio returned from OpenAI TTS service");
+    throw new Error("OpenAI TTS returned empty audio");
   }
 
   return {
     audio: audioBuffer.toString("base64"),
     mimeType: "audio/pcm;rate=24000",
-    sampleRate: 24000,
-    voiceName: OPENAI_TTS_VOICE,
-    lang: safeLang,
+    sampleRate: TTS_SAMPLE_RATE,
+    lang,
     provider: "openai",
     model: OPENAI_TTS_MODEL,
+    voice: OPENAI_TTS_VOICE,
   };
 }
 
-async function generateSpeechPayload(apiKey, text, lang) {
-  const safeText = typeof text === "string" ? text.trim() : "";
-  const safeLang = typeof lang === "string" && lang.trim() ? lang.trim() : "cs-CZ";
-
-  if (!safeText) {
-    throw new Error("Text is required");
-  }
-
-  if (safeText.length > MAX_TEXT_LENGTH) {
-    throw new Error("Text is too long");
-  }
-
-  const voiceName = String(safeLang).toLowerCase().startsWith("en") ? "Achird" : "Sulafat";
-  const payload = {
-    contents: [{
-      parts: [{
-        text: buildPrompt(safeText, safeLang),
-      }],
-    }],
-    generationConfig: {
-      responseModalities: ["AUDIO"],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: {
-            voiceName,
+async function generateGeminiSpeechPayload(apiKey, text, lang) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_TTS_MODEL)}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: buildGeminiPrompt(text, lang) }] }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: GEMINI_TTS_VOICE },
+            },
           },
         },
-      },
-    },
-  };
-
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
-    },
-    body: JSON.stringify(payload),
-  });
+      }),
+    }
+  );
 
   if (!response.ok) {
-    const errText = await response.text();
-    console.error("Gemini TTS error:", response.status, errText);
-    throw new Error("TTS service unavailable");
+    const errText = await response.text().catch(() => "");
+    console.error("Gemini TTS error:", response.status, errText.slice(0, 500));
+    throw new Error(`Gemini TTS failed: ${response.status}`);
   }
 
-  const data = await response.json();
-  const inlineData = data.candidates?.[0]?.content?.parts?.find((part) => part.inlineData)?.inlineData;
+  const data = await response.json().catch(() => null);
+  const inlineData = data?.candidates?.[0]?.content?.parts?.find((part) => part?.inlineData?.data)?.inlineData;
   if (!inlineData?.data) {
-    console.error("Unexpected TTS response:", JSON.stringify(data));
-    throw new Error("No audio returned from TTS service");
+    console.error("Gemini TTS empty audio:", JSON.stringify(data).slice(0, 500));
+    throw new Error("Gemini TTS returned empty audio");
   }
 
   return {
     audio: inlineData.data,
     mimeType: inlineData.mimeType || "audio/pcm;rate=24000",
-    sampleRate: 24000,
-    voiceName,
-    lang: safeLang,
+    sampleRate: TTS_SAMPLE_RATE,
+    lang,
+    provider: "gemini",
+    model: GEMINI_TTS_MODEL,
+    voice: GEMINI_TTS_VOICE,
   };
+}
+
+async function generateSpeechPayload({ openAiApiKey, geminiApiKey, text, lang }) {
+  const providers = [];
+  if (openAiApiKey) providers.push("openai");
+  if (geminiApiKey) providers.push("gemini");
+
+  let lastError = null;
+  for (const provider of providers) {
+    const cacheKey = makeCacheKey(provider, text, lang);
+    const cached = getCachedAudio(cacheKey);
+    if (cached) return { ...cached, cached: true };
+
+    try {
+      const speech = provider === "openai"
+        ? await generateOpenAiSpeechPayload(openAiApiKey, text, lang)
+        : await generateGeminiSpeechPayload(geminiApiKey, text, lang);
+      setCachedAudio(cacheKey, speech);
+      return speech;
+    } catch (err) {
+      lastError = err;
+      console.warn(`${provider} TTS failed, trying next provider if available:`, err?.message || err);
+    }
+  }
+
+  throw lastError || new Error("No TTS provider configured");
 }
 
 async function handler(event) {
@@ -171,15 +209,21 @@ async function handler(event) {
   }
 
   if (event.httpMethod === "GET" || event.httpMethod === "HEAD") {
-    return { statusCode: 204, headers: corsHeaders, body: "" };
+    return jsonResponse(200, {
+      ok: true,
+      warm: true,
+      providers: {
+        openai: !!process.env.OPENAI_API_KEY,
+        gemini: !!process.env.GEMMA_API_KEY,
+      },
+      model: process.env.OPENAI_API_KEY ? OPENAI_TTS_MODEL : GEMINI_TTS_MODEL,
+      sampleRate: TTS_SAMPLE_RATE,
+      cacheSize: audioCache.size,
+    });
   }
 
   if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
+    return jsonResponse(405, { error: "Method not allowed" });
   }
 
   const clientIp =
@@ -188,67 +232,37 @@ async function handler(event) {
     "unknown";
 
   if (isRateLimited(clientIp)) {
-    return {
-      statusCode: 429,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Too many TTS requests. Try again in a minute." }),
-    };
+    return jsonResponse(429, { error: "Příliš mnoho TTS požadavků. Zkus to za chvíli." });
   }
 
   const openAiApiKey = process.env.OPENAI_API_KEY;
-  const gemmaApiKey = process.env.GEMMA_API_KEY;
-  if (!openAiApiKey && !gemmaApiKey) {
-    return {
-      statusCode: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "TTS API key not configured" }),
-    };
+  const geminiApiKey = process.env.GEMMA_API_KEY;
+  if (!openAiApiKey && !geminiApiKey) {
+    return jsonResponse(503, { error: "TTS API key není nastavený." });
   }
 
-  let text = "";
-  let lang = "cs-CZ";
-
+  let body;
   try {
-    const body = JSON.parse(event.body || "{}");
-    text = typeof body.text === "string" ? body.text.trim() : "";
-    lang = typeof body.lang === "string" && body.lang.trim() ? body.lang.trim() : "cs-CZ";
+    body = JSON.parse(event.body || "{}");
   } catch (err) {
-    return {
-      statusCode: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid JSON body" }),
-    };
+    return jsonResponse(400, { error: "Invalid JSON body" });
+  }
+
+  const text = cleanTextForSpeech(body.text);
+  const lang = typeof body.lang === "string" && body.lang.trim() ? body.lang.trim() : "cs-CZ";
+  if (!text) {
+    return jsonResponse(400, { error: "Chybí text pro hlas." });
   }
 
   try {
-    let speech;
-    if (openAiApiKey) {
-      try {
-        speech = await generateOpenAiSpeechPayload(openAiApiKey, text, lang);
-      } catch (openAiErr) {
-        if (!gemmaApiKey) throw openAiErr;
-        console.warn("OpenAI TTS failed, falling back to Gemini TTS:", openAiErr);
-      }
-    }
-
-    if (!speech) {
-      speech = await generateSpeechPayload(gemmaApiKey, text, lang);
-    }
-
-    return {
-      statusCode: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify(speech),
-    };
+    const speech = await generateSpeechPayload({ openAiApiKey, geminiApiKey, text, lang });
+    return jsonResponse(200, speech);
   } catch (err) {
     console.error("TTS function error:", err);
-    return {
-      statusCode: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Internal TTS error" }),
-    };
+    return jsonResponse(502, { error: "TTS se nepodařilo vygenerovat." });
   }
 }
 
 exports.handler = handler;
 exports.generateSpeechPayload = generateSpeechPayload;
+exports.cleanTextForSpeech = cleanTextForSpeech;
