@@ -352,6 +352,127 @@ function includesAny(text, terms) {
   return terms.some((term) => text.includes(term));
 }
 
+function includesAnyPhrase(text, terms) {
+  const value = ` ${String(text || "").replace(/\s+/g, " ")} `;
+  return terms.some((term) => value.includes(` ${term} `));
+}
+
+const SECTION_ALIASES = [
+  {
+    section: "portfolio",
+    label: "portfolio",
+    terms: ["portfolio", "portfolia", "portfoliu", "portfoliem", "galerie", "galerii", "fotogalerie", "fotogalerii", "fotky", "fotografie", "ukazky", "ukazky prace", "prace"],
+  },
+  {
+    section: "skills",
+    label: "dovednosti",
+    terms: ["skills", "dovednosti", "dovednostech", "schopnosti", "schopnostech", "co umis", "co umi", "co umite", "ai schopnosti"],
+  },
+  {
+    section: "o-mne",
+    label: "o mně",
+    terms: ["o mne", "omne", "about", "kdo jsi", "kdo je lukas", "lukas drsticka", "o lukasovi", "o tobe"],
+  },
+  {
+    section: "spoluprace",
+    label: "spolupráci",
+    terms: ["spoluprace", "spolupraci", "sluzby", "sluzbach", "sluzbami", "sluzeb", "cenik", "ceniku", "ceny", "cenach", "nabidka", "nabidce", "proces", "reference", "klienti"],
+  },
+  {
+    section: "kontakt",
+    label: "kontakt",
+    terms: ["kontakt", "kontaktu", "formular", "formulare", "kontaktni formular", "email", "mail", "ozvat", "poptavka", "poptavku"],
+  },
+  {
+    section: "hybridni-agent",
+    label: "hybridního agenta",
+    terms: ["hybridni agent", "hybridnim agentovi", "agent", "agenta", "agentovi", "agentem", "chat", "chatbot", "lukas ai", "ai asistent"],
+  },
+];
+
+const NAVIGATION_INTENT_TERMS = [
+  "prejdi",
+  "presun",
+  "presunte",
+  "posun",
+  "posunte",
+  "scroll",
+  "odscrolluj",
+  "najed",
+  "najedte",
+  "jdi na",
+  "skoc",
+  "skoc na",
+  "hod me",
+  "vezmi me",
+  "otevri sekci",
+  "ukaz sekci",
+  "zobraz sekci",
+  "naviguj",
+  "go to",
+  "show section",
+  "open section",
+];
+
+const SHOW_TARGET_TERMS = ["ukaz", "ukazte", "zobraz", "zobrazte", "otevri", "otevrete", "show", "open"];
+
+function inferSectionTarget(text) {
+  const value = String(text || "");
+  for (const item of SECTION_ALIASES) {
+    if (includesAny(value, item.terms)) return item;
+  }
+  return null;
+}
+
+function hasExplicitNavigationIntent(text) {
+  const value = String(text || "");
+  if (includesAnyPhrase(value, NAVIGATION_INTENT_TERMS)) return true;
+  const target = inferSectionTarget(value);
+  if (!target) return false;
+  return includesAnyPhrase(value, SHOW_TARGET_TERMS) && includesAnyPhrase(value, [
+    "sekci",
+    "cast",
+    "stranku",
+    "portfolio",
+    "portfolia",
+    "portfoliu",
+    "galerie",
+    "galerii",
+    "fotogalerie",
+    "fotogalerii",
+    "fotky",
+    "fotografie",
+    "ukazky",
+    "prace",
+    "kontakt",
+    "formular",
+    "sluzby",
+    "spolupraci",
+    "dovednosti",
+    "agenta",
+  ]);
+}
+
+function buildNavigationActionResponse(text) {
+  if (!hasExplicitNavigationIntent(text)) return null;
+  const target = inferSectionTarget(text);
+  if (!target) return null;
+
+  const actions = [{ tool: "scroll_to", args: { section: target.section } }];
+  if (target.section === "portfolio") {
+    actions.push({ tool: "highlight_element", args: { target: "portfolio-grid" } });
+  } else if (target.section === "skills") {
+    actions.push({ tool: "highlight_element", args: { target: "skills-grid" } });
+  } else if (target.section === "kontakt") {
+    actions.push({ tool: "highlight_element", args: { target: "contact-form" } });
+  }
+
+  return {
+    text: `Přesouvám tě na ${target.label}.`,
+    actions,
+  };
+}
+
 function isInquiryRequest(text) {
   return includesAny(text, ["poptavka", "poptavku", "poptavky", "poptavkovy", "objednavka", "objednavku", "objednat", "rezervace", "rezervaci", "rezervovat"]) ||
     (includesAny(text, ["brief", "zprava", "zpravu"]) && includesAny(text, ["foceni", "spoluprace", "lukase", "lukasovi", "poptavkovy"])) ||
@@ -369,56 +490,31 @@ function isActionLikeRequest(text) {
   const value = String(text || "").trim();
   if (!value) return false;
 
-  const actionTerms = [
-    "ukaz",
-    "zobraz",
-    "otevri",
-    "spust",
-    "pust",
-    "prehraj",
-    "filtruj",
-    "vyfiltruj",
-    "prepn",
-    "zapni",
-    "vypni",
-    "vypln",
-    "predvypln",
-    "dopln",
-    "zvyrazni",
-    "porovnej",
-    "zkontroluj",
-    "najdi",
-    "posun",
-    "scroll",
-  ];
-  const targetTerms = [
-    "portfolio",
-    "galerie",
-    "galerii",
-    "fotky",
-    "projekt",
-    "detail",
-    "kontakt",
-    "formular",
-    "cenik",
-    "ceny",
-    "dostupnost",
-    "tema",
-    "rezim",
-    "svetly",
-    "tmavy",
-    "showreel",
-    "lightbox",
-    "ai projekty",
-    "sport",
-    "portrety",
-  ];
-
-  return includesAny(value, actionTerms) && includesAny(value, targetTerms);
+  if (hasExplicitNavigationIntent(value)) return true;
+  if (includesAny(value, ["filtruj", "vyfiltruj"]) && includesAny(value, ["portfolio", "galerie", "fotky", "sport", "portret", "ai"])) return true;
+  if (includesAny(value, ["prepn", "zapni", "vypni"]) && includesAny(value, ["tema", "rezim", "svetly", "tmavy", "light", "dark"])) return true;
+  if (includesAny(value, ["vypln", "predvypln", "dopln"]) && includesAny(value, ["formular", "kontakt", "poptavku", "zpravu"])) return true;
+  if (includesAny(value, ["porovnej", "srovnej"]) && includesAny(value, ["sluzby", "ceny", "cenik"])) return true;
+  if (includesAny(value, ["spust", "pust", "prehraj"]) && includesAny(value, ["showreel", "video"])) return true;
+  return false;
 }
 
 function buildDeterministicActionResponse(normalizedText) {
   const text = String(normalizedText || "");
+  const latestGalleryRequest =
+    includesAny(text, ["nejnovejsi", "posledni", "aktualni", "latest", "newest"]) &&
+    includesAny(text, ["fotogalerii", "fotogalerie", "galerii", "galerie", "fotky", "portfolio"]);
+
+  if (latestGalleryRequest && hasExplicitNavigationIntent(text)) {
+    return {
+      text: `Nejnovější fotogalerie je ${LATEST_GALLERY.title} (${LATEST_GALLERY.photos} fotek). Otevírám ji teď.`,
+      actions: [{ tool: "show_project_detail", args: { project_id: LATEST_GALLERY.projectId } }],
+    };
+  }
+
+  const navigation = buildNavigationActionResponse(text);
+  if (navigation) return navigation;
+
   const wantsTheme =
     includesAny(text, ["rezim", "tema", "vzhled", "web", "stranku", "stranky"]) &&
     includesAny(text, ["svetly", "tmavy", "light", "dark", "prepn", "zapni", "vypni"]);
@@ -967,26 +1063,33 @@ function buildFastPathResponse(mode, messages) {
     includesAny(normalized, ["fotogalerii", "fotogalerie", "galerii", "galerie", "fotky", "portfolio"]);
 
   if (asksLatestGallery) {
-    return `Nejnovější fotogalerie je ${LATEST_GALLERY.title} (${LATEST_GALLERY.photos} fotek). Otevírám ji teď. [[ACTION:project:${LATEST_GALLERY.projectId}]]`;
+    if (hasExplicitNavigationIntent(normalized)) {
+      return `Nejnovější fotogalerie je ${LATEST_GALLERY.title} (${LATEST_GALLERY.photos} fotek). Otevírám ji teď. [[ACTION:project:${LATEST_GALLERY.projectId}]]`;
+    }
+    return `Nejnovější fotogalerie je ${LATEST_GALLERY.title} (${LATEST_GALLERY.photos} fotek). Pokud chceš, můžu ji rovnou otevřít.`;
   }
 
   const asksCollaborationList =
     includesAny(normalized, ["s kym spolupracuji", "s kym spolupracujes", "spolupracuji", "spolupracujes", "spoluprace", "reference", "klienti", "partners", "collaboration", "collaborations", "who do you work with"]);
 
   if (asksCollaborationList) {
-    return `Na webu mám uvedené tyto spolupráce: ${formatCollaborations()} [[ACTION:scroll:spoluprace]]`;
+    const action = hasExplicitNavigationIntent(normalized) ? " [[ACTION:scroll:spoluprace]]" : "";
+    return `Na webu mám uvedené tyto spolupráce: ${formatCollaborations()}${action}`;
   }
 
   if (includesAny(normalized, ["kontakt", "email", "mail", "kontaktovat", "contact"])) {
-    return "Kontakt je jednoduchý: napiš na lukas.drsticka@gmail.com nebo přejdi na kontaktní formulář níže. [[ACTION:scroll:kontakt]]";
+    const action = hasExplicitNavigationIntent(normalized) ? " [[ACTION:scroll:kontakt]]" : "";
+    return `Kontakt je jednoduchý: napiš na lukas.drsticka@gmail.com nebo použij kontaktní formulář na webu.${action}`;
   }
 
-  if (includesAny(normalized, ["portfolio", "ukaz portfolio", "show portfolio", "ukaz praci", "prace", "galerie", "galerii", "fotogalerie", "fotogalerii"])) {
-    return "Otevírám portfolio. Najdeš v něm hlavně sportovní zápasy a portréty. [[ACTION:scroll:portfolio]]";
+  if (includesAny(normalized, ["portfolio", "portfolia", "portfoliu", "ukaz portfolio", "show portfolio", "ukaz praci", "prace", "galerie", "galerii", "fotogalerie", "fotogalerii"])) {
+    const action = hasExplicitNavigationIntent(normalized) ? " [[ACTION:scroll:portfolio]]" : "";
+    return `V portfoliu najdeš hlavně sportovní zápasy, portréty a AI projekty.${action}`;
   }
 
-  if (includesAny(normalized, ["sluzby", "sluzba", "foceni", "fotograf", "fotky", "photography", "services"])) {
-    return "Lukáš se zaměřuje hlavně na sport a portréty. Otevírám portfolio, ať vidíš konkrétní ukázky. [[ACTION:scroll:portfolio]]";
+  if (includesAny(normalized, ["sluzby", "sluzba", "sluzbach", "sluzbami", "spoluprace", "spolupraci", "cenik", "ceniku", "foceni", "fotograf", "fotky", "photography", "services"])) {
+    const action = hasExplicitNavigationIntent(normalized) ? " [[ACTION:scroll:spoluprace]]" : "";
+    return `Lukáš se zaměřuje hlavně na sportovní focení, portréty, AI agenty, weby a automatizace.${action}`;
   }
 
   if (includesAny(normalized, ["fotograf ai", "ai editor", "ai projekt", "ai projects"])) {

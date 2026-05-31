@@ -1192,29 +1192,217 @@
     }
   }
 
+  var CHATBOT_SECTION_TARGETS = {
+    'portfolio': {
+      selectors: ['#portfolio'],
+      highlight: 'portfolio-grid',
+      block: 'start'
+    },
+    'skills': {
+      selectors: ['#skills'],
+      highlight: 'skills-grid',
+      block: 'start'
+    },
+    'o-mne': {
+      selectors: ['#o-mne'],
+      highlight: '#o-mne',
+      block: 'start'
+    },
+    'spoluprace': {
+      selectors: ['#spoluprace'],
+      highlight: '#spoluprace',
+      block: 'start'
+    },
+    'kontakt': {
+      selectors: ['#kontakt'],
+      highlight: 'contact-form',
+      block: 'start'
+    },
+    'hybridni-agent': {
+      selectors: ['#hybridni-agent'],
+      highlight: '#hybridni-agent',
+      block: 'start'
+    },
+    'contact-form': {
+      selectors: ['#contactForm', '#contact-form', 'form[name="contact"]'],
+      highlight: 'contact-form',
+      block: 'center'
+    },
+    'pricing': {
+      selectors: ['#pricing', '[data-section="pricing"]', '#spoluprace'],
+      highlight: 'pricing',
+      block: 'start'
+    }
+  };
+
+  var CHATBOT_SECTION_ALIASES = {
+    'portfolio': 'portfolio',
+    'portfolia': 'portfolio',
+    'portfoliu': 'portfolio',
+    'portfoliem': 'portfolio',
+    'galerie': 'portfolio',
+    'fotogalerie': 'portfolio',
+    'fotky': 'portfolio',
+    'fotografie': 'portfolio',
+    'portfolio-grid': 'portfolio',
+    'portfoliogrid': 'portfolio',
+    'skills': 'skills',
+    'dovednosti': 'skills',
+    'dovednostech': 'skills',
+    'schopnosti': 'skills',
+    'schopnostech': 'skills',
+    'skills-grid': 'skills',
+    'skillsgrid': 'skills',
+    'o-mne': 'o-mne',
+    'omne': 'o-mne',
+    'about': 'o-mne',
+    'lukas': 'o-mne',
+    'spoluprace': 'spoluprace',
+    'spolupraci': 'spoluprace',
+    'sluzby': 'spoluprace',
+    'sluzbach': 'spoluprace',
+    'sluzbami': 'spoluprace',
+    'sluzeb': 'spoluprace',
+    'kontakt': 'kontakt',
+    'kontaktu': 'kontakt',
+    'contact': 'kontakt',
+    'formular': 'contact-form',
+    'formulare': 'contact-form',
+    'contactform': 'contact-form',
+    'contact-form': 'contact-form',
+    'cenik': 'pricing',
+    'ceny': 'pricing',
+    'pricing': 'pricing',
+    'agent': 'hybridni-agent',
+    'chat': 'hybridni-agent',
+    'chatbot': 'hybridni-agent',
+    'ai': 'hybridni-agent',
+    'lukas-ai': 'hybridni-agent',
+    'lukasai': 'hybridni-agent',
+    'hybridni-agent': 'hybridni-agent',
+    'hybridniagent': 'hybridni-agent'
+  };
+
+  var CHATBOT_HIGHLIGHT_TARGETS = {
+    'pricing': '#pricing, [data-section="pricing"], #spoluprace',
+    'portfolio-grid': '#portfolioGrid, #portfolio-grid, #portfolio',
+    'portfolio': '#portfolioGrid, #portfolio-grid, #portfolio',
+    'contact-form': '#contactForm, #contact-form, form[name="contact"]',
+    'kontakt': '#contactForm, #contact-form, form[name="contact"], #kontakt',
+    'skills-grid': '#skills-grid, #skills',
+    'skills': '#skills-grid, #skills',
+    'showreel': '#showreel',
+    'spoluprace': '#spoluprace',
+    'o-mne': '#o-mne',
+    'hybridni-agent': '#hybridni-agent'
+  };
+
+  function chatbotNormalizeTargetKey(value) {
+    return String(value || '')
+      .replace(/^#/, '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function chatbotResolveSectionKey(target) {
+    var key = chatbotNormalizeTargetKey(target);
+    if (!key) return '';
+    if (CHATBOT_SECTION_TARGETS[key]) return key;
+    if (CHATBOT_SECTION_ALIASES[key]) return CHATBOT_SECTION_ALIASES[key];
+    var compact = key.replace(/-/g, '');
+    if (CHATBOT_SECTION_ALIASES[compact]) return CHATBOT_SECTION_ALIASES[compact];
+    return key;
+  }
+
+  function chatbotFindBySelectors(selectors) {
+    if (!Array.isArray(selectors)) return null;
+    for (var i = 0; i < selectors.length; i += 1) {
+      try {
+        var el = document.querySelector(selectors[i]);
+        if (el) return el;
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  function chatbotScrollElement(el, block) {
+    if (!el) return false;
+    var behavior = 'smooth';
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        behavior = 'auto';
+      }
+    } catch (e) {}
+    var options = { behavior: behavior, block: block || 'start', inline: 'nearest' };
+    try {
+      el.scrollIntoView(options);
+    } catch (e) {
+      el.scrollIntoView(true);
+    }
+    setTimeout(function() {
+      try { el.scrollIntoView(options); } catch (e) {}
+    }, 450);
+    return true;
+  }
+
+  function chatbotResolveHighlightSelector(target) {
+    var raw = String(target || '').trim();
+    if (!raw) return '';
+    var key = chatbotNormalizeTargetKey(raw);
+    return CHATBOT_HIGHLIGHT_TARGETS[raw] || CHATBOT_HIGHLIGHT_TARGETS[key] || raw;
+  }
+
+  function chatbotHighlightSelector(target) {
+    var selector = chatbotResolveHighlightSelector(target);
+    if (!selector) return false;
+    var el = null;
+    try { el = document.querySelector(selector); } catch (e) {}
+    if (!el && selector.indexOf(',') === -1) {
+      el = document.getElementById(selector.replace(/^#/, ''));
+    }
+    if (!el) return false;
+    el.classList.add('ai-highlight');
+    setTimeout(function() { el.classList.remove('ai-highlight'); }, 3000);
+    return true;
+  }
+
+  function chatbotScrollToSection(target, options) {
+    var settings = options || {};
+    var raw = String(target || '').trim();
+    var key = chatbotResolveSectionKey(raw);
+    var config = CHATBOT_SECTION_TARGETS[key];
+    var el = config ? chatbotFindBySelectors(config.selectors) : null;
+
+    if (!el && raw) {
+      var id = raw.replace(/^#/, '');
+      el = document.getElementById(id) || document.getElementById(chatbotNormalizeTargetKey(raw));
+    }
+    if (!el) return false;
+
+    chatbotScrollElement(el, settings.block || (config && config.block) || 'start');
+
+    var highlight = settings.highlightSelector || (config && config.highlight);
+    if (settings.highlight !== false && highlight) {
+      setTimeout(function() { chatbotHighlightSelector(highlight); }, 480);
+    }
+    return true;
+  }
+
   function chatbotExecuteAction(action) {
     if (!action || !action.type) return;
 
     switch (action.type) {
       case 'scroll':
-        var scrollTargetId = action.target;
-        var scrollBlock = 'start';
-        if (scrollTargetId === 'contactform' || scrollTargetId === 'contact-form') {
-          scrollTargetId = 'contactForm';
-          scrollBlock = 'center';
-        }
-        var scrollTarget = document.getElementById(scrollTargetId);
-        if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: scrollBlock });
+        chatbotScrollToSection(action.target);
         break;
       case 'filter':
         chatbotApplyPortfolioFilter(action.target);
         break;
       case 'highlight':
-        var highlightTarget = document.getElementById(action.target);
-        if (highlightTarget) {
-          highlightTarget.classList.add('ai-highlight');
-          setTimeout(function() { highlightTarget.classList.remove('ai-highlight'); }, 3000);
-        }
+        chatbotHighlightSelector(action.target);
         break;
       case 'project':
         chatbotOpenPortfolioProject(action.target);
@@ -1243,23 +1431,10 @@
 
   var CHATBOT_TOOL_HANDLERS = {
     scroll_to: function(args) {
-      var el = document.getElementById(args.section);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      chatbotScrollToSection(args.section);
     },
     highlight_element: function(args) {
-      var map = {
-        'pricing': '#pricing, [data-section="pricing"]',
-        'portfolio-grid': '#portfolioGrid, #portfolio-grid, #portfolio',
-        'contact-form': '#contactForm, #contact-form, form[name="contact"]',
-        'skills-grid': '#skills-grid, #skills',
-        'showreel': '#showreel'
-      };
-      var sel = map[args.target];
-      if (!sel) return;
-      var el = document.querySelector(sel);
-      if (!el) return;
-      el.classList.add('ai-highlight');
-      setTimeout(function() { el.classList.remove('ai-highlight'); }, 3000);
+      chatbotHighlightSelector(args.target);
     },
     toggle_theme: function(args) {
       var mode = args && args.mode;
@@ -1288,7 +1463,7 @@
     play_showreel: function() {
       var video = document.getElementById('showreel') || document.querySelector('video[data-showreel]');
       if (video && typeof video.play === 'function') {
-        video.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        chatbotScrollElement(video, 'center');
         video.play().catch(function() {});
       }
     },
@@ -1304,7 +1479,11 @@
     },
     show_portfolio_stats: function() {
       var stats = document.getElementById('portfolio-stats');
-      if (stats) stats.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (stats) {
+        chatbotScrollElement(stats, 'center');
+      } else {
+        chatbotScrollToSection('portfolio');
+      }
     },
     prefill_contact_form: function(args) {
       chatbotPrefillContactForm(args, {
@@ -1365,8 +1544,7 @@
     generate_quote_estimate: function() {},
     create_project_brief: function() {},
     show_pricing: function(args) {
-      var pricing = document.getElementById('pricing') || document.querySelector('[data-section="pricing"]');
-      if (pricing) pricing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      chatbotScrollToSection('pricing');
       if (args && args.service) {
         var card = document.querySelector('[data-service="' + args.service + '"]');
         if (card) {
@@ -1376,8 +1554,7 @@
       }
     },
     compare_services: function(args) {
-      var pricing = document.getElementById('pricing');
-      if (pricing) pricing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      chatbotScrollToSection('pricing', { highlight: false });
       [args.service_a, args.service_b].forEach(function(svc) {
         if (!svc) return;
         var card = document.querySelector('[data-service="' + svc + '"]');
@@ -1389,7 +1566,11 @@
     },
     check_availability: function() {
       var avail = document.getElementById('availability') || document.getElementById('kontakt');
-      if (avail) avail.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (avail) {
+        chatbotScrollElement(avail, 'center');
+      } else {
+        chatbotScrollToSection('kontakt');
+      }
     }
   };
 
