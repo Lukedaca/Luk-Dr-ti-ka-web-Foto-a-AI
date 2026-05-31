@@ -99,6 +99,40 @@ const TECHNICAL_BLOCK_TERMS = [
   "zautomatizoval",
 ];
 
+const EXPLICIT_TECHNICAL_HELP_TERMS = [
+  "api",
+  "backend",
+  "bug",
+  "css",
+  "databaze",
+  "debug",
+  "deploy",
+  "docker",
+  "endpoint",
+  "frontend",
+  "github",
+  "git ",
+  "html",
+  "javascript",
+  "kod",
+  "netlify",
+  "node",
+  "npm",
+  "oprav",
+  "php",
+  "program",
+  "python",
+  "react",
+  "script",
+  "skript",
+  "sql",
+  "terminal",
+  "typescript",
+  "vercel",
+  "vite",
+  "zdrojovy kod",
+];
+
 const PUBLIC_KNOWLEDGE = {
   owner: {
     name: "Lukáš Drštička",
@@ -461,7 +495,7 @@ function inferLeadService(normalizedText) {
   if (includesAny(text, ["klubovy web", "klubovni web", "web pro klub", "klubove stranky", "klubovy stranky"])) return "webovy-projekt";
   if (includesAny(text, ["webove stranky", "webovy projekt", "udelat web", "vytvorit web", "novy web", "klubovy web", "web"])) return "webovy-projekt";
   if (includesAny(text, ["chatbot", "ai agent", "agent na miru"])) return "ai-agent-na-miru";
-  if (includesAny(text, ["automatizace", "automatizovat"])) return "automatizace";
+  if (includesAny(text, ["automatizac", "automatizovat"])) return "automatizace";
   if (includesAny(text, ["konzultace", "poradenstvi"])) return "konzultace";
   if (includesAny(text, ["produktove foceni", "produkt"])) return "produktove-foceni";
   if (includesAny(text, ["sportovni foceni", "sport", "utkani", "zapas"])) return "sportovni-foceni";
@@ -528,9 +562,15 @@ function isLeadRequestContext(mode, messages) {
     "brief",
     "domluv",
     "chci",
+    "hledam",
+    "mam zajem",
+    "potrebuju",
     "potrebuji",
     "potrebujem",
+    "pro firmu",
     "je to pro",
+    "udelate",
+    "zajem",
   ]);
 }
 
@@ -727,9 +767,25 @@ function needsInquiryRepair(text, messages) {
   return false;
 }
 
-function isTechnicalSupportRequest(text) {
+function isTechnicalSupportRequest(text, mode = DEFAULT_MODE, messages = []) {
+  if (isLeadRequestContext(mode, messages) && !includesTechnicalHelpTerm(text)) {
+    return false;
+  }
+
   const padded = ` ${text} `;
   return TECHNICAL_BLOCK_TERMS.some((term) => {
+    const normalizedTerm = normalizeText(term);
+    if (!normalizedTerm) return false;
+    if (!normalizedTerm.includes(" ") && normalizedTerm.length <= 4) {
+      return padded.includes(` ${normalizedTerm} `);
+    }
+    return text.includes(normalizedTerm);
+  });
+}
+
+function includesTechnicalHelpTerm(text) {
+  const padded = ` ${text} `;
+  return EXPLICIT_TECHNICAL_HELP_TERMS.some((term) => {
     const normalizedTerm = normalizeText(term);
     if (!normalizedTerm) return false;
     if (!normalizedTerm.includes(" ") && normalizedTerm.length <= 4) {
@@ -1422,7 +1478,7 @@ async function requestVisualActionAnswer({ apiKey, mode, messages, memoryContext
 async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, writer, encoder }) {
   const normalizedLastUser = normalizeText(getLastUserMessage(messages));
 
-  if (isTechnicalSupportRequest(normalizedLastUser)) {
+  if (isTechnicalSupportRequest(normalizedLastUser, mode, messages)) {
     await writeResolvedText(writer, encoder, TECHNICAL_REFUSAL, { mode, fastPath: true, model: "policy-fast-path" });
     return { fullText: TECHNICAL_REFUSAL, actions: [] };
   }

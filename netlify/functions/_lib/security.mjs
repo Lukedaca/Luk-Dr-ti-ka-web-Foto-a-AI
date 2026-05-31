@@ -10,7 +10,6 @@ const ALLOWED_ORIGINS = [
 const ALLOWED_DEV_PATTERNS = [
   /^http:\/\/localhost:\d+$/,
   /^http:\/\/127\.0\.0\.1:\d+$/,
-  /^https:\/\/.+\.netlify\.app$/,
 ];
 
 const BOT_USER_AGENTS = [
