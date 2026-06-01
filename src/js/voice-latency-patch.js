@@ -5,9 +5,8 @@
  * Problem with server TTS:
  * chat stream -> TTS request -> audio generation -> base64 playback = slow first sound.
  *
- * This patch intercepts only /tts calls from chatbot.js and speaks the same text immediately
- * with browser SpeechSynthesis. It prevents double voices by returning an empty TTS payload,
- * so the old OpenAI audio queue has nothing else to play.
+ * This patch used to intercept /tts calls for browser SpeechSynthesis.
+ * Premium voice now stays server-side only, so this fallback remains disabled.
  */
 ;(function voiceLatencyPatchIIFE() {
   'use strict';

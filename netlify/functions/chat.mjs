@@ -26,11 +26,8 @@ import {
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
-const CHAT_MODEL = "gemini-3.5-flash";
-const GEMINI_COMPAT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
-const GEMMA_CHAT_MODEL = "gemini-3.5-flash";
-const GEMMA_FALLBACK_MODELS = ["gemini-3.5-flash"];
-const GEMINI_NATIVE_MODELS = ["gemini-3.5-flash"];
+const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.5-flash";
+const GEMINI_NATIVE_MODELS = [CHAT_MODEL];
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
 
@@ -1272,44 +1269,11 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchChatCompletionFrom(baseUrl, apiKey, payload, label, provider) {
-  let lastResponse = null;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    let response;
-    try {
-      response = await fetch(`${baseUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-    } catch (err) {
-      if (attempt === 1) throw err;
-      console.warn(`LLM ${label} fetch retry:`, err?.message || err);
-      await sleep(450);
-      continue;
-    }
-
-    response.agentProvider = provider;
-    response.agentModel = payload.model;
-    if (response.ok) return response;
-
-    const errText = await response.text().catch(() => "");
-    lastResponse = new Response(errText, { status: response.status, statusText: response.statusText });
-    lastResponse.agentProvider = provider;
-    lastResponse.agentModel = payload.model;
-    console.warn(`LLM ${label} non-ok:`, response.status, errText.slice(0, 500));
-    if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 1) {
-      return lastResponse;
-    }
-    await sleep(550);
-  }
-  return lastResponse || new Response("", { status: 502 });
+function getGeminiApiKey() {
+  return String(process.env.GEMINI_API_KEY || process.env.GEMMA_API_KEY || "").trim();
 }
 
-function openAIToGeminiNativePayload(payload) {
+function chatMessagesToGeminiNativePayload(payload) {
   const messages = Array.isArray(payload.messages) ? payload.messages : [];
   const systemText = messages
     .filter((message) => message.role === "system")
@@ -1363,13 +1327,14 @@ function compatibleTextResponse(text, payload, model, provider) {
 }
 
 async function fetchGeminiNativeCompletion(payload, label) {
-  if (!process.env.GEMMA_API_KEY) return new Response("", { status: 404 });
-  const body = openAIToGeminiNativePayload(payload);
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) return new Response("", { status: 404 });
+  const body = chatMessagesToGeminiNativePayload(payload);
   let lastResponse = null;
 
   for (const model of GEMINI_NATIVE_MODELS) {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${process.env.GEMMA_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -1402,21 +1367,7 @@ async function fetchGeminiNativeCompletion(payload, label) {
 }
 
 async function fetchChatCompletion(apiKey, payload, label) {
-  const needsToolCalling = Array.isArray(payload?.tools) && payload.tools.length > 0;
-  // Primary: native Gemini generateContent API. Google's compatibility layer
-  // returns compatibility-shaped streams, so the code normalizes both providers to
-  // one internal response shape. Native Gemini branch is skipped for tool
-  // calling because it can return prompt-planning text instead of structured
-  // tool_calls.
-  if (!needsToolCalling && process.env.GEMMA_API_KEY) {
-    const native = await fetchGeminiNativeCompletion(payload, label);
-    if (native && native.ok) return native;
-    console.warn(`[chat] native Gemini primary failed for "${label}" - falling back to Gemini compat`);
-  }
-
-  const compat = await fetchChatCompletionFrom(GEMINI_COMPAT_BASE_URL, apiKey, payload, label, "gemini-compat");
-  if (compat.ok) return compat;
-  return compat;
+  return fetchGeminiNativeCompletion(payload, label);
 }
 
 async function requestInquiryRepair({ apiKey, mode, messages, memoryContext, badText }) {
@@ -1638,11 +1589,8 @@ async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, wr
     max_tokens: inquiryRequest ? Math.max(config.maxOutputTokens, 520) : smallTalkRequest ? Math.min(Math.max(config.maxOutputTokens, 260), 360) : config.maxOutputTokens,
     stream: true,
   };
-  if (!smallTalkRequest && !inquiryRequest && ENABLE_TOOLS && Array.isArray(TOOLS) && TOOLS.length) {
-    payload.tools = TOOLS;
-    payload.tool_choice = "auto";
-    payload.parallel_tool_calls = true;
-  }
+  // Pure Gemini mode: actions are emitted via inline ACTION tags from the
+  // system prompt and parsed after generation.
 
   if (inquiryRequest) {
     let fullText = "";
@@ -1908,10 +1856,9 @@ export default async (req) => {
       warm: true,
       provider,
       model: CHAT_MODEL,
-      fallback_provider: {
-        provider: "gemma",
-        configured: !!process.env.GEMMA_API_KEY,
-        model: GEMMA_CHAT_MODEL,
+      gemini: {
+        configured: !!getGeminiApiKey(),
+        model: CHAT_MODEL,
       },
       tools: ENABLE_TOOLS ? TOOLS.map((t) => t.function.name) : [],
       turnstile_required: REQUIRE_TURNSTILE,
@@ -1947,9 +1894,9 @@ export default async (req) => {
   }
   const ip = security.ip || getClientIp(req);
 
-  const apiKey = process.env.GEMMA_API_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
-    return jsonResponse(500, { error: "GEMMA_API_KEY není nastavený v Netlify Environment variables." });
+    return jsonResponse(500, { error: "GEMINI_API_KEY není nastavený v Netlify Environment variables." });
   }
 
   const chatLimit = await checkChatLimit(ip);

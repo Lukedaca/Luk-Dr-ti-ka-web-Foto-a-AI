@@ -4,6 +4,7 @@
 
 const RATE_LIMIT_WINDOW_MS = 3_600_000; // 1 hour
 const RATE_LIMIT_MAX = 3;
+const GEMINI_LIVE_MODEL = process.env.GEMINI_LIVE_MODEL || "gemini-3.1-flash-live-preview";
 const GEMINI_LIVE_VOICE = process.env.GEMINI_LIVE_VOICE || "Charon";
 
 // ── Rate limiter (in-memory, per function instance) ───────────────────────
@@ -58,7 +59,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiKey = process.env.GEMMA_API_KEY;
+  const apiKey = String(process.env.GEMINI_API_KEY || process.env.GEMMA_API_KEY || "").trim();
   if (!apiKey) {
     return {
       statusCode: 500,
@@ -67,7 +68,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-live-preview:generateEphemeralToken?key=${apiKey}`;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_LIVE_MODEL)}:generateEphemeralToken?key=${apiKey}`;
 
   const payload = {
     config: {

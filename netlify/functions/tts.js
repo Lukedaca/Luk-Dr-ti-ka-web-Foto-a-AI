@@ -1,8 +1,5 @@
-const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-2.5-flash-preview-tts";
+const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-3.1-flash-tts-preview";
 const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Charon";
-const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
-const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "sage";
-const OPENAI_SPEECH_URL = "https://api.openai.com/v1/audio/speech";
 const MAX_TEXT_LENGTH = 360;
 const TTS_SAMPLE_RATE = 24000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -55,8 +52,8 @@ function cleanTextForSpeech(value) {
 function makeCacheKey(provider, text, lang) {
   return [
     provider,
-    provider === "openai" ? OPENAI_TTS_MODEL : GEMINI_TTS_MODEL,
-    provider === "openai" ? OPENAI_TTS_VOICE : GEMINI_TTS_VOICE,
+    GEMINI_TTS_MODEL,
+    GEMINI_TTS_VOICE,
     String(lang || "cs-CZ").toLowerCase(),
     text,
   ].join("::");
@@ -78,32 +75,12 @@ function setCachedAudio(key, value) {
   }
 }
 
-function isLikelyOpenAiApiKey(value) {
-  return /^sk-(proj-)?[A-Za-z0-9_-]{20,}$/.test(String(value || "").trim());
-}
-
-function getOpenAiTtsApiKey() {
-  const dedicatedKey = String(process.env.OPENAI_TTS_API_KEY || "").trim();
-  if (dedicatedKey) return dedicatedKey;
-
-  const sharedKey = String(process.env.OPENAI_API_KEY || "").trim();
-  return isLikelyOpenAiApiKey(sharedKey) ? sharedKey : "";
-}
-
 function getGeminiTtsApiKey() {
   return String(
-    process.env.GEMINI_TTS_API_KEY ||
     process.env.GEMINI_API_KEY ||
     process.env.GEMMA_API_KEY ||
     ""
   ).trim();
-}
-
-function buildOpenAiInstructions(lang) {
-  const isEnglish = String(lang || "").toLowerCase().startsWith("en");
-  return isEnglish
-    ? "Voice for Lukas AI: sound like a focused creative studio partner, not a generic assistant. Warm, calm, modern, slightly lower register, with a subtle human smile. Use natural micro-pauses after commas, keep energy controlled, avoid radio-announcer, call-center or salesy intonation. Speak exactly the input text."
-    : "Hlas pro Lukas AI: zni jako soustředěný kreativní parťák ze studia, ne jako generický asistent. Přirozeně česky, klidně, teple, trochu nižší poloha hlasu, civilní energie a jemný úsměv v hlase. Dělej krátké lidské pauzy po čárkách, nezněj jako reklama, moderátor ani call centrum. Přečti přesně zadaný text.";
 }
 
 function buildGeminiPrompt(text, lang) {
@@ -114,44 +91,6 @@ function buildGeminiPrompt(text, lang) {
       : "Přečti přesně text níže jako Lukas AI. Hlas má být osobitý: teplý studiový parťák, klidná jistota, trochu nižší poloha, přirozené krátké pauzy, žádný generický asistent ani reklamní tón.",
     text,
   ].join("\n");
-}
-
-async function generateOpenAiSpeechPayload(apiKey, text, lang) {
-  const response = await fetch(OPENAI_SPEECH_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: OPENAI_TTS_MODEL,
-      voice: OPENAI_TTS_VOICE,
-      input: text,
-      instructions: buildOpenAiInstructions(lang),
-      response_format: "pcm",
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text().catch(() => "");
-    console.error("OpenAI TTS error:", response.status, errText.slice(0, 500));
-    throw new Error(`OpenAI TTS failed: ${response.status}`);
-  }
-
-  const audioBuffer = Buffer.from(await response.arrayBuffer());
-  if (!audioBuffer.length) {
-    throw new Error("OpenAI TTS returned empty audio");
-  }
-
-  return {
-    audio: audioBuffer.toString("base64"),
-    mimeType: "audio/pcm;rate=24000",
-    sampleRate: TTS_SAMPLE_RATE,
-    lang,
-    provider: "openai",
-    model: OPENAI_TTS_MODEL,
-    voice: OPENAI_TTS_VOICE,
-  };
 }
 
 async function generateGeminiSpeechPayload(apiKey, text, lang) {
@@ -198,30 +137,14 @@ async function generateGeminiSpeechPayload(apiKey, text, lang) {
   };
 }
 
-async function generateSpeechPayload({ openAiApiKey, geminiApiKey, text, lang }) {
-  const providers = [];
-  if (openAiApiKey) providers.push("openai");
-  if (geminiApiKey) providers.push("gemini");
+async function generateSpeechPayload({ geminiApiKey, text, lang }) {
+  const cacheKey = makeCacheKey("gemini", text, lang);
+  const cached = getCachedAudio(cacheKey);
+  if (cached) return { ...cached, cached: true };
 
-  let lastError = null;
-  for (const provider of providers) {
-    const cacheKey = makeCacheKey(provider, text, lang);
-    const cached = getCachedAudio(cacheKey);
-    if (cached) return { ...cached, cached: true };
-
-    try {
-      const speech = provider === "openai"
-        ? await generateOpenAiSpeechPayload(openAiApiKey, text, lang)
-        : await generateGeminiSpeechPayload(geminiApiKey, text, lang);
-      setCachedAudio(cacheKey, speech);
-      return speech;
-    } catch (err) {
-      lastError = err;
-      console.warn(`${provider} TTS failed, trying next provider if available:`, err?.message || err);
-    }
-  }
-
-  throw lastError || new Error("No TTS provider configured");
+  const speech = await generateGeminiSpeechPayload(geminiApiKey, text, lang);
+  setCachedAudio(cacheKey, speech);
+  return speech;
 }
 
 async function handler(event) {
@@ -230,17 +153,15 @@ async function handler(event) {
   }
 
   if (event.httpMethod === "GET" || event.httpMethod === "HEAD") {
-    const openAiTtsApiKey = getOpenAiTtsApiKey();
     const geminiTtsApiKey = getGeminiTtsApiKey();
     return jsonResponse(200, {
       ok: true,
       warm: true,
       providers: {
-        openai: !!openAiTtsApiKey,
         gemini: !!geminiTtsApiKey,
       },
-      model: openAiTtsApiKey ? OPENAI_TTS_MODEL : GEMINI_TTS_MODEL,
-      voice: openAiTtsApiKey ? OPENAI_TTS_VOICE : GEMINI_TTS_VOICE,
+      model: GEMINI_TTS_MODEL,
+      voice: GEMINI_TTS_VOICE,
       sampleRate: TTS_SAMPLE_RATE,
       cacheSize: audioCache.size,
     });
@@ -259,11 +180,10 @@ async function handler(event) {
     return jsonResponse(429, { error: "Příliš mnoho TTS požadavků. Zkus to za chvíli." });
   }
 
-  const openAiApiKey = getOpenAiTtsApiKey();
   const geminiApiKey = getGeminiTtsApiKey();
-  if (!openAiApiKey && !geminiApiKey) {
+  if (!geminiApiKey) {
     return jsonResponse(503, {
-      error: "Prémiový hlas není nastavený. Nastav OPENAI_TTS_API_KEY nebo GEMINI_TTS_API_KEY.",
+      error: "Gemini hlas není nastavený. Nastav GEMINI_API_KEY v Netlify Environment variables.",
     });
   }
 
@@ -281,7 +201,7 @@ async function handler(event) {
   }
 
   try {
-    const speech = await generateSpeechPayload({ openAiApiKey, geminiApiKey, text, lang });
+    const speech = await generateSpeechPayload({ geminiApiKey, text, lang });
     return jsonResponse(200, speech);
   } catch (err) {
     console.error("TTS function error:", err);
