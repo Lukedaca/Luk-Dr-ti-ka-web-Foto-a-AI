@@ -1,7 +1,7 @@
 const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-2.5-flash-preview-tts";
-const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Puck";
+const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Charon";
 const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
-const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "coral";
+const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "sage";
 const OPENAI_SPEECH_URL = "https://api.openai.com/v1/audio/speech";
 const MAX_TEXT_LENGTH = 360;
 const TTS_SAMPLE_RATE = 24000;
@@ -81,16 +81,16 @@ function setCachedAudio(key, value) {
 function buildOpenAiInstructions(lang) {
   const isEnglish = String(lang || "").toLowerCase().startsWith("en");
   return isEnglish
-    ? "Voice for Lukas AI: natural, warm, clear, modern, calm and confident. Neutral international English accent. Keep a conversational pace and speak exactly the input text."
-    : "Hlas pro Lukas AI: přirozený, příjemný, jasný, moderní, klidný a sebejistý. Mluv česky, civilně, bez přehnané reklamní intonace. Drž konverzační tempo a přečti přesně zadaný text.";
+    ? "Voice for Lukas AI: sound like a focused creative studio partner, not a generic assistant. Warm, calm, modern, slightly lower register, with a subtle human smile. Use natural micro-pauses after commas, keep energy controlled, avoid radio-announcer, call-center or salesy intonation. Speak exactly the input text."
+    : "Hlas pro Lukas AI: zni jako soustředěný kreativní parťák ze studia, ne jako generický asistent. Přirozeně česky, klidně, teple, trochu nižší poloha hlasu, civilní energie a jemný úsměv v hlase. Dělej krátké lidské pauzy po čárkách, nezněj jako reklama, moderátor ani call centrum. Přečti přesně zadaný text.";
 }
 
 function buildGeminiPrompt(text, lang) {
   const isEnglish = String(lang || "").toLowerCase().startsWith("en");
   return [
     isEnglish
-      ? "Read in a warm, natural, conversational tone. Speak exactly this text:"
-      : "Přečti přirozeným, lidským a přátelským tónem. Mluv přesně tento text:",
+      ? "Read exactly the text below as Lukas AI. Make the voice distinctive: warm studio partner, calm confidence, slightly lower register, natural micro-pauses, no generic assistant tone, no sales pitch."
+      : "Přečti přesně text níže jako Lukas AI. Hlas má být osobitý: teplý studiový parťák, klidná jistota, trochu nižší poloha, přirozené krátké pauzy, žádný generický asistent ani reklamní tón.",
     text,
   ].join("\n");
 }

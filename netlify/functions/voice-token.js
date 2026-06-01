@@ -4,6 +4,7 @@
 
 const RATE_LIMIT_WINDOW_MS = 3_600_000; // 1 hour
 const RATE_LIMIT_MAX = 3;
+const GEMINI_LIVE_VOICE = process.env.GEMINI_LIVE_VOICE || "Charon";
 
 // ── Rate limiter (in-memory, per function instance) ───────────────────────
 const ipHits = new Map();
@@ -114,6 +115,7 @@ exports.handler = async (event) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({
         token: data.token,
+        voiceName: GEMINI_LIVE_VOICE,
         expiresAt: data.expiresAt || data.expirationTime || Date.now() + 120_000,
       }),
     };

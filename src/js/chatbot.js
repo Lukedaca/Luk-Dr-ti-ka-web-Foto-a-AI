@@ -21,9 +21,9 @@
   var CHATBOT_CAN_SERVER_TTS = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
   var CHATBOT_CAN_SPEAK = !!(CHATBOT_CAN_NATIVE_SPEAK || CHATBOT_CAN_SERVER_TTS);
   var CHATBOT_TTS_SAMPLE_RATE = 24000;
-  var CHATBOT_TTS_FIRST_STRONG_MIN = 4;
-  var CHATBOT_TTS_FIRST_SOFT_MIN = 24;
-  var CHATBOT_TTS_FIRST_HARD_MAX = 100;
+  var CHATBOT_TTS_FIRST_STRONG_MIN = 18;
+  var CHATBOT_TTS_FIRST_SOFT_MIN = 52;
+  var CHATBOT_TTS_FIRST_HARD_MAX = 160;
   var CHATBOT_TTS_NEXT_STRONG_MIN = 48;
   var CHATBOT_TTS_NEXT_SOFT_MIN = 140;
   var CHATBOT_TTS_NEXT_HARD_MAX = 300;
@@ -471,13 +471,32 @@
     if (!chatbotNativeSpeech || !chatbotNativeSpeech.getVoices) return null;
     var voices = chatbotNativeSpeech.getVoices() || [];
     if (!voices.length) return null;
-    var langPrefix = String(lang || 'cs-CZ').slice(0, 2).toLowerCase();
+    var requestedLang = String(lang || 'cs-CZ').toLowerCase();
+    var langPrefix = requestedLang.slice(0, 2);
+    var preferredNames = [
+      'jakub', 'google cestina', 'microsoft czech', 'czech',
+      'aria', 'guy', 'jenny', 'google us english', 'microsoft english'
+    ];
+    var bestVoice = null;
+    var bestScore = -1;
     for (var i = 0; i < voices.length; i++) {
-      if (String(voices[i].lang || '').toLowerCase().slice(0, 2) === langPrefix) {
-        return voices[i];
+      var voice = voices[i];
+      var voiceLang = String(voice.lang || '').toLowerCase();
+      var voiceName = String(voice.name || '').toLowerCase();
+      var score = 0;
+      if (voiceLang === requestedLang) score += 80;
+      if (voiceLang.slice(0, 2) === langPrefix) score += 45;
+      if (voice.localService) score += 8;
+      if (/natural|online|neural|premium|enhanced|google|microsoft|apple/.test(voiceName)) score += 16;
+      for (var j = 0; j < preferredNames.length; j++) {
+        if (voiceName.indexOf(preferredNames[j]) !== -1) score += 22;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestVoice = voice;
       }
     }
-    return null;
+    return bestScore > 0 ? bestVoice : null;
   }
 
   function chatbotSpeakNativeText(text, lang, requestId, interrupt) {
@@ -488,8 +507,8 @@
       if (interrupt) chatbotNativeSpeech.cancel();
       var utterance = new window.SpeechSynthesisUtterance(text);
       utterance.lang = lang || 'cs-CZ';
-      utterance.rate = 1;
-      utterance.pitch = 1;
+      utterance.rate = String(utterance.lang).toLowerCase().indexOf('en') === 0 ? 0.98 : 0.95;
+      utterance.pitch = String(utterance.lang).toLowerCase().indexOf('en') === 0 ? 0.94 : 0.9;
       utterance.volume = 1;
 
       var voice = chatbotFindNativeVoice(utterance.lang);
@@ -506,9 +525,9 @@
   function chatbotUseNativeSpeechFirst() {
     if (!CHATBOT_CAN_NATIVE_SPEAK) return false;
     try {
-      return window.localStorage.getItem(CHATBOT_FAST_NATIVE_VOICE_KEY) !== 'off';
+      return window.localStorage.getItem(CHATBOT_FAST_NATIVE_VOICE_KEY) === 'on';
     } catch (err) {
-      return true;
+      return false;
     }
   }
 

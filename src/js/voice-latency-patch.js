@@ -21,9 +21,9 @@
 
   function isFastNativeEnabled() {
     try {
-      return window.localStorage.getItem(FAST_NATIVE_KEY) !== 'off';
+      return window.localStorage.getItem(FAST_NATIVE_KEY) === 'on';
     } catch (err) {
-      return true;
+      return false;
     }
   }
 
@@ -63,11 +63,20 @@
     if (!voices.length) return null;
 
     var langPrefix = lang.slice(0, 2).toLowerCase();
+    var preferredNames = [
+      'jakub', 'google cestina', 'microsoft czech', 'czech',
+      'aria', 'guy', 'jenny', 'google us english', 'microsoft english'
+    ];
     var exact = voices.find(function(v) { return String(v.lang || '').toLowerCase() === lang.toLowerCase(); });
     var prefix = voices.find(function(v) { return String(v.lang || '').toLowerCase().slice(0, 2) === langPrefix; });
     var local = voices.find(function(v) { return v.localService && String(v.lang || '').toLowerCase().slice(0, 2) === langPrefix; });
+    var preferred = voices.find(function(v) {
+      var name = String(v.name || '').toLowerCase();
+      return String(v.lang || '').toLowerCase().slice(0, 2) === langPrefix
+        && preferredNames.some(function(part) { return name.indexOf(part) !== -1; });
+    });
 
-    selectedVoiceByLang[lang] = local || exact || prefix || null;
+    selectedVoiceByLang[lang] = preferred || local || exact || prefix || null;
     return selectedVoiceByLang[lang];
   }
 
@@ -94,8 +103,8 @@
       var voice = getBestVoice(normalizedLang);
 
       utterance.lang = normalizedLang;
-      utterance.rate = normalizedLang === 'en-US' ? 1.04 : 1.06;
-      utterance.pitch = 1;
+      utterance.rate = normalizedLang === 'en-US' ? 0.98 : 0.95;
+      utterance.pitch = normalizedLang === 'en-US' ? 0.94 : 0.9;
       utterance.volume = 1;
       if (voice) utterance.voice = voice;
 
