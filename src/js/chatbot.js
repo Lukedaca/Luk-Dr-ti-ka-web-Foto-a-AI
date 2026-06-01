@@ -122,7 +122,7 @@
       voiceShortOff: isEn ? 'Voice off' : 'Hlas vyp.',
       voiceEnabledMessage: isEn ? 'Voice replies are enabled. Keep typing and I will answer aloud as well.' : 'Hlasové odpovědi jsou zapnuté. Klidně piš, budu odpovídat i nahlas.',
       voiceDisabledMessage: isEn ? 'Voice replies are disabled. I will answer only in text now.' : 'Hlasové odpovědi jsou vypnuté. Budu už jen psát.',
-      voicePremiumUnavailable: isEn ? 'Premium voice is not available right now, so I will not use the rough browser voice.' : 'Prémiový hlas teď není dostupný, takže nepustím ten hrubý browserový hlas.',
+      voiceGeminiUnavailable: isEn ? 'Gemini TTS voice is not available right now, so I will keep replying in text.' : 'Gemini TTS hlas teď není dostupný, takže zatím odpovím textem.',
       publicAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
       widgetAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
       defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslím to s tebou a navrhnu další krok.'
@@ -489,7 +489,7 @@
       if (voiceLang === requestedLang) score += 80;
       if (voiceLang.slice(0, 2) === langPrefix) score += 45;
       if (voice.localService) score += 8;
-      if (/natural|online|neural|premium|enhanced|google|microsoft|apple/.test(voiceName)) score += 16;
+      if (/natural|online|neural|enhanced|google|microsoft|apple/.test(voiceName)) score += 16;
       for (var j = 0; j < preferredNames.length; j++) {
         if (voiceName.indexOf(preferredNames[j]) !== -1) score += 22;
       }
@@ -708,7 +708,7 @@
   function chatbotShowVoiceOutputErrorOnce() {
     if (chatbotState.voiceOutputErrorShown) return;
     chatbotState.voiceOutputErrorShown = true;
-    var message = chatbotLocale().voicePremiumUnavailable;
+    var message = chatbotLocale().voiceGeminiUnavailable;
     chatbotState.messages.push({ role: 'assistant', content: message });
     chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', message);
     chatbotRenderBubble(chatbotDOM.messages, 'assistant', message);

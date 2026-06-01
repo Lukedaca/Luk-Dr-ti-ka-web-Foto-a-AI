@@ -710,7 +710,7 @@ function loadChatbotStack() {
 
     chatbotLoadPromise = new Promise((resolve) => {
         const finish = () => {
-            loadModule('/dist/js/chatbot.min.js?v=20', () => {
+            loadModule('/dist/js/chatbot.min.js?v=21', () => {
                 console.log('Chatbot module loaded');
                 loadModule('/dist/js/voice.min.js?v=12', () => {
                     console.log('Voice module loaded');

@@ -5,8 +5,8 @@
  * Problem with server TTS:
  * chat stream -> TTS request -> audio generation -> base64 playback = slow first sound.
  *
- * This patch used to intercept /tts calls for browser SpeechSynthesis.
- * Premium voice now stays server-side only, so this fallback remains disabled.
+ * Gemini TTS is the only spoken-reply path.
+ * This legacy low-latency hook remains disabled.
  */
 ;(function voiceLatencyPatchIIFE() {
   'use strict';
