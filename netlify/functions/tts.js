@@ -78,6 +78,27 @@ function setCachedAudio(key, value) {
   }
 }
 
+function isLikelyOpenAiApiKey(value) {
+  return /^sk-(proj-)?[A-Za-z0-9_-]{20,}$/.test(String(value || "").trim());
+}
+
+function getOpenAiTtsApiKey() {
+  const dedicatedKey = String(process.env.OPENAI_TTS_API_KEY || "").trim();
+  if (dedicatedKey) return dedicatedKey;
+
+  const sharedKey = String(process.env.OPENAI_API_KEY || "").trim();
+  return isLikelyOpenAiApiKey(sharedKey) ? sharedKey : "";
+}
+
+function getGeminiTtsApiKey() {
+  return String(
+    process.env.GEMINI_TTS_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GEMMA_API_KEY ||
+    ""
+  ).trim();
+}
+
 function buildOpenAiInstructions(lang) {
   const isEnglish = String(lang || "").toLowerCase().startsWith("en");
   return isEnglish
@@ -209,14 +230,17 @@ async function handler(event) {
   }
 
   if (event.httpMethod === "GET" || event.httpMethod === "HEAD") {
+    const openAiTtsApiKey = getOpenAiTtsApiKey();
+    const geminiTtsApiKey = getGeminiTtsApiKey();
     return jsonResponse(200, {
       ok: true,
       warm: true,
       providers: {
-        openai: !!process.env.OPENAI_API_KEY,
-        gemini: !!process.env.GEMMA_API_KEY,
+        openai: !!openAiTtsApiKey,
+        gemini: !!geminiTtsApiKey,
       },
-      model: process.env.OPENAI_API_KEY ? OPENAI_TTS_MODEL : GEMINI_TTS_MODEL,
+      model: openAiTtsApiKey ? OPENAI_TTS_MODEL : GEMINI_TTS_MODEL,
+      voice: openAiTtsApiKey ? OPENAI_TTS_VOICE : GEMINI_TTS_VOICE,
       sampleRate: TTS_SAMPLE_RATE,
       cacheSize: audioCache.size,
     });
@@ -235,10 +259,12 @@ async function handler(event) {
     return jsonResponse(429, { error: "Příliš mnoho TTS požadavků. Zkus to za chvíli." });
   }
 
-  const openAiApiKey = process.env.OPENAI_API_KEY;
-  const geminiApiKey = process.env.GEMMA_API_KEY;
+  const openAiApiKey = getOpenAiTtsApiKey();
+  const geminiApiKey = getGeminiTtsApiKey();
   if (!openAiApiKey && !geminiApiKey) {
-    return jsonResponse(503, { error: "TTS API key není nastavený." });
+    return jsonResponse(503, {
+      error: "Prémiový hlas není nastavený. Nastav OPENAI_TTS_API_KEY nebo GEMINI_TTS_API_KEY.",
+    });
   }
 
   let body;

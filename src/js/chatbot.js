@@ -19,7 +19,7 @@
   var CHATBOT_MEMORY_PROMPT_KEY = 'lukas_ai_memory_prompted';
   var CHATBOT_CAN_NATIVE_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
   var CHATBOT_CAN_SERVER_TTS = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
-  var CHATBOT_CAN_SPEAK = !!(CHATBOT_CAN_NATIVE_SPEAK || CHATBOT_CAN_SERVER_TTS);
+  var CHATBOT_CAN_SPEAK = !!CHATBOT_CAN_SERVER_TTS;
   var CHATBOT_TTS_SAMPLE_RATE = 24000;
   var CHATBOT_TTS_FIRST_STRONG_MIN = 18;
   var CHATBOT_TTS_FIRST_SOFT_MIN = 52;
@@ -122,6 +122,7 @@
       voiceShortOff: isEn ? 'Voice off' : 'Hlas vyp.',
       voiceEnabledMessage: isEn ? 'Voice replies are enabled. Keep typing and I will answer aloud as well.' : 'Hlasové odpovědi jsou zapnuté. Klidně piš, budu odpovídat i nahlas.',
       voiceDisabledMessage: isEn ? 'Voice replies are disabled. I will answer only in text now.' : 'Hlasové odpovědi jsou vypnuté. Budu už jen psát.',
+      voicePremiumUnavailable: isEn ? 'Premium voice is not available right now, so I will not use the rough browser voice.' : 'Prémiový hlas teď není dostupný, takže nepustím ten hrubý browserový hlas.',
       publicAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
       widgetAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
       defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslím to s tebou a navrhnu další krok.'
@@ -241,6 +242,7 @@
     mode: CHATBOT_DEFAULT_MODE,
     workbench: chatbotDefaultWorkbench(CHATBOT_DEFAULT_MODE),
     voiceOutputEnabled: false,
+    voiceOutputErrorShown: false,
     preferredSpeechLang: 'cs-CZ',
     sessionId: null,
     visitorId: null,
@@ -523,12 +525,7 @@
   }
 
   function chatbotUseNativeSpeechFirst() {
-    if (!CHATBOT_CAN_NATIVE_SPEAK) return false;
-    try {
-      return window.localStorage.getItem(CHATBOT_FAST_NATIVE_VOICE_KEY) === 'on';
-    } catch (err) {
-      return false;
-    }
+    return false;
   }
 
   function chatbotEnsurePlaybackContext() {
@@ -701,11 +698,20 @@
       })
       .catch(function(err) {
         console.error('Chatbot TTS error:', err);
-        chatbotSpeakNativeText(text, lang, requestId, false);
+        chatbotShowVoiceOutputErrorOnce();
         slot.ready = true;
         slot.audio = null;
         chatbotDrainAudioQueue();
       });
+  }
+
+  function chatbotShowVoiceOutputErrorOnce() {
+    if (chatbotState.voiceOutputErrorShown) return;
+    chatbotState.voiceOutputErrorShown = true;
+    var message = chatbotLocale().voicePremiumUnavailable;
+    chatbotState.messages.push({ role: 'assistant', content: message });
+    chatbotRenderBubble(chatbotDOM.heroMessages, 'assistant', message);
+    chatbotRenderBubble(chatbotDOM.messages, 'assistant', message);
   }
 
   function chatbotUpdateSpeechToggleButtons() {

@@ -20,11 +20,7 @@
   var lastSpokenAt = 0;
 
   function isFastNativeEnabled() {
-    try {
-      return window.localStorage.getItem(FAST_NATIVE_KEY) === 'on';
-    } catch (err) {
-      return false;
-    }
+    return false;
   }
 
   function isVoiceOutputEnabled() {
