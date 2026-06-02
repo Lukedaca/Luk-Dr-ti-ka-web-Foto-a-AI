@@ -116,7 +116,10 @@ async function generateGeminiSpeechPayload(apiKey, text, lang) {
   if (!response.ok) {
     const errText = await response.text().catch(() => "");
     console.error("Gemini TTS error:", response.status, errText.slice(0, 500));
-    throw new Error(`Gemini TTS failed: ${response.status}`);
+    const err = new Error(`Gemini TTS failed: ${response.status}`);
+    err.upstreamStatus = response.status;
+    err.upstreamBody = errText.slice(0, 300);
+    throw err;
   }
 
   const data = await response.json().catch(() => null);
@@ -205,7 +208,11 @@ async function handler(event) {
     return jsonResponse(200, speech);
   } catch (err) {
     console.error("TTS function error:", err);
-    return jsonResponse(502, { error: "TTS se nepodařilo vygenerovat." });
+    return jsonResponse(502, {
+      error: "TTS se nepodařilo vygenerovat.",
+      upstreamStatus: err?.upstreamStatus || null,
+      upstreamBody: err?.upstreamBody || null,
+    });
   }
 }
 
