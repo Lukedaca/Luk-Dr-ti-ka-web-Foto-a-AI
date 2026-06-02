@@ -1788,6 +1788,37 @@
     }, CHATBOT_GHOST_HIDE_MS);
   }
 
+  // ===== Engine: interrupt watcher (Pilíř 3, recykluje i Pilíř 2) =====
+  // Hlídá REÁLNÝ vstup uživatele během agentova autonomního tahu.
+  // Agentův scroll dělá jen 'scroll' event a .click() jen 'click' — ty nehlídáme,
+  // takže není potřeba příznak agent-vs-uživatel.
+  var CHATBOT_INTERRUPT_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+  var CHATBOT_AGENT_UI_SELECTOR = '#chatbot-tour-hud, .chatbot-tour-overlay, #chatbot-ghost-cursor';
+  var chatbotInterruptHandler = null;
+
+  function chatbotInterruptOnEvent(e) {
+    if (!chatbotInterruptHandler) return;
+    var node = e && e.target;
+    if (node && node.closest && node.closest(CHATBOT_AGENT_UI_SELECTOR)) return; // vlastní UI agenta
+    var fn = chatbotInterruptHandler;
+    chatbotInterruptDisarm();
+    try { fn(e); } catch (err) {}
+  }
+
+  function chatbotInterruptArm(onInterrupt) {
+    chatbotInterruptHandler = onInterrupt;
+    CHATBOT_INTERRUPT_EVENTS.forEach(function (t) {
+      window.addEventListener(t, chatbotInterruptOnEvent, { capture: true, passive: true });
+    });
+  }
+
+  function chatbotInterruptDisarm() {
+    chatbotInterruptHandler = null;
+    CHATBOT_INTERRUPT_EVENTS.forEach(function (t) {
+      window.removeEventListener(t, chatbotInterruptOnEvent, { capture: true });
+    });
+  }
+
   // ===== Engine: runAction pipeline =====
   // Jednotný vstup pro každou akci (chat i tour). Fáze: resolve -> execute -> point.
   // Další pilíře (barge-in / převzetí řízení) se doplní do fází zde, ne do handlerů.
@@ -1975,21 +2006,82 @@
     });
   }
 
+  // Stav na úrovni modulu kvůli pauze/resume (Pilíř 3 — převzetí řízení)
+  var chatbotTourSteps = [];
+  var chatbotTourStepLang = 'cs';
+  var chatbotTourIndex = 0;
+  var chatbotTourPaused = false;
+
   function chatbotTourRun(steps, lang) {
-    var i = 0;
-    function step() {
+    chatbotTourSteps = steps;
+    chatbotTourStepLang = lang;
+    chatbotTourIndex = 0;
+    chatbotTourPaused = false;
+    chatbotInterruptArm(chatbotTourOnUserTakeover);
+    chatbotTourStep();
+  }
+
+  function chatbotTourStep() {
+    if (chatbotTourAborted) { chatbotTourFinish(); return; }
+    if (chatbotTourPaused) return;
+    if (chatbotTourIndex >= chatbotTourSteps.length) { chatbotTourFinish(); return; }
+    var s = chatbotTourSteps[chatbotTourIndex];
+    chatbotTourUpdateHud(chatbotTourIndex, chatbotTourSteps.length, s.say);
+    chatbotTourSpeak(s.say, chatbotTourStepLang).then(function() {
       if (chatbotTourAborted) { chatbotTourFinish(); return; }
-      if (i >= steps.length) { chatbotTourFinish(); return; }
-      var s = steps[i];
-      chatbotTourUpdateHud(i, steps.length, s.say);
-      chatbotTourSpeak(s.say, lang).then(function() {
-        if (chatbotTourAborted) { chatbotTourFinish(); return; }
-        try { chatbotRunAction(s.tool, s.args || {}); } catch (e) {}
-        i++;
-        chatbotTourTimer = setTimeout(step, 1100);
-      });
-    }
-    step();
+      if (chatbotTourPaused) return; // pauza přišla během řeči — krok se zopakuje po resume
+      try { chatbotRunAction(s.tool, s.args || {}); } catch (e) {}
+      chatbotTourIndex++;
+      chatbotTourTimer = setTimeout(chatbotTourStep, 1100);
+    });
+  }
+
+  function chatbotTourOnUserTakeover() {
+    if (!chatbotTourActive || chatbotTourPaused || chatbotTourAborted) return;
+    chatbotTourPause();
+  }
+
+  function chatbotTourPause() {
+    chatbotTourPaused = true;
+    if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
+    chatbotStopSpeech();
+    if (chatbotGhostEl) chatbotGhostEl.classList.remove('cb-ghost-visible');
+    chatbotInterruptDisarm();
+    chatbotTourRenderPausedHud();
+  }
+
+  function chatbotTourResume() {
+    if (!chatbotTourActive || !chatbotTourPaused) return;
+    chatbotTourPaused = false;
+    chatbotTourRenderHud();
+    chatbotInterruptArm(chatbotTourOnUserTakeover);
+    chatbotTourStep();
+  }
+
+  function chatbotTourRenderPausedHud() {
+    chatbotTourRemoveHud();
+    var t = chatbotTourStrings() || {};
+    var isEn = chatbotTourLang() === 'en';
+    var txtBadge = t.takeoverBadge || (isEn ? 'You are driving' : 'Řídíš ty');
+    var txtResume = t.resume || (isEn ? '▶ Resume tour' : '▶ Pokračovat');
+    var txtDone = t.done || (isEn ? 'Done' : 'Hotovo');
+    var txtCaption = t.takeover || (isEn
+      ? 'You took control — explore freely. I will continue the tour whenever you want.'
+      : 'Převzal jsi řízení — klidně si web projdi. Až budeš chtít, pokračuju v ukázce.');
+    var hud = document.createElement('div'); hud.className = 'chatbot-tour-hud'; hud.id = 'chatbot-tour-hud';
+    var top = document.createElement('div'); top.className = 'chatbot-tour-hud-top';
+    var badge = document.createElement('span'); badge.className = 'chatbot-tour-badge';
+    var dot = document.createElement('span'); dot.className = 'dot';
+    var blabel = document.createElement('span'); blabel.textContent = txtBadge;
+    badge.appendChild(dot); badge.appendChild(blabel);
+    var resume = document.createElement('button'); resume.type = 'button'; resume.className = 'chatbot-tour-btn'; resume.textContent = txtResume;
+    resume.addEventListener('click', chatbotTourResume);
+    var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'chatbot-tour-btn stop'; stop.textContent = txtDone;
+    stop.addEventListener('click', chatbotTourStop);
+    top.appendChild(badge); top.appendChild(resume); top.appendChild(stop);
+    var cap = document.createElement('div'); cap.className = 'chatbot-tour-caption'; cap.textContent = txtCaption;
+    hud.appendChild(top); hud.appendChild(cap);
+    document.body.appendChild(hud);
   }
 
   function chatbotTourFetchSteps(context, lang) {
@@ -2037,6 +2129,8 @@
 
   function chatbotTourFinish() {
     chatbotTourActive = false;
+    chatbotTourPaused = false;
+    chatbotInterruptDisarm();
     if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
     chatbotStopSpeech();
     chatbotTourRemoveHud();
