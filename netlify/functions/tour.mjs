@@ -169,7 +169,7 @@ async function generateTour({ apiKey, lang, context }) {
         contents: [{ role: "user", parts: [{ text: userText }] }],
         generationConfig: {
           temperature: 0.6,
-          maxOutputTokens: 900,
+          maxOutputTokens: 3072,
           responseMimeType: "application/json",
         },
       }),
