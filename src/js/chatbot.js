@@ -1367,6 +1367,24 @@
     'hybridni-agent': '#hybridni-agent'
   };
 
+  // ===== Site Adapter (FrameMind) =====
+  // Jediné místo, kde žijí site-specifická fakta tohoto webu.
+  // Engine (resolver/runAction) sahá výhradně sem — nikdy ne na selektory napřímo.
+  // Drop na jiný web = přepojit hodnoty tady, engine se nemění.
+  var CHATBOT_SITE_MANIFEST = {
+    sectionTargets: CHATBOT_SECTION_TARGETS,
+    sectionAliases: CHATBOT_SECTION_ALIASES,
+    highlightTargets: CHATBOT_HIGHLIGHT_TARGETS,
+    projectLinks: CHATBOT_PROJECT_LINKS,
+    serviceCardSelector: function (service) {
+      return '[data-service="' + String(service || '').replace(/"/g, '') + '"]';
+    },
+    contactStatusId: 'contactStatus',
+    portfolioStatsId: 'portfolio-stats',
+    availabilityId: 'availability',
+    latestProjectId: 'sport-12'
+  };
+
   function chatbotNormalizeTargetKey(value) {
     return String(value || '')
       .replace(/^#/, '')
