@@ -1964,7 +1964,9 @@
     skip.addEventListener('click', chatbotTourSkip);
     var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'chatbot-tour-btn stop'; stop.textContent = t.stop;
     stop.addEventListener('click', chatbotTourStop);
-    top.appendChild(badge); top.appendChild(dots); top.appendChild(skip); top.appendChild(stop);
+    top.appendChild(badge); top.appendChild(dots);
+    if (chatbotTourLiveAvailable()) top.appendChild(chatbotTourLiveBtn());
+    top.appendChild(skip); top.appendChild(stop);
     var cap = document.createElement('div'); cap.className = 'chatbot-tour-caption'; cap.id = 'chatbot-tour-caption';
     hud.appendChild(top); hud.appendChild(cap);
     document.body.appendChild(hud);
@@ -2058,6 +2060,29 @@
     chatbotTourStep();
   }
 
+  // ===== Pilíř 2 — barge-in přes předání do full-duplex Live hlasu =====
+  // Spolehlivá detekce řeči nad skriptovaným TTS = echo. Proto explicitní vstup:
+  // tlačítko pozastaví tour a otevře aiVoice (Gemini Live), kde barge-in jede nativně.
+  function chatbotTourLiveAvailable() {
+    return !!(window.aiVoice && typeof window.aiVoice.start === 'function');
+  }
+
+  function chatbotTourLiveBtn() {
+    var isEn = chatbotTourLang() === 'en';
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chatbot-tour-btn live';
+    b.textContent = isEn ? '🎤 Talk live' : '🎤 Mluvit';
+    b.addEventListener('click', chatbotTourGoLive);
+    return b;
+  }
+
+  function chatbotTourGoLive() {
+    if (chatbotTourActive && !chatbotTourPaused) chatbotTourPause();
+    if (!chatbotTourLiveAvailable()) return; // fallback: zůstane pauza
+    try { window.aiVoice.start(); } catch (e) {}
+  }
+
   function chatbotTourRenderPausedHud() {
     chatbotTourRemoveHud();
     var t = chatbotTourStrings() || {};
@@ -2078,7 +2103,9 @@
     resume.addEventListener('click', chatbotTourResume);
     var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'chatbot-tour-btn stop'; stop.textContent = txtDone;
     stop.addEventListener('click', chatbotTourStop);
-    top.appendChild(badge); top.appendChild(resume); top.appendChild(stop);
+    top.appendChild(badge);
+    if (chatbotTourLiveAvailable()) top.appendChild(chatbotTourLiveBtn());
+    top.appendChild(resume); top.appendChild(stop);
     var cap = document.createElement('div'); cap.className = 'chatbot-tour-caption'; cap.textContent = txtCaption;
     hud.appendChild(top); hud.appendChild(cap);
     document.body.appendChild(hud);
