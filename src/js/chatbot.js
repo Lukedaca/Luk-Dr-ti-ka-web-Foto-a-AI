@@ -1517,6 +1517,54 @@
     });
   }
 
+  // ===== Engine: resolver (čistý, bez side-efektů) =====
+  // Z tool+args vrátí cílový DOM prvek pomocí Site Adapteru. Nic nemění.
+  // Slouží pilíři 1 (ghost kurzor) — kam má kurzor najet a co rozsvítit.
+  function chatbotManifestSectionEl(sectionKey) {
+    var key = chatbotResolveSectionKey(sectionKey);
+    var config = CHATBOT_SITE_MANIFEST.sectionTargets[key];
+    return config ? chatbotFindBySelectors(config.selectors) : null;
+  }
+
+  function chatbotQuerySafe(selector) {
+    if (!selector) return null;
+    try { return document.querySelector(selector); } catch (e) { return null; }
+  }
+
+  function chatbotResolveTarget(tool, args) {
+    args = args || {};
+    var M = CHATBOT_SITE_MANIFEST;
+    switch (tool) {
+      case 'scroll_to':
+        return chatbotManifestSectionEl(args.section);
+      case 'highlight_element':
+        return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target));
+      case 'filter_gallery':
+        return chatbotManifestSectionEl('portfolio');
+      case 'show_pricing':
+      case 'compare_services':
+        return chatbotQuerySafe(M.highlightTargets.pricing);
+      case 'prefill_contact_form':
+      case 'send_inquiry':
+        return chatbotQuerySafe(M.highlightTargets['contact-form']);
+      case 'show_project_detail':
+        return chatbotQuerySafe('[data-project-id="' + String(args.project_id || '').replace(/[^a-z0-9_-]/gi, '') + '"]')
+          || chatbotManifestSectionEl('portfolio');
+      case 'open_lightbox':
+        return chatbotQuerySafe('[data-image-id="' + String(args.image_id || '').replace(/"/g, '') + '"]');
+      case 'compare_before_after':
+        return chatbotQuerySafe('[data-before-after="' + String(args.image_id || '').replace(/"/g, '') + '"]');
+      case 'play_showreel':
+        return chatbotQuerySafe(M.highlightTargets.showreel);
+      case 'show_portfolio_stats':
+        return document.getElementById(M.portfolioStatsId) || chatbotManifestSectionEl('portfolio');
+      case 'check_availability':
+        return document.getElementById(M.availabilityId) || chatbotManifestSectionEl('kontakt');
+      default:
+        return null;
+    }
+  }
+
   var CHATBOT_TOOL_HANDLERS = {
     scroll_to: function(args) {
       chatbotScrollToSection(args.section);
