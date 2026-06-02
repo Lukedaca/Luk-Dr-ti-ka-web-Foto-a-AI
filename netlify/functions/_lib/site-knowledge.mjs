@@ -45,16 +45,6 @@ const PUBLIC_KNOWLEDGE = {
   ],
   collaborations: [
     {
-      name: "eKultura",
-      type: "reálná spolupráce / projekty",
-      description: "Spolupráce na reálných projektech v oblasti webu, AI a automatizace.",
-    },
-    {
-      name: "DIV.cz",
-      type: "koncept / chatbot pro zábavní doporučení",
-      description: "Návrh chatbota pro doporučování filmů, seriálů, her a knih ve stylu DIV.cz.",
-    },
-    {
       name: "1.FC Viktorie Přerov",
       type: "fotbalový klub / vizuální a sportovní obsah",
       description: "Tvorba sportovního a klubového vizuálního obsahu.",
