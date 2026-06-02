@@ -213,7 +213,6 @@ async function handler(event) {
     return jsonResponse(502, {
       error: "TTS se nepodařilo vygenerovat.",
       upstreamStatus: err?.upstreamStatus || null,
-      upstreamBody: err?.upstreamBody || null,
     });
   }
 }
