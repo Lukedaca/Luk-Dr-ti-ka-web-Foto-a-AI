@@ -1270,7 +1270,13 @@ function sleep(ms) {
 }
 
 function getGeminiApiKey() {
-  return String(process.env.GEMINI_API_KEY || process.env.GEMMA_API_KEY || "").trim();
+  return String(
+    process.env.GEMINI_API_KEY ||
+    process.env.GEMMA_API_KEY ||
+    process.env.Gemini ||
+    process.env.GEMINI ||
+    ""
+  ).trim();
 }
 
 function chatMessagesToGeminiNativePayload(payload) {

@@ -79,6 +79,8 @@ function getGeminiTtsApiKey() {
   return String(
     process.env.GEMINI_API_KEY ||
     process.env.GEMMA_API_KEY ||
+    process.env.Gemini ||
+    process.env.GEMINI ||
     ""
   ).trim();
 }
