@@ -23,6 +23,7 @@ import {
   normalizeVisitorId,
   updateVisitorMemory,
 } from "./_lib/visitor-memory.mjs";
+import { LATEST_GALLERY, PUBLIC_KNOWLEDGE } from "./_lib/site-knowledge.mjs";
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
@@ -30,13 +31,6 @@ const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.5-flash";
 const GEMINI_NATIVE_MODELS = [CHAT_MODEL];
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
-
-const LATEST_GALLERY = {
-  title: "Přerov vs Velká Bystřice 2.5.2026",
-  projectId: "sport-12",
-  url: "/galerie/prerov-vs-velka-bystrice/",
-  photos: 23,
-};
 
 const TECHNICAL_REFUSAL =
   "Tenhle chat není určený pro programování, buildění ani technické návody. Pomůžu s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
@@ -129,69 +123,6 @@ const EXPLICIT_TECHNICAL_HELP_TERMS = [
   "vite",
   "zdrojovy kod",
 ];
-
-const PUBLIC_KNOWLEDGE = {
-  owner: {
-    name: "Lukáš Drštička",
-    location: "Přerov",
-    email: "lukas.drsticka@gmail.com",
-    roles: ["fotograf", "AI builder", "webový vývojář", "automatizace"],
-  },
-  services: [
-    "sportovní fotografie (zápasy, utkání, sportovní akce)",
-    "portrétní fotografie",
-    "AI chatboti",
-    "AI agenti",
-    "automatizace webu a firemních procesů",
-    "jednoduché webové stránky",
-  ],
-  projects: [
-    {
-      name: "Fotograf AI",
-      type: "AI projekt",
-      description: "AI editor pro fotografy zaměřený na zrychlení úprav a zachování kontroly nad výsledkem.",
-    },
-    {
-      name: "Zábavní chatbot",
-      type: "AI projekt",
-      description: "Chatbot pro doporučování filmů, seriálů, her a knih podle dotazu uživatele.",
-    },
-    {
-      name: "Hybridní agent / Lukáš AI",
-      type: "webový AI agent",
-      description: "Veřejný agent na osobním webu, který umí odpovídat textem i hlasem a navigovat uživatele po webu.",
-    },
-  ],
-  collaborations: [
-    {
-      name: "eKultura",
-      type: "reálná spolupráce / projekty",
-      description: "Spolupráce na reálných projektech v oblasti webu, AI a automatizace.",
-    },
-    {
-      name: "DIV.cz",
-      type: "koncept / chatbot pro zábavní doporučení",
-      description: "Návrh chatbota pro doporučování filmů, seriálů, her a knih ve stylu DIV.cz.",
-    },
-    {
-      name: "1.FC Viktorie Přerov",
-      type: "fotbalový klub / vizuální a sportovní obsah",
-      description: "Tvorba sportovního a klubového vizuálního obsahu.",
-    },
-  ],
-  portfolioHighlights: [
-    "Sigma Olomouc vs Mainz",
-    "Přerov vs Brodek 14.3.2026",
-    "Přerov vs Postřelmov 28.3.2026",
-    "Přerov vs Mohelnice 18.4.2026",
-    "SK Sigma Olomouc vs 1.FC Slovácko 19.4.2026",
-    "Přerov vs Velká Bystřice 2.5.2026",
-    "portrétní galerie",
-    "sportovní fotografie",
-    "AI projekty",
-  ],
-  latestGallery: LATEST_GALLERY,
-};
 
 const MODE_CONFIG = {
   talk: {
