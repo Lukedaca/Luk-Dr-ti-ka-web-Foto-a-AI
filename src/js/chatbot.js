@@ -1717,16 +1717,94 @@
     try { handler(action.args || {}); } catch (err) { console.warn('Tool handler error:', action.tool, err); }
   }
 
+  // ===== Engine: ghost kurzor (Pilíř 1) =====
+  // Viditelná "ruka agenta" — po akci najede na cíl a ťukne (spotlight pulz).
+  // pointer-events:none => nikdy neblokuje klik uživatele (důležité pro pilíř 3).
+  var CHATBOT_GHOST_ENABLED = true;
+  var CHATBOT_GHOST_SETTLE_MS = 420;   // počkat, než smooth-scroll dorovná cíl
+  var CHATBOT_GHOST_HIDE_MS = 2200;    // po nečinnosti kurzor zmizí
+  var chatbotGhostEl = null;
+  var chatbotGhostStyleInjected = false;
+  var chatbotGhostHideTimer = null;
+
+  function chatbotReducedMotion() {
+    try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+    catch (e) { return false; }
+  }
+
+  function chatbotGhostEnsureStyle() {
+    if (chatbotGhostStyleInjected) return;
+    chatbotGhostStyleInjected = true;
+    var css =
+      '#chatbot-ghost-cursor{position:fixed;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;' +
+      'z-index:2147482000;pointer-events:none;opacity:0;will-change:transform,opacity;' +
+      'transition:transform .58s cubic-bezier(.22,.61,.36,1),opacity .25s ease;}' +
+      '#chatbot-ghost-cursor .cb-ghost-dot{position:absolute;inset:0;border-radius:50%;' +
+      'background:radial-gradient(circle at 50% 50%,#fff 0%,#eafff4 38%,rgba(0,255,140,.9) 60%,rgba(0,255,140,0) 72%);' +
+      'box-shadow:0 0 14px 4px rgba(0,255,140,.55),0 0 3px 1px rgba(255,255,255,.9);}' +
+      '#chatbot-ghost-cursor .cb-ghost-ring{position:absolute;inset:-6px;border-radius:50%;' +
+      'border:2px solid rgba(0,255,140,.75);opacity:0;}' +
+      '#chatbot-ghost-cursor.cb-ghost-visible{opacity:1;}' +
+      '#chatbot-ghost-cursor.cb-ghost-tap .cb-ghost-ring{animation:cbGhostTap .55s ease-out;}' +
+      '@keyframes cbGhostTap{0%{opacity:.9;transform:scale(.5);}100%{opacity:0;transform:scale(2.1);}}' +
+      '@media (prefers-reduced-motion: reduce){#chatbot-ghost-cursor{transition:opacity .2s ease;}' +
+      '#chatbot-ghost-cursor.cb-ghost-tap .cb-ghost-ring{animation:none;}}';
+    var style = document.createElement('style');
+    style.id = 'chatbot-ghost-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  function chatbotGhostEnsureEl() {
+    if (chatbotGhostEl && document.body.contains(chatbotGhostEl)) return chatbotGhostEl;
+    chatbotGhostEnsureStyle();
+    var el = document.createElement('div');
+    el.id = 'chatbot-ghost-cursor';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = '<span class="cb-ghost-ring"></span><span class="cb-ghost-dot"></span>';
+    document.body.appendChild(el);
+    chatbotGhostEl = el;
+    return el;
+  }
+
+  function chatbotGhostPointAt(target) {
+    if (!CHATBOT_GHOST_ENABLED || !target || typeof target.getBoundingClientRect !== 'function') return;
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var x = Math.max(24, Math.min(rect.left + rect.width / 2, vw - 24));
+    var y = Math.max(24, Math.min(rect.top + rect.height / 2, vh - 24));
+    var el = chatbotGhostEnsureEl();
+    el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+    el.classList.add('cb-ghost-visible');
+    // retrigger tap animace
+    el.classList.remove('cb-ghost-tap');
+    void el.offsetWidth;
+    el.classList.add('cb-ghost-tap');
+    if (chatbotGhostHideTimer) clearTimeout(chatbotGhostHideTimer);
+    chatbotGhostHideTimer = setTimeout(function () {
+      if (chatbotGhostEl) chatbotGhostEl.classList.remove('cb-ghost-visible');
+    }, CHATBOT_GHOST_HIDE_MS);
+  }
+
   // ===== Engine: runAction pipeline =====
-  // Jednotný vstup pro každou akci (chat i tour). Fáze: resolve -> (point) -> execute -> (settle).
-  // Pilíře (ghost kurzor / barge-in / převzetí řízení) se doplní do fází zde, ne do handlerů.
+  // Jednotný vstup pro každou akci (chat i tour). Fáze: resolve -> execute -> point.
+  // Další pilíře (barge-in / převzetí řízení) se doplní do fází zde, ne do handlerů.
   function chatbotRunAction(tool, args) {
     if (typeof tool !== 'string') return;
     args = args || {};
-    // FÁZE resolve — výsledek zatím nevyužit (pilíř 1 sem doplní ghost kurzor + spotlight)
-    try { chatbotResolveTarget(tool, args); } catch (e) {}
+    // FÁZE resolve — kam akce míří (pro ghost kurzor)
+    var target = null;
+    try { target = chatbotResolveTarget(tool, args); } catch (e) {}
     // FÁZE execute — beze změny
     chatbotExecuteToolCall({ tool: tool, args: args });
+    // FÁZE point — ghost kurzor najede na cíl po dorovnání scrollu (čerstvý rect)
+    if (target) {
+      setTimeout(function () {
+        try { chatbotGhostPointAt(target); } catch (e) {}
+      }, CHATBOT_GHOST_SETTLE_MS);
+    }
   }
 
   function chatbotExecuteActions(actions) {
