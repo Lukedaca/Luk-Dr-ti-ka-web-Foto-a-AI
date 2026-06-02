@@ -125,7 +125,30 @@
       voiceGeminiUnavailable: isEn ? 'Gemini TTS voice is not available right now, so I will keep replying in text.' : 'Gemini TTS hlas teď není dostupný, takže zatím odpovím textem.',
       publicAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
       widgetAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
-      defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslím to s tebou a navrhnu další krok.'
+      defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslím to s tebou a navrhnu další krok.',
+      tour: {
+        launch: isEn ? 'Live demo' : 'Živá ukázka',
+        pickTitle: isEn ? 'Pick your field — the agent tailors the demo live' : 'Vyber obor — agent ukázku přizpůsobí naživo',
+        pickHint: isEn ? 'Watch it talk and drive the page hands-free.' : 'Sleduj, jak mluví a sám ovládá stránku.',
+        fields: isEn
+          ? [
+              { label: 'E-shop', value: 'online e-shop' },
+              { label: 'Services', value: 'company providing services' },
+              { label: 'Restaurant', value: 'restaurant / café' },
+              { label: 'General demo', value: '' }
+            ]
+          : [
+              { label: 'E-shop', value: 'e-shop' },
+              { label: 'Služby', value: 'firma poskytující služby' },
+              { label: 'Restaurace', value: 'restaurace / kavárna' },
+              { label: 'Obecná ukázka', value: '' }
+            ],
+        loading: isEn ? 'Preparing your live demo…' : 'Připravuju živou ukázku…',
+        badge: isEn ? 'LIVE DEMO' : 'ŽIVÁ UKÁZKA',
+        stop: isEn ? 'Stop' : 'Zastavit',
+        skip: isEn ? 'Skip' : 'Přeskočit',
+        cancel: isEn ? 'Cancel' : 'Zrušit'
+      }
     };
   }
 
@@ -728,6 +751,12 @@
       button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
       button.textContent = index === 0 ? heroLabel : widgetLabel;
     });
+
+    var tourBtn = document.getElementById('hero-tour-btn');
+    if (tourBtn && locale.tour) {
+      var tourLabel = tourBtn.querySelector('.agent-tour-launch-label');
+      if (tourLabel) tourLabel.textContent = locale.tour.launch;
+    }
   }
 
   function chatbotSetVoiceOutput(enabled, options) {
@@ -1629,6 +1658,234 @@
     });
   }
 
+  // ===== Živá ukázka — agent-driven tour =====
+  var CHATBOT_TOUR_API_URL = '/.netlify/functions/tour';
+  var chatbotTourActive = false;
+  var chatbotTourAborted = false;
+  var chatbotTourTimer = null;
+  var chatbotTourStyleInjected = false;
+
+  var CHATBOT_TOUR_FALLBACK = {
+    cs: [
+      { say: 'Ráda vám naživo ukážu, co tenhle hybridní agent zvládne.', tool: 'scroll_to', args: { section: 'hybridni-agent' } },
+      { say: 'Tohle je hybridní agent — mluví a zároveň sám ovládá celý web.', tool: 'highlight_element', args: { target: 'skills-grid' } },
+      { say: 'Takhle bych vašim klientům ukázala portfolio.', tool: 'filter_gallery', args: { category: 'all' } },
+      { say: 'A čísla, která budují důvěru.', tool: 'show_portfolio_stats', args: {} },
+      { say: 'A takhle nezávazně chytnete poptávku.', tool: 'scroll_to', args: { section: 'kontakt' } },
+      { say: 'Formulář jsem pro ukázku rovnou předvyplnila.', tool: 'prefill_contact_form', args: { name: 'Ukázková firma', email: 'ukazka@vase-firma.cz', service: 'ai-agent-na-miru', message: 'Chceme na web hybridního agenta jako tenhle.' } }
+    ],
+    en: [
+      { say: 'Let me show you live what this hybrid agent can do.', tool: 'scroll_to', args: { section: 'hybridni-agent' } },
+      { say: 'This is the hybrid agent — it talks and drives the whole site itself.', tool: 'highlight_element', args: { target: 'skills-grid' } },
+      { say: 'This is how I would show your clients the portfolio.', tool: 'filter_gallery', args: { category: 'all' } },
+      { say: 'And the numbers that build trust.', tool: 'show_portfolio_stats', args: {} },
+      { say: 'And this is how you capture a lead, no pressure.', tool: 'scroll_to', args: { section: 'kontakt' } },
+      { say: 'I pre-filled the contact form for the demo.', tool: 'prefill_contact_form', args: { name: 'Demo Company', email: 'demo@your-company.com', service: 'ai-agent-na-miru', message: 'We want a hybrid agent like this on our site.' } }
+    ]
+  };
+
+  function chatbotTourLang() { return chatbotLanguage() === 'en' ? 'en' : 'cs'; }
+  function chatbotTourStrings() { return chatbotLocale().tour; }
+  function chatbotTourFallback(lang) { return CHATBOT_TOUR_FALLBACK[lang] || CHATBOT_TOUR_FALLBACK.cs; }
+
+  function chatbotTourEnsureStyle() {
+    if (chatbotTourStyleInjected) return;
+    chatbotTourStyleInjected = true;
+    var css = [
+      '.agent-tour-launch{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .8rem;border-radius:999px;font-size:.8rem;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,.18);background:linear-gradient(90deg,#2563eb,#7c3aed);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,opacity .15s}',
+      '.agent-tour-launch:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(124,58,237,.35)}',
+      '.agent-tour-launch:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none}',
+      '.agent-tour-launch>span:first-child{font-size:.62rem;line-height:1}',
+      '.chatbot-tour-overlay{position:fixed;inset:0;z-index:9998;display:flex;align-items:center;justify-content:center;background:rgba(5,6,15,.72);backdrop-filter:blur(6px);padding:1rem}',
+      '.chatbot-tour-card{max-width:30rem;width:100%;background:rgba(17,18,32,.96);border:1px solid rgba(255,255,255,.12);border-radius:1.25rem;padding:1.5rem;color:#fff;box-shadow:0 24px 60px rgba(0,0,0,.5)}',
+      '.chatbot-tour-card h4{font-size:1.15rem;font-weight:800;margin:0 0 .35rem}',
+      '.chatbot-tour-card p{font-size:.85rem;color:rgba(255,255,255,.6);margin:0 0 1rem}',
+      '.chatbot-tour-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}',
+      '.chatbot-tour-chip{flex:1 1 calc(50% - .5rem);padding:.7rem .6rem;border-radius:.85rem;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-weight:600;font-size:.9rem;cursor:pointer;transition:background .15s,border-color .15s}',
+      '.chatbot-tour-chip:hover{background:linear-gradient(90deg,rgba(37,99,235,.3),rgba(124,58,237,.3));border-color:rgba(124,58,237,.6)}',
+      '.chatbot-tour-cancel{display:block;margin:0 auto;background:none;border:none;color:rgba(255,255,255,.5);font-size:.8rem;cursor:pointer;padding:.3rem}',
+      '.chatbot-tour-hud{position:fixed;left:50%;bottom:1.1rem;transform:translateX(-50%);z-index:9999;width:min(40rem,calc(100vw - 1.5rem));background:rgba(17,18,32,.97);border:1px solid rgba(124,58,237,.4);border-radius:1.1rem;padding:.85rem 1rem;color:#fff;box-shadow:0 16px 44px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:.55rem;animation:chatbotTourIn .25s ease}',
+      '@keyframes chatbotTourIn{from{opacity:0}to{opacity:1}}',
+      '.chatbot-tour-hud-top{display:flex;align-items:center;gap:.6rem}',
+      '.chatbot-tour-badge{display:inline-flex;align-items:center;gap:.4rem;font-size:.65rem;font-weight:800;letter-spacing:.08em;color:#c4b5fd;white-space:nowrap}',
+      '.chatbot-tour-badge .dot{width:.5rem;height:.5rem;border-radius:50%;background:#a855f7;animation:chatbotTourPulse 1s infinite}',
+      '@keyframes chatbotTourPulse{0%,100%{opacity:1}50%{opacity:.3}}',
+      '.chatbot-tour-dots{display:flex;gap:.3rem;flex:1;flex-wrap:wrap}',
+      '.chatbot-tour-dots i{width:.45rem;height:.45rem;border-radius:50%;background:rgba(255,255,255,.2)}',
+      '.chatbot-tour-dots i.on{background:linear-gradient(90deg,#2563eb,#7c3aed)}',
+      '.chatbot-tour-btn{padding:.3rem .7rem;border-radius:.6rem;font-size:.78rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff}',
+      '.chatbot-tour-btn.stop{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5)}',
+      '.chatbot-tour-caption{font-size:.95rem;line-height:1.4;font-weight:500}'
+    ].join('');
+    var style = document.createElement('style');
+    style.id = 'chatbot-tour-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  function chatbotTourClosePicker() {
+    var ov = document.getElementById('chatbot-tour-overlay');
+    if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+  }
+
+  function chatbotTourOpenPicker() {
+    if (chatbotTourActive) return;
+    chatbotTourEnsureStyle();
+    chatbotTourClosePicker();
+    var t = chatbotTourStrings();
+    var ov = document.createElement('div');
+    ov.className = 'chatbot-tour-overlay';
+    ov.id = 'chatbot-tour-overlay';
+    var card = document.createElement('div');
+    card.className = 'chatbot-tour-card';
+    var h = document.createElement('h4'); h.textContent = t.pickTitle;
+    var p = document.createElement('p'); p.textContent = t.pickHint;
+    var chips = document.createElement('div'); chips.className = 'chatbot-tour-chips';
+    t.fields.forEach(function(f) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chatbot-tour-chip'; b.textContent = f.label;
+      b.addEventListener('click', function() { chatbotTourStart(f.value); });
+      chips.appendChild(b);
+    });
+    var cancel = document.createElement('button');
+    cancel.type = 'button'; cancel.className = 'chatbot-tour-cancel'; cancel.textContent = t.cancel;
+    cancel.addEventListener('click', chatbotTourClosePicker);
+    card.appendChild(h); card.appendChild(p); card.appendChild(chips); card.appendChild(cancel);
+    ov.appendChild(card);
+    ov.addEventListener('click', function(e) { if (e.target === ov) chatbotTourClosePicker(); });
+    document.body.appendChild(ov);
+  }
+
+  function chatbotTourRemoveHud() {
+    var h = document.getElementById('chatbot-tour-hud');
+    if (h && h.parentNode) h.parentNode.removeChild(h);
+  }
+
+  function chatbotTourRenderHud() {
+    chatbotTourRemoveHud();
+    var t = chatbotTourStrings();
+    var hud = document.createElement('div'); hud.className = 'chatbot-tour-hud'; hud.id = 'chatbot-tour-hud';
+    var top = document.createElement('div'); top.className = 'chatbot-tour-hud-top';
+    var badge = document.createElement('span'); badge.className = 'chatbot-tour-badge';
+    var dot = document.createElement('span'); dot.className = 'dot';
+    var blabel = document.createElement('span'); blabel.textContent = t.badge;
+    badge.appendChild(dot); badge.appendChild(blabel);
+    var dots = document.createElement('div'); dots.className = 'chatbot-tour-dots'; dots.id = 'chatbot-tour-dots';
+    var skip = document.createElement('button'); skip.type = 'button'; skip.className = 'chatbot-tour-btn'; skip.textContent = t.skip;
+    skip.addEventListener('click', chatbotTourSkip);
+    var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'chatbot-tour-btn stop'; stop.textContent = t.stop;
+    stop.addEventListener('click', chatbotTourStop);
+    top.appendChild(badge); top.appendChild(dots); top.appendChild(skip); top.appendChild(stop);
+    var cap = document.createElement('div'); cap.className = 'chatbot-tour-caption'; cap.id = 'chatbot-tour-caption';
+    hud.appendChild(top); hud.appendChild(cap);
+    document.body.appendChild(hud);
+  }
+
+  function chatbotTourUpdateHud(idx, total, caption) {
+    var cap = document.getElementById('chatbot-tour-caption');
+    if (cap) cap.textContent = caption || '';
+    var dots = document.getElementById('chatbot-tour-dots');
+    if (dots) {
+      dots.innerHTML = '';
+      for (var k = 0; k < total; k++) {
+        var i = document.createElement('i');
+        if (k <= idx) i.className = 'on';
+        dots.appendChild(i);
+      }
+    }
+  }
+
+  function chatbotTourSpeak(text, lang) {
+    return new Promise(function(resolve) {
+      var fallbackDelay = Math.min(6000, 1400 + (text ? text.length : 0) * 45);
+      if (!CHATBOT_CAN_SERVER_TTS || !text) { setTimeout(resolve, fallbackDelay); return; }
+      var ttsLang = lang === 'en' ? 'en-US' : 'cs-CZ';
+      chatbotStopSpeech();
+      var rid = chatbotSpeechRequestId;
+      chatbotRequestSpeechAudio(text, ttsLang)
+        .then(function(data) {
+          if (chatbotTourAborted || rid !== chatbotSpeechRequestId) { resolve(); return; }
+          if (data && data.audio) {
+            chatbotPlayQueuedBuffer(data.audio, data.sampleRate || CHATBOT_TTS_SAMPLE_RATE, rid)
+              .then(function() { resolve(); })
+              .catch(function() { resolve(); });
+          } else {
+            setTimeout(resolve, fallbackDelay);
+          }
+        })
+        .catch(function() { setTimeout(resolve, fallbackDelay); });
+    });
+  }
+
+  function chatbotTourRun(steps, lang) {
+    var i = 0;
+    function step() {
+      if (chatbotTourAborted) { chatbotTourFinish(); return; }
+      if (i >= steps.length) { chatbotTourFinish(); return; }
+      var s = steps[i];
+      chatbotTourUpdateHud(i, steps.length, s.say);
+      chatbotTourSpeak(s.say, lang).then(function() {
+        if (chatbotTourAborted) { chatbotTourFinish(); return; }
+        try { chatbotExecuteToolCall({ tool: s.tool, args: s.args || {} }); } catch (e) {}
+        i++;
+        chatbotTourTimer = setTimeout(step, 1100);
+      });
+    }
+    step();
+  }
+
+  function chatbotTourFetchSteps(context, lang) {
+    return fetch(CHATBOT_TOUR_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang: lang, context: context || '' })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        return (d && Array.isArray(d.steps) && d.steps.length >= 3) ? d.steps : chatbotTourFallback(lang);
+      })
+      .catch(function() { return chatbotTourFallback(lang); });
+  }
+
+  function chatbotTourStart(context) {
+    if (chatbotTourActive) return;
+    chatbotTourActive = true;
+    chatbotTourAborted = false;
+    chatbotTourEnsureStyle();
+    chatbotTourClosePicker();
+    try { chatbotWarmPlaybackContext(); chatbotPrewarmTts(); } catch (e) {}
+    var lang = chatbotTourLang();
+    var btn = document.getElementById('hero-tour-btn');
+    if (btn) btn.disabled = true;
+    chatbotTourRenderHud();
+    chatbotTourUpdateHud(-1, 0, chatbotTourStrings().loading);
+    chatbotTourFetchSteps(context, lang).then(function(steps) {
+      if (chatbotTourAborted) { chatbotTourFinish(); return; }
+      chatbotTourRun(steps, lang);
+    });
+  }
+
+  function chatbotTourSkip() {
+    if (!chatbotTourActive) return;
+    chatbotStopSpeech();
+  }
+
+  function chatbotTourStop() {
+    chatbotTourAborted = true;
+    if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
+    chatbotStopSpeech();
+    chatbotTourFinish();
+  }
+
+  function chatbotTourFinish() {
+    chatbotTourActive = false;
+    if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
+    chatbotStopSpeech();
+    chatbotTourRemoveHud();
+    var btn = document.getElementById('hero-tour-btn');
+    if (btn) btn.disabled = false;
+  }
+
   function chatbotSendTranscript() {
     if (chatbotState.notificationSent || chatbotState.messages.length < 2) return;
     chatbotState.notificationSent = true;
@@ -2164,6 +2421,12 @@
 
     if (chatbotDOM.heroSpeechToggle) {
       chatbotDOM.heroSpeechToggle.addEventListener('click', chatbotToggleVoiceOutput);
+    }
+
+    chatbotDOM.heroTourBtn = document.getElementById('hero-tour-btn');
+    if (chatbotDOM.heroTourBtn) {
+      chatbotTourEnsureStyle();
+      chatbotDOM.heroTourBtn.addEventListener('click', chatbotTourOpenPicker);
     }
 
     chatbotDOM.modeButtons.forEach(function(btn) {
