@@ -158,6 +158,7 @@ async function generateTour({ apiKey, lang, context }) {
     ? `lang=${lang}; obor/kontext firmy: ${context}`
     : `lang=${lang}; obecná firma bez upřesnění oboru`;
 
+  const dbg = { stage: "start" };
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(TOUR_MODEL)}:generateContent?key=${apiKey}`,
     {
@@ -175,22 +176,31 @@ async function generateTour({ apiKey, lang, context }) {
     }
   );
 
+  dbg.status = response.status;
   if (!response.ok) {
     const errText = await response.text().catch(() => "");
+    dbg.stage = "http_error";
+    dbg.body = errText.slice(0, 400);
     console.error("Tour gen error:", response.status, errText.slice(0, 300));
-    return null;
+    return { steps: null, dbg };
   }
 
   const data = await response.json().catch(() => null);
   const text = data?.candidates?.[0]?.content?.parts?.map((p) => p?.text || "").join("") || "";
+  dbg.finishReason = data?.candidates?.[0]?.finishReason || null;
+  dbg.rawText = text.slice(0, 600);
   let parsed;
   try {
     parsed = JSON.parse(text);
   } catch (err) {
+    dbg.stage = "parse_fail";
     console.error("Tour JSON parse fail:", text.slice(0, 200));
-    return null;
+    return { steps: null, dbg };
   }
-  return validateSteps(parsed?.steps, lang);
+  const steps = validateSteps(parsed?.steps, lang);
+  dbg.stage = steps ? "ok" : "validation_dropped";
+  dbg.rawStepCount = Array.isArray(parsed?.steps) ? parsed.steps.length : null;
+  return { steps, dbg };
 }
 
 export default async (req) => {
@@ -234,14 +244,15 @@ export default async (req) => {
     return jsonResponse(200, { steps: null, source: "fallback", lang });
   }
 
+  const debug = body && body.debug === true;
   try {
-    const steps = await generateTour({ apiKey, lang, context });
+    const { steps, dbg } = await generateTour({ apiKey, lang, context });
     if (!steps) {
-      return jsonResponse(200, { steps: null, source: "fallback", lang });
+      return jsonResponse(200, { steps: null, source: "fallback", lang, ...(debug ? { dbg } : {}) });
     }
-    return jsonResponse(200, { steps, source: "ai", lang });
+    return jsonResponse(200, { steps, source: "ai", lang, ...(debug ? { dbg } : {}) });
   } catch (err) {
     console.error("Tour function error:", err);
-    return jsonResponse(200, { steps: null, source: "fallback", lang });
+    return jsonResponse(200, { steps: null, source: "fallback", lang, ...(debug ? { dbg: { stage: "exception", msg: String(err && err.message).slice(0, 200) } } : {}) });
   }
 };
