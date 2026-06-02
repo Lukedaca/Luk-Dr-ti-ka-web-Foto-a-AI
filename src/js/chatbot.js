@@ -1717,10 +1717,24 @@
     try { handler(action.args || {}); } catch (err) { console.warn('Tool handler error:', action.tool, err); }
   }
 
+  // ===== Engine: runAction pipeline =====
+  // Jednotný vstup pro každou akci (chat i tour). Fáze: resolve -> (point) -> execute -> (settle).
+  // Pilíře (ghost kurzor / barge-in / převzetí řízení) se doplní do fází zde, ne do handlerů.
+  function chatbotRunAction(tool, args) {
+    if (typeof tool !== 'string') return;
+    args = args || {};
+    // FÁZE resolve — výsledek zatím nevyužit (pilíř 1 sem doplní ghost kurzor + spotlight)
+    try { chatbotResolveTarget(tool, args); } catch (e) {}
+    // FÁZE execute — beze změny
+    chatbotExecuteToolCall({ tool: tool, args: args });
+  }
+
   function chatbotExecuteActions(actions) {
     if (!Array.isArray(actions) || actions.length === 0) return;
     actions.forEach(function(action, idx) {
-      setTimeout(function() { chatbotExecuteToolCall(action); }, idx * 220);
+      setTimeout(function() {
+        if (action) chatbotRunAction(action.tool, action.args);
+      }, idx * 220);
     });
   }
 
@@ -1892,7 +1906,7 @@
       chatbotTourUpdateHud(i, steps.length, s.say);
       chatbotTourSpeak(s.say, lang).then(function() {
         if (chatbotTourAborted) { chatbotTourFinish(); return; }
-        try { chatbotExecuteToolCall({ tool: s.tool, args: s.args || {} }); } catch (e) {}
+        try { chatbotRunAction(s.tool, s.args || {}); } catch (e) {}
         i++;
         chatbotTourTimer = setTimeout(step, 1100);
       });
