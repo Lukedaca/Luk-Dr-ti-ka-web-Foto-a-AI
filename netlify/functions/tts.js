@@ -1,5 +1,5 @@
 const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-3.1-flash-tts-preview";
-const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Charon";
+const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Sulafat";
 const MAX_TEXT_LENGTH = 360;
 const TTS_SAMPLE_RATE = 24000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -89,8 +89,8 @@ function buildGeminiPrompt(text, lang) {
   const isEnglish = String(lang || "").toLowerCase().startsWith("en");
   return [
     isEnglish
-      ? "Read exactly the text below as Lukas AI. Make the voice distinctive: warm studio partner, calm confidence, slightly lower register, natural micro-pauses, no generic assistant tone, no sales pitch."
-      : "Přečti přesně text níže jako Lukas AI. Hlas má být osobitý: teplý studiový parťák, klidná jistota, trochu nižší poloha, přirozené krátké pauzy, žádný generický asistent ani reklamní tón.",
+      ? "Read exactly the text below as Lukas AI. Make the voice distinctive: warm studio partner, calm confidence, natural warmth, natural micro-pauses, no generic assistant tone, no sales pitch."
+      : "Přečti přesně text níže jako Lukas AI. Hlas má být osobitý: vřelá studiová parťačka, klidná jistota, přirozená vřelost, přirozené krátké pauzy, žádný generický asistent ani reklamní tón.",
     text,
   ].join("\n");
 }
