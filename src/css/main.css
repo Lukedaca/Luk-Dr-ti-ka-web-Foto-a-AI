@@ -415,3 +415,119 @@
   font-size: 0.86rem;
   line-height: 1.6;
 }
+
+/* ==========================================================================
+   CINEMATIC SCROLL LAYER — Lenis smooth scroll, split-text, clip reveals,
+   scroll-velocity marquee. Progressive enhancement: every hidden state is
+   gated behind html.cine-ready, so if the JS module fails the page is intact.
+   Palette: signal blue + steel from the design tokens, no purple.
+   ========================================================================== */
+
+/* Lenis: it owns the scroll, so kill CSS smooth scroll while active. */
+html.lenis-on { scroll-behavior: auto; }
+html.lenis-on,
+html.lenis-on body { height: auto; }
+.lenis-on .lenis-content { min-height: 100%; }
+
+/* ---- Split-text character reveal ------------------------------------- */
+.cine-split-ready .word { display: inline-block; }
+.cine-split-ready .char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+html.cine-ready .cine-split-ready .char {
+  opacity: 0;
+  transform: translateY(0.62em) rotate(6deg);
+  transition:
+    transform 0.82s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.6s ease;
+  transition-delay: calc(var(--ci, 0) * 22ms);
+}
+html.cine-ready .cine-split-ready.cine-in .char {
+  opacity: 1;
+  transform: translateY(0) rotate(0deg);
+}
+
+/* ---- Clip-path scene reveals ----------------------------------------- */
+html.cine-ready .cine-reveal-ready {
+  clip-path: inset(0 0 16% 0);
+  opacity: 0;
+  transform: translateY(26px) scale(0.985);
+  transition:
+    clip-path 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.7s ease;
+  transition-delay: var(--cine-delay, 0ms);
+  will-change: clip-path, transform, opacity;
+}
+html.cine-ready .cine-reveal-ready.cine-in {
+  clip-path: inset(0 0 0 0);
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Slit variant — opens from a thin horizontal line (Studio Freight move). */
+html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready {
+  clip-path: inset(46% 8% 46% 8%);
+  transform: none;
+}
+html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
+  clip-path: inset(0 0 0 0);
+}
+
+/* ---- Scroll-velocity marquee ----------------------------------------- */
+.cine-marquee {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.1rem, 3vw, 2.4rem) 0;
+  border-block: 1px solid rgba(111, 176, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(10, 24, 48, 0) 0%, rgba(16, 34, 64, 0.35) 50%, rgba(10, 24, 48, 0) 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.cine-marquee-track {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  will-change: transform;
+}
+.cine-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1.4rem, 3vw, 3rem);
+  padding-inline: clamp(0.9rem, 2vw, 1.8rem);
+  font-family: var(--font-display, 'Geist', system-ui, sans-serif);
+  font-weight: 800;
+  font-size: clamp(1.6rem, 5.2vw, 4.2rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(216, 225, 236, 0.42);
+}
+.cine-marquee-item .cine-dot {
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 9999px;
+  -webkit-text-stroke: 0;
+  background: var(--signal-hi, #6cbcef);
+  box-shadow: 0 0 18px var(--signal-glow, rgba(78, 162, 224, 0.5));
+  flex: none;
+}
+.cine-marquee-item .cine-fill {
+  color: var(--signal-hi, #6cbcef);
+  -webkit-text-stroke: 0;
+}
+
+/* ---- Reduced motion: everything resolves to its final, calm state ----- */
+@media (prefers-reduced-motion: reduce) {
+  html.cine-ready .cine-split-ready .char,
+  html.cine-ready .cine-reveal-ready {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    transition: none !important;
+  }
+  .cine-marquee-track { transform: none !important; }
+}

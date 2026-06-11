@@ -206,7 +206,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=35">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=36">
     
 
     <!-- Schema.org Structured Data -->
@@ -418,6 +418,20 @@ body > * {
             </div>
 
         </section>
+
+        <!-- Scroll-velocity marquee — brand texture mezi hero a agentem -->
+        <div class="cine-marquee" aria-hidden="true">
+            <div class="cine-marquee-track" data-cine-marquee>
+                <span class="cine-marquee-item">
+                    Sport <span class="cine-dot"></span>
+                    <span class="cine-fill">Portrét</span> <span class="cine-dot"></span>
+                    Fotografie <span class="cine-dot"></span>
+                    AI <span class="cine-dot"></span>
+                    <span class="cine-fill">Automatizace</span> <span class="cine-dot"></span>
+                    Web <span class="cine-dot"></span>
+                </span>
+            </div>
+        </div>
 
         <!-- Hybridní agent Section -->
         <section id="hybridni-agent" class="py-24 reveal">
@@ -1176,6 +1190,8 @@ body > * {
     <script src="/dist/js/boot.min.js?v=45" defer></script>
     <!-- Eager-load particle headline tak aby naběhly hned (ne až po user interakci přes core/boot lazy chain) -->
     <script src="/dist/js/hero-particles.min.js?v=35" defer></script>
+    <!-- Cinematic scroll layer: Lenis smooth scroll + split-text + clip reveals + velocity marquee -->
+    <script src="/dist/js/cinematic.min.js?v=1" defer></script>
 
 
 </body>
