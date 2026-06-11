@@ -531,3 +531,140 @@ html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
   }
   .cine-marquee-track { transform: none !important; }
 }
+
+/* ==========================================================================
+   HERO — full-bleed sports photo (the photography IS the hero), giant name
+   overlaid, cinematic scrim + slow Ken Burns. Stays dark in both themes.
+   ========================================================================== */
+.hero-photo-section {
+  background: #050d1d;
+  isolation: isolate;
+}
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: hidden;
+}
+.hero-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 60% 38%;
+  transform: scale(1.06);
+  animation: heroKenBurns 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes heroKenBurns {
+  0%   { transform: scale(1.06) translate3d(0, 0, 0); }
+  100% { transform: scale(1.16) translate3d(-1.5%, -1.5%, 0); }
+}
+/* Cinematic scrim — dark bottom + left so the name reads, photo stays vivid up-right. */
+.hero-photo-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5, 13, 29, 0.55) 0%, rgba(5, 13, 29, 0) 24%, rgba(5, 13, 29, 0) 42%, rgba(5, 13, 29, 0.72) 82%, rgba(5, 13, 29, 0.97) 100%),
+    linear-gradient(80deg, rgba(5, 13, 29, 0.86) 0%, rgba(5, 13, 29, 0.42) 34%, rgba(5, 13, 29, 0) 64%);
+}
+.hero-photo-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+.hero-photo-content {
+  padding-bottom: clamp(4.5rem, 13vh, 9rem);
+  text-align: left;
+}
+
+/* Eyebrow (role) — small, spaced, signal-blue, with a live dot. */
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 1.3rem;
+  font-size: clamp(0.72rem, 1.4vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #cfe2fa;
+  text-shadow: 0 1px 16px rgba(5, 13, 29, 0.8);
+}
+.hero-eyebrow .hero-amp { color: var(--signal-hi, #6cbcef); -webkit-text-fill-color: var(--signal-hi, #6cbcef); }
+.hero-eyebrow-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--signal-hi, #6cbcef);
+  box-shadow: 0 0 0 0 rgba(108, 188, 239, 0.6);
+  animation: heroDotPulse 2.4s ease-out infinite;
+  flex: none;
+}
+@keyframes heroDotPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(108, 188, 239, 0.55); }
+  70%  { box-shadow: 0 0 0 0.8rem rgba(108, 188, 239, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(108, 188, 239, 0); }
+}
+
+/* Giant name — the hero typography. Steel-white, tight, cinematic shadow. */
+.hero-name-giant {
+  margin: 0;
+  font-family: var(--font-display, 'Geist', system-ui, sans-serif);
+  font-weight: 800;
+  font-size: clamp(2.9rem, 12vw, 11rem);
+  line-height: 0.9;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: #f3f7fc;
+  text-shadow:
+    0 3px 30px rgba(3, 9, 20, 0.85),
+    0 1px 4px rgba(3, 9, 20, 0.6);
+}
+.hero-name-giant .char { text-shadow: inherit; }
+
+.hero-cta-row { margin-top: clamp(2rem, 5vh, 3.2rem); justify-content: flex-start; }
+.hero-cta { font-size: 1rem; }
+
+/* Scroll cue — vertical drawing line, bottom centre. */
+.hero-scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.4rem, 4vh, 2.6rem);
+  transform: translateX(-50%);
+  z-index: 3;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  color: rgba(216, 225, 236, 0.6);
+  font-size: 0.66rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.hero-scroll-cue:hover { color: var(--signal-hi, #6cbcef); }
+.hero-scroll-line {
+  width: 1px;
+  height: 3.2rem;
+  background: linear-gradient(180deg, rgba(108, 188, 239, 0.9), rgba(108, 188, 239, 0));
+  transform-origin: top;
+  animation: heroScrollLine 2s ease-in-out infinite;
+}
+@keyframes heroScrollLine {
+  0%, 100% { transform: scaleY(0.35); opacity: 0.5; }
+  50%      { transform: scaleY(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-eyebrow-dot, .hero-scroll-line { animation: none; }
+  .hero-photo-img { animation: none; transform: scale(1.04); }
+}

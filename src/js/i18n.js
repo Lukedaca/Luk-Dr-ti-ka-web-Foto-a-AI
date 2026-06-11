@@ -133,7 +133,10 @@
     setAttr(document.getElementById('themeToggle'), 'aria-label', copy.misc[4]);
 
     setTexts(document.querySelectorAll('#hero .mb-6 .chip'), copy.hero.slice(0, 3));
-    setText(document.querySelector('#hero h1'), copy.hero[3]);
+    // Hero h1 obsahuje dot + amp spany — přepisovat jen textové části, ne celý textContent.
+    var heroRole = copy.hero[3].split(' & ');
+    setText(document.querySelector('#hero h1 [data-hero-role-a]'), heroRole[0]);
+    setText(document.querySelector('#hero h1 [data-hero-role-b]'), heroRole[1] || '');
     setText(document.querySelector('#hero .text-center a[href="#portfolio"]'), copy.hero[4]);
     setText(document.querySelector('#hero .text-center a[href="#hybridni-agent"]'), copy.hero[5]);
 

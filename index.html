@@ -206,7 +206,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=36">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=38">
     
 
     <!-- Schema.org Structured Data -->
@@ -398,25 +398,34 @@ body > * {
 
     <main id="main" class="pt-20" tabindex="-1">
         <!-- Hero Section -->
-        <section id="hero" class="min-h-screen flex items-center justify-center px-6 relative hero-bg-clean">
-            <div class="text-center max-w-5xl mx-auto relative z-10">
-                <!-- Hero headline: static first paint; particles load after idle or user intent. -->
-                <div class="hero-headline">
-                    <h1 class="hero-h1 mb-6 leading-none">
-                        Fotograf <span class="hero-amp">&amp;</span> AI Developer
-                    </h1>
-                </div>
+        <section id="hero" class="hero-photo-section relative min-h-screen flex items-end overflow-hidden">
+            <!-- Hrdina: skutečná sportovní fotka (Sigma Olomouc) full-bleed, jemný Ken Burns. -->
+            <picture class="hero-photo">
+                <source type="image/avif" srcset="/assets/hero/hero-sigma-1400.avif 1400w, /assets/hero/hero-sigma-2400.avif 2400w" sizes="100vw">
+                <source type="image/webp" srcset="/assets/hero/hero-sigma-1400.webp 1400w, /assets/hero/hero-sigma-2400.webp 2400w" sizes="100vw">
+                <img src="/assets/hero/hero-sigma-2400.jpg" alt="Sportovní fotografie — souboj o míč, Sigma Olomouc" class="hero-photo-img" width="2400" height="1667" fetchpriority="high" decoding="async">
+            </picture>
+            <div class="hero-photo-scrim" aria-hidden="true"></div>
+            <div class="hero-photo-grain" aria-hidden="true"></div>
 
-                <h2 class="hero-name text-4xl sm:text-5xl md:text-6xl font-bold mb-10 uppercase">
-                    Lukáš Drštička
-                </h2>
+            <div class="hero-photo-content relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10">
+                <h1 class="hero-h1 hero-eyebrow">
+                    <span class="hero-eyebrow-dot" aria-hidden="true"></span>
+                    <span data-hero-role-a>Fotograf</span> <span class="hero-amp">&amp;</span> <span data-hero-role-b>AI Developer</span>
+                </h1>
 
-                <div class="flex justify-center gap-4 flex-wrap">
-                    <a href="#portfolio" class="btn-primary px-8 py-3 rounded-xl font-semibold transition text-white">Portfolio</a>
-                    <a href="#hybridni-agent" class="btn-secondary px-8 py-3 glass rounded-xl font-semibold transition text-white">Hybridní agent</a>
+                <h2 class="hero-name hero-name-giant">Lukáš Drštička</h2>
+
+                <div class="hero-cta-row text-center flex gap-4 flex-wrap">
+                    <a href="#portfolio" class="btn-primary hero-cta px-8 py-3 rounded-xl font-semibold transition text-white">Portfolio</a>
+                    <a href="#hybridni-agent" class="btn-secondary hero-cta px-8 py-3 glass rounded-xl font-semibold transition text-white">Hybridní agent</a>
                 </div>
             </div>
 
+            <a href="#hybridni-agent" class="hero-scroll-cue" aria-label="Posunout na obsah">
+                <span class="hero-scroll-word">scroll</span>
+                <span class="hero-scroll-line" aria-hidden="true"></span>
+            </a>
         </section>
 
         <!-- Scroll-velocity marquee — brand texture mezi hero a agentem -->
@@ -1187,11 +1196,9 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/boot.min.js?v=45" defer></script>
-    <!-- Eager-load particle headline tak aby naběhly hned (ne až po user interakci přes core/boot lazy chain) -->
-    <script src="/dist/js/hero-particles.min.js?v=35" defer></script>
+    <script src="/dist/js/boot.min.js?v=46" defer></script>
     <!-- Cinematic scroll layer: Lenis smooth scroll + split-text + clip reveals + velocity marquee -->
-    <script src="/dist/js/cinematic.min.js?v=1" defer></script>
+    <script src="/dist/js/cinematic.min.js?v=2" defer></script>
 
 
 </body>
