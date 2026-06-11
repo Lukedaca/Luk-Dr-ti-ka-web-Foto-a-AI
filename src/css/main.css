@@ -538,6 +538,7 @@ html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
 
 /* Rám: vlasová linka + pasparta + měkký věšákový stín */
 .hero-frame {
+  position: relative;
   margin: 0;
   width: 100%;
   max-width: min(560px, calc(100svh - 16rem));
@@ -545,6 +546,28 @@ html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
   background: var(--ink-800);
   padding: clamp(0.6rem, 1.4vw, 1.1rem);
   box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.55);
+}
+/* Závěsná struna ke stropu galerie */
+.hero-frame::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 1px;
+  height: clamp(60px, 14vh, 140px);
+  background: linear-gradient(180deg, transparent, var(--hairline));
+}
+/* Bodové světlo na stěně za exponátem */
+.hero-frame::after {
+  content: '';
+  position: absolute;
+  inset: -22% -28%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 58% 52% at 50% 42%,
+    rgba(78, 162, 224, 0.10),
+    rgba(236, 238, 233, 0.04) 45%,
+    transparent 72%);
 }
 @media (max-width: 1023px) {
   .hero-frame { margin-inline: auto; max-width: min(440px, 88vw); }
@@ -561,14 +584,17 @@ html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
 
 /* --- Kinetická rytina clony (SVG) --- */
 .hero-aperture { display: block; width: 100%; height: auto; }
-.ap-hairline      { fill: none; stroke: var(--hairline); stroke-width: 1; }
-.ap-hairline-soft { fill: none; stroke: var(--hairline-soft); stroke-width: 1; }
+.ap-hairline      { fill: none; stroke: rgba(236, 238, 233, 0.3); stroke-width: 1; }
+.ap-hairline-soft { fill: none; stroke: rgba(236, 238, 233, 0.16); stroke-width: 1; }
+.theme-light .ap-hairline      { stroke: rgba(21, 24, 31, 0.36); }
+.theme-light .ap-hairline-soft { stroke: rgba(21, 24, 31, 0.18); }
 .ap-ticks {
   fill: none;
-  stroke: var(--hairline-soft);
+  stroke: rgba(236, 238, 233, 0.18);
   stroke-width: 7;
   stroke-dasharray: 1 11.93;
 }
+.theme-light .ap-ticks { stroke: rgba(21, 24, 31, 0.2); }
 .ap-text-ring {
   transform-origin: 300px 300px;
   animation: apSpin 140s linear infinite;
@@ -585,10 +611,10 @@ html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
   animation: apSpin 90s linear infinite reverse;
 }
 .ap-blade {
-  stroke: var(--silver-200);
-  stroke-width: 1.1;
+  stroke: var(--silver-100);
+  stroke-width: 1.2;
   stroke-linecap: round;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 .ap-focus {
   fill: var(--signal);

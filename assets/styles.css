@@ -2734,3 +2734,62 @@ footer::before { display: none; }
 #langToggleDesktopStatic .lang-switch-btn.bg-white,
 .lang-switch-btn.bg-white { background: var(--silver-50); color: var(--ink-900); }
 
+/* ---- NEUTRALIZACE legacy hero typografie ----------------------------------
+   Starší vrstvy výše (HERO VIDEO + PERFORMANCE MODE) definují obří gradient
+   .hero-h1 / .hero-name / .hero-amp. Hero hierarchie: ROLE (Fotograf & AI
+   Developer) = hlavní výpověď v rozumné velikosti, jméno = mono štítek. */
+.hero-h1 {
+    position: static;
+    z-index: auto;
+    font-family: var(--font-display);
+    font-weight: 420;
+    font-size: clamp(2.1rem, 3.9vw, 3.6rem);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    max-width: 14ch;
+    text-transform: none;
+    text-align: left;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+    color: var(--text-primary);
+    filter: none;
+    text-shadow: none;
+    margin: 0 0 1.2rem;
+}
+.hero-amp {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+    color: var(--signal-hi);
+    font-style: italic;
+    font-weight: 420;
+    transform: none;
+    filter: none;
+    margin: 0 0.06em;
+    text-shadow: 0 0 10px rgba(108, 188, 239, 0.65), 0 0 26px rgba(78, 162, 224, 0.35);
+}
+.hero-name {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: currentColor;
+    color: var(--text-secondary);
+    text-shadow: none;
+    display: block;
+    margin: 0 0 2.1rem;
+}
+.hero-name::before,
+.hero-name::after { display: none; }
+
+/* Performance mode výše vypíná body::after !important — zrno stěny chceme zpět */
+body::after { display: block !important; }
+
