@@ -10,6 +10,10 @@ const ALLOWED_ORIGINS = [
 const ALLOWED_DEV_PATTERNS = [
   /^http:\/\/localhost:\d+$/,
   /^http:\/\/127\.0\.0\.1:\d+$/,
+  // Netlify deploy previews / branch deploys of THIS site only
+  // (e.g. deploy-preview-11--lukas-drsticka.netlify.app). Scoped to the site
+  // subdomain so it never opens prod functions to arbitrary origins.
+  /^https:\/\/[a-z0-9-]+--lukas-drsticka\.netlify\.app$/,
 ];
 
 const BOT_USER_AGENTS = [
