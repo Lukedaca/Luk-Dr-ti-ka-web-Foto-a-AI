@@ -38,8 +38,8 @@
     <link rel="manifest" href="/manifest.json">
 
     <!-- Theme color for mobile browsers -->
-    <meta name="theme-color" content="#0a1628" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#b7c2d2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#07090f" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f0eee8" media="(prefers-color-scheme: light)">
 
     <!-- Self-hosted variable fonts (preload pouze display weight) -->
     <link rel="preload" href="/dist/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -50,48 +50,52 @@
 
     <!-- Critical CSS inline for above-the-fold content -->
     <style>
-/* Critical CSS - paleta PŘESNĚ dle loga (deep navy + sky blue + steel) */
+/* Critical CSS — „Nocturne gallery": matný inkoust + kost, modrá z loga jen jako akcent */
 :root {
-    --ink-900: #050d1d;
-    --ink-800: #0a1830;
-    --ink-700: #122544;
-    --ink-600: #1c3258;
-    --silver-50:  #ecf1f7;
-    --silver-100: #d8e1ec;
-    --silver-200: #a8b5c5;
-    --silver-300: #7a8aa3;
-    --silver-400: #5a6b86;
+    --ink-900: #07090f;
+    --ink-800: #0b0e16;
+    --ink-700: #11151f;
+    --ink-600: #1a1f2c;
+    --silver-50:  #eceee9;
+    --silver-100: #d6d9d2;
+    --silver-200: #a3a8a1;
+    --silver-300: #767c78;
+    --silver-400: #565c5a;
     --signal: #4ea2e0;
     --signal-hi: #6cbcef;
     --signal-deep: #2c7ec0;
-    --signal-glow: rgba(78, 162, 224, 0.38);
-    --bg-primary: var(--ink-800);
-    --bg-secondary: var(--ink-700);
+    --signal-glow: rgba(78, 162, 224, 0.0);
+    --hairline: rgba(236, 238, 233, 0.12);
+    --hairline-soft: rgba(236, 238, 233, 0.07);
+    --bg-primary: var(--ink-900);
+    --bg-secondary: var(--ink-800);
     --text-primary: var(--silver-50);
     --text-secondary: var(--silver-300);
     --accent-blue: var(--signal);
     --accent-purple: var(--signal);
-    --glass-bg: rgba(20, 33, 61, 0.55);
-    --glass-border: rgba(232, 238, 246, 0.08);
+    --glass-bg: rgba(17, 21, 31, 0.72);
+    --glass-border: var(--hairline-soft);
     --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace;
 }
 
 .theme-light {
-    --ink-900: #b7c2d2;
-    --ink-800: #aab6c8;
-    --ink-700: #95a3b9;
-    --silver-50: #0a101b;
-    --silver-100: #14213d;
-    --silver-200: #1f2d4d;
-    --silver-300: #2c3d63;
+    --ink-900: #f0eee8;
+    --ink-800: #e9e6df;
+    --ink-700: #dfdbd2;
+    --silver-50: #15181f;
+    --silver-100: #262a33;
+    --silver-200: #4a4f58;
+    --silver-300: #62676f;
+    --hairline: rgba(21, 24, 31, 0.16);
+    --hairline-soft: rgba(21, 24, 31, 0.09);
     --bg-primary: var(--ink-900);
     --bg-secondary: var(--ink-800);
     --text-primary: var(--silver-50);
     --text-secondary: var(--silver-200);
-    --glass-bg: rgba(10, 22, 40, 0.10);
-    --glass-border: rgba(10, 22, 40, 0.22);
+    --glass-bg: rgba(255, 254, 250, 0.7);
+    --glass-border: var(--hairline-soft);
 }
 
 * {
@@ -102,10 +106,7 @@
 
 body {
     font-family: var(--font-sans);
-    background:
-        radial-gradient(1200px 800px at 0% -10%, rgba(74, 144, 226, 0.08), transparent 60%),
-        radial-gradient(1000px 700px at 100% 0%, rgba(111, 176, 255, 0.06), transparent 55%),
-        linear-gradient(180deg, var(--ink-900) 0%, var(--ink-800) 50%, var(--ink-900) 100%);
+    background: var(--ink-900);
     color: var(--text-primary);
     min-height: 100vh;
     position: relative;
@@ -164,6 +165,22 @@ header {
     padding-inline: 1.5rem;
     position: relative;
 }
+.hero-exhibit-inner {
+    width: min(1180px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: end;
+}
+@media (max-width: 1023px) {
+    .hero-exhibit-inner { grid-template-columns: 1fr; align-items: start; }
+}
+.hero-aperture {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+}
 
 .hero-ambient,
 #cursorSpotlight,
@@ -206,7 +223,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=38">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=39">
     
 
     <!-- Schema.org Structured Data -->
@@ -397,28 +414,71 @@ body > * {
     </div>
 
     <main id="main" class="pt-20" tabindex="-1">
-        <!-- Hero Section -->
-        <section id="hero" class="hero-photo-section relative min-h-screen flex items-end overflow-hidden">
-            <!-- Hrdina: skutečná sportovní fotka (Sigma Olomouc) full-bleed, jemný Ken Burns. -->
-            <picture class="hero-photo">
-                <source type="image/avif" srcset="/assets/hero/hero-sigma-1400.avif 1400w, /assets/hero/hero-sigma-2400.avif 2400w" sizes="100vw">
-                <source type="image/webp" srcset="/assets/hero/hero-sigma-1400.webp 1400w, /assets/hero/hero-sigma-2400.webp 2400w" sizes="100vw">
-                <img src="/assets/hero/hero-sigma-2400.jpg" alt="Sportovní fotografie — souboj o míč, Sigma Olomouc" class="hero-photo-img" width="2400" height="1667" fetchpriority="high" decoding="async">
-            </picture>
-            <div class="hero-photo-scrim" aria-hidden="true"></div>
-            <div class="hero-photo-grain" aria-hidden="true"></div>
+        <!-- Hero Section — „Výstava": kinetická rytina clony jako exponát, muzejní štítek vedle -->
+        <section id="hero" class="hero-exhibit relative min-h-screen overflow-hidden">
+            <div class="hero-exhibit-inner">
+                <figure class="hero-frame">
+                    <div class="hero-frame-mat">
+                        <svg class="hero-aperture" viewBox="0 0 600 600" role="img" aria-label="Kinetická kresba clony objektivu — fotografie a AI" width="600" height="600">
+                            <defs>
+                                <path id="ap-text-circle" d="M 300 76 A 224 224 0 1 1 299.9 76" fill="none"/>
+                            </defs>
 
-            <div class="hero-photo-content relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10">
-                <h1 class="hero-h1 hero-eyebrow">
-                    <span class="hero-eyebrow-dot" aria-hidden="true"></span>
-                    <span data-hero-role-a>Fotograf</span> <span class="hero-amp">&amp;</span> <span data-hero-role-b>AI Developer</span>
-                </h1>
+                            <!-- Vnější prstenec + rytá stupnice -->
+                            <g class="ap-ring-outer">
+                                <circle cx="300" cy="300" r="252" class="ap-hairline"/>
+                                <circle cx="300" cy="300" r="244" class="ap-ticks"/>
+                            </g>
 
-                <h2 class="hero-name hero-name-giant">Lukáš Drštička</h2>
+                            <!-- Kruhový mono text — pomalu obíhá -->
+                            <g class="ap-text-ring" aria-hidden="true">
+                                <text class="ap-text">
+                                    <textPath href="#ap-text-circle" startOffset="0">FOTOGRAFIE&#160;&#160;·&#160;&#160;AI&#160;&#160;·&#160;&#160;AUTOMATIZACE&#160;&#160;·&#160;&#160;WEB&#160;&#160;·&#160;&#160;FOTOGRAFIE&#160;&#160;·&#160;&#160;AI&#160;&#160;·&#160;&#160;AUTOMATIZACE&#160;&#160;·&#160;&#160;WEB&#160;&#160;·</textPath>
+                                </text>
+                            </g>
 
-                <div class="hero-cta-row text-center flex gap-4 flex-wrap">
-                    <a href="#portfolio" class="btn-primary hero-cta px-8 py-3 rounded-xl font-semibold transition text-white">Portfolio</a>
-                    <a href="#hybridni-agent" class="btn-secondary hero-cta px-8 py-3 glass rounded-xl font-semibold transition text-white">Hybridní agent</a>
+                            <!-- Lamely clony — 8 čepelí, pomalé dýchání -->
+                            <g class="ap-blades">
+                                <g><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(45 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(90 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(135 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(180 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(225 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(270 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(315 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                            </g>
+
+                            <!-- Střed: ohnisko + circuit linka z loga (AI) -->
+                            <circle cx="300" cy="300" r="70" class="ap-hairline-soft"/>
+                            <circle cx="300" cy="300" r="4" class="ap-focus"/>
+                            <g class="ap-circuit" aria-hidden="true">
+                                <path d="M 304 300 L 352 300 L 368 284 L 416 284 M 368 284 L 392 284 L 404 272 M 416 284 L 448 284 L 462 298 L 506 298" class="ap-circuit-path"/>
+                                <circle cx="506" cy="298" r="3.5" class="ap-circuit-dot"/>
+                            </g>
+
+                            <!-- Rytá značení objektivu -->
+                            <text x="300" y="557" text-anchor="middle" class="ap-engrave">f/1.4&#160;&#160;·&#160;&#160;35&#160;mm</text>
+                        </svg>
+                    </div>
+                    <figcaption class="hero-plate">
+                        <span class="hero-plate-no">№ 01</span>
+                        <span class="hero-plate-line" aria-hidden="true"></span>
+                        <span class="hero-plate-meta">Clona · 2026</span>
+                    </figcaption>
+                </figure>
+
+                <div class="hero-label">
+                    <h1 class="hero-h1 hero-kicker">
+                        <span data-hero-role-a>Fotograf</span> <span class="hero-amp">&amp;</span> <span data-hero-role-b>AI Developer</span>
+                    </h1>
+
+                    <h2 class="hero-name">Lukáš Drštička</h2>
+
+                    <div class="hero-cta-row text-center">
+                        <a href="#portfolio" class="hero-cta hero-cta-primary">Portfolio</a>
+                        <a href="#hybridni-agent" class="hero-cta">Hybridní agent</a>
+                    </div>
                 </div>
             </div>
 

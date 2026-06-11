@@ -2280,3 +2280,457 @@ header.is-scrolled,
 @keyframes heroH1Fallback {
     to { visibility: visible; }
 }
+
+
+/* ==========================================================================
+   ==========================================================================
+   NOCTURNE GALLERY — kompletní redesign 2026-06-11
+   Web jako noční galerie: matné inkoustové stěny + kost, vlasové linky,
+   muzejní mono popisky, číslované sekce. Neon = signal blue akcenty
+   (linky, body, rytiny), žádné velké nápisy, žádné gradient plochy.
+   ==========================================================================
+   ========================================================================== */
+
+:root {
+    --ink-900: #07090f;
+    --ink-800: #0b0e16;
+    --ink-700: #11151f;
+    --ink-600: #1a1f2c;
+    --ink-500: #242a38;
+    --silver-50:  #eceee9;
+    --silver-100: #d6d9d2;
+    --silver-200: #a3a8a1;
+    --silver-300: #767c78;
+    --silver-400: #565c5a;
+    --signal-glow: rgba(78, 162, 224, 0.45);
+    --signal-soft: rgba(78, 162, 224, 0.08);
+    --neon: 0 0 6px rgba(108, 188, 239, 0.7), 0 0 18px rgba(78, 162, 224, 0.45), 0 0 42px rgba(78, 162, 224, 0.22);
+    --hairline: rgba(236, 238, 233, 0.12);
+    --hairline-soft: rgba(236, 238, 233, 0.07);
+    --steel-grad: none;
+    --steel-line: linear-gradient(90deg, transparent, var(--hairline), transparent);
+    --glass-bg: rgba(17, 21, 31, 0.72);
+    --glass-bg-hover: rgba(22, 27, 39, 0.78);
+    --glass-border: var(--hairline-soft);
+    --glass-border-hi: var(--hairline);
+    --shadow-soft: none;
+    --shadow-signal: none;
+    --shadow-deep: 0 30px 60px -30px rgba(0, 0, 0, 0.5);
+}
+
+.theme-light {
+    --ink-900: #f0eee8;
+    --ink-800: #e9e6df;
+    --ink-700: #dfdbd2;
+    --ink-600: #d2cdc2;
+    --silver-50: #15181f;
+    --silver-100: #262a33;
+    --silver-200: #4a4f58;
+    --silver-300: #62676f;
+    --silver-400: #7b7f86;
+    --hairline: rgba(21, 24, 31, 0.16);
+    --hairline-soft: rgba(21, 24, 31, 0.09);
+    --glass-bg: rgba(255, 254, 250, 0.7);
+    --glass-bg-hover: rgba(255, 254, 250, 0.85);
+    --glass-border: var(--hairline-soft);
+    --glass-border-hi: var(--hairline);
+    --shadow-soft: none;
+    --shadow-deep: 0 24px 50px -30px rgba(21, 24, 31, 0.25);
+}
+
+/* ---- Stěna galerie: flat, jen jemné zrno ------------------------------- */
+body,
+.theme-light body {
+    background: var(--ink-900);
+    color: var(--text-primary);
+}
+body::before { display: none; }
+body::after {
+    background-image: radial-gradient(rgba(236, 238, 233, 0.04) 1px, transparent 0);
+    background-size: 3px 3px;
+    opacity: 0.35;
+    mix-blend-mode: soft-light;
+}
+.theme-light body::after {
+    background-image: radial-gradient(rgba(21, 24, 31, 0.05) 1px, transparent 0);
+}
+.theme-light body.text-white { color: var(--text-primary); }
+
+/* ---- Header: matný pruh s vlasovou linkou ------------------------------ */
+header.glass {
+    background: color-mix(in srgb, var(--ink-900) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--hairline-soft);
+    box-shadow: none;
+}
+header.is-scrolled {
+    background: color-mix(in srgb, var(--ink-900) 92%, transparent);
+    border-bottom: 1px solid var(--hairline);
+    box-shadow: none;
+    backdrop-filter: blur(12px);
+}
+.nav-link { font-size: 0.86rem; font-weight: 450; }
+.nav-link::after { background: var(--signal); height: 1px; }
+.brand-chip {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    box-shadow: none;
+}
+
+/* ---- Glass → matný panel ------------------------------------------------ */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--hairline-soft);
+    box-shadow: none;
+}
+.glass:hover {
+    background: var(--glass-bg-hover);
+    transform: none;
+    border-color: var(--hairline);
+    box-shadow: none;
+}
+.glass-strong {
+    background: color-mix(in srgb, var(--ink-800) 92%, transparent);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-deep);
+}
+.card::before, .card::after { display: none; }
+.glass.card:hover { transform: none; }
+.card-lift:hover { transform: none; box-shadow: none; }
+
+/* Galerijní hrany: ostré rohy na velkých panelech */
+.rounded-xl    { border-radius: 3px; }
+.rounded-2xl   { border-radius: 3px; }
+.rounded-3xl   { border-radius: 3px; }
+.rounded-\[2rem\] { border-radius: 3px; }
+
+/* ---- Typografie: žádný shimmer, žádný gradient text -------------------- */
+.gradient-text,
+.gradient-text.shimmer {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--text-primary);
+    animation: none;
+}
+.section-title {
+    font-weight: 350;
+    font-size: clamp(1.45rem, 2.4vw, 2.1rem);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    padding-bottom: 0;
+}
+.section-title::before {
+    content: var(--sec-no, '');
+    display: block;
+    margin-bottom: 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+.section-title::after {
+    width: 34px;
+    height: 1px;
+    margin: 16px auto 0;
+    background: var(--signal);
+    box-shadow: var(--neon);
+    border-radius: 0;
+}
+#hybridni-agent       { --sec-no: '№ 02 — Agent'; }
+#portfolio            { --sec-no: '№ 03 — Sbírka'; }
+#skills               { --sec-no: '№ 04 — Řemeslo'; }
+main > section:nth-of-type(5) { --sec-no: '№ 05 — Proces'; }
+#o-mne                { --sec-no: '№ 06 — Autor'; }
+#spoluprace           { --sec-no: '№ 07 — Klub'; }
+#kontakt              { --sec-no: '№ 08 — Kontakt'; }
+.section-wrap::before { display: none; }
+
+/* Sekční tailwind gradient podklady pryč */
+.bg-gradient-to-b.from-transparent { background: none; }
+
+/* ---- Tlačítka: tiché, katalogové ---------------------------------------- */
+.btn-primary {
+    background: var(--signal-deep);
+    box-shadow: none;
+}
+.btn-primary:hover { transform: none; box-shadow: none; background: var(--signal); }
+.btn-secondary { background: transparent; border: 1px solid var(--hairline); }
+.btn-secondary:hover { transform: none; background: var(--signal-soft); border-color: var(--signal); }
+
+/* Tailwind gradientová CTA (odeslat, newsletter, chat) → plný signal ink */
+.bg-gradient-to-r.from-blue-600.to-purple-600 {
+    background: var(--signal-deep);
+}
+.bg-gradient-to-r.from-blue-600.to-purple-600:hover { opacity: 1; background: var(--signal); }
+button#chatBtn.bg-gradient-to-br {
+    background: var(--ink-700);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-deep);
+}
+.theme-light button#chatBtn.bg-gradient-to-br { background: #fffefa; }
+
+/* ---- Portfolio: stěna galerie — rám, pasparta, štítek POD fotkou -------- */
+.portfolio-item {
+    border-radius: 2px;
+    background: var(--ink-800);
+    border: 1px solid var(--hairline-soft);
+    padding: clamp(0.5rem, 1vw, 0.75rem);
+    box-shadow: none;
+    contain: layout style;
+}
+.theme-light .portfolio-item { background: #fffefa; }
+.portfolio-item::before, .portfolio-item::after { display: none; }
+.portfolio-item:hover {
+    transform: none;
+    border-color: var(--hairline);
+    box-shadow: var(--shadow-deep);
+}
+.portfolio-item img {
+    filter: saturate(0.92) contrast(1.02);
+    border-radius: 0;
+}
+.portfolio-item:hover img {
+    transform: scale(1.025);
+    filter: saturate(1.0) contrast(1.04);
+}
+.portfolio-overlay {
+    position: static;
+    inset: auto;
+    opacity: 1;
+    background: none;
+    padding: 0.8rem 0.15rem 0.2rem;
+    display: block;
+    text-shadow: none;
+}
+.portfolio-item:hover .portfolio-overlay { opacity: 1; }
+.portfolio-overlay .text-center {
+    text-align: left;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.portfolio-title {
+    font-size: 0.9rem;
+    font-weight: 450;
+    letter-spacing: 0;
+    color: var(--text-primary);
+}
+.portfolio-meta {
+    margin-top: 0;
+    background: none;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+.portfolio-meta::before { display: none; }
+
+/* Filter pills → katalogové záložky */
+.filter-btn {
+    border-radius: 2px;
+    background: transparent;
+    border: 1px solid var(--hairline-soft);
+    color: var(--text-secondary);
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
+}
+.filter-btn:hover {
+    transform: none;
+    background: transparent;
+    border-color: var(--hairline);
+    color: var(--text-primary);
+}
+.filter-btn.active {
+    background: transparent;
+    border-color: var(--signal);
+    color: var(--signal-hi);
+    box-shadow: 0 0 14px rgba(78, 162, 224, 0.25), inset 0 0 10px rgba(78, 162, 224, 0.08);
+    text-shadow: 0 0 8px rgba(108, 188, 239, 0.6);
+}
+.theme-light .filter-btn.active { color: var(--signal-deep); }
+
+/* ---- Dovednosti: vlasové míry místo neonových barů ---------------------- */
+.h-2.bg-gray-700 {
+    background: var(--hairline-soft);
+    height: 2px;
+    border-radius: 0;
+}
+.skill-bar {
+    background: var(--signal) !important;
+    border-radius: 0;
+    box-shadow: 0 0 10px rgba(78, 162, 224, 0.55);
+}
+.glass.card .text-5xl { font-size: 1.6rem; opacity: 0.85; }
+
+/* Nástroje — tiché štítky */
+#skills .flex-wrap span {
+    background: transparent;
+    border: 1px solid var(--hairline-soft);
+    border-radius: 2px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+/* ---- Proces (timeline): rytá osa ---------------------------------------- */
+.bg-gradient-to-b.from-blue-500 {
+    background: var(--hairline);
+    width: 1px;
+    opacity: 1;
+}
+.bg-gradient-to-br.from-blue-500.to-purple-600 {
+    background: var(--ink-700);
+    border: 1px solid var(--hairline);
+}
+.theme-light .bg-gradient-to-br.from-blue-500.to-purple-600 { background: #fffefa; }
+
+/* ---- Hero chat (agent) — matný panel, beam pryč ------------------------- */
+#hero-chat::before, .beam::before { display: none; animation: none; }
+#hero-chat::after, .beam::after { display: none; }
+#hero-messages .chat-bubble-user {
+    background: var(--signal-soft);
+    border: 1px solid var(--hairline);
+    border-radius: 3px;
+    box-shadow: none;
+    color: var(--text-primary);
+}
+#hero-messages .chat-bubble-assistant {
+    background: var(--ink-700);
+    border: 1px solid var(--hairline-soft);
+    border-radius: 3px;
+}
+.theme-light #hero-messages .chat-bubble-assistant { background: #fffefa; }
+.agent-status-badge {
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--text-secondary);
+    border-radius: 2px;
+}
+.agent-status-badge::before { background: var(--signal-hi); box-shadow: 0 0 8px var(--signal-hi), 0 0 16px rgba(78, 162, 224, 0.45); }
+.agent-tour-launch, .speech-output-toggle {
+    border-radius: 2px;
+    border: 1px solid var(--hairline-soft);
+    background: transparent;
+    color: var(--text-secondary);
+    box-shadow: none;
+}
+.speech-output-toggle[data-speech-output="on"] {
+    background: var(--signal-soft);
+    border-color: var(--signal);
+    color: var(--text-primary);
+    box-shadow: none;
+}
+.hero-qr {
+    border-radius: 2px;
+    box-shadow: none;
+    border: 1px solid var(--hairline-soft);
+    color: var(--text-secondary);
+}
+.hero-qr:hover {
+    transform: none;
+    box-shadow: none;
+    background: var(--signal-soft);
+    border-color: var(--hairline);
+    color: var(--text-primary);
+}
+
+/* ---- Vstupy formulářů ---------------------------------------------------- */
+input.glass, textarea.glass, select.glass, .glass.rounded-xl {
+    border-radius: 2px;
+}
+#contactForm input, #contactForm textarea, #contactForm select {
+    background: var(--ink-800);
+    border: 1px solid var(--hairline-soft);
+}
+.theme-light #contactForm input,
+.theme-light #contactForm textarea,
+.theme-light #contactForm select { background: #fffefa; }
+
+/* ---- Shutter line (leitmotiv) — bez záře -------------------------------- */
+.shutter-line {
+    background: linear-gradient(180deg, transparent, var(--hairline-soft) 10%, var(--hairline-soft) 90%, transparent);
+}
+.shutter-line::before {
+    width: 1px;
+    left: 0;
+    background: var(--signal);
+    box-shadow: var(--neon);
+}
+.shutter-line::after {
+    width: 7px;
+    height: 7px;
+    left: -3px;
+    background: var(--signal-hi);
+    box-shadow: var(--neon);
+}
+
+/* ---- Scroll progress ------------------------------------------------------ */
+#scrollProgress {
+    background: var(--signal) !important;
+    box-shadow: 0 0 10px rgba(78, 162, 224, 0.6);
+    height: 2px;
+}
+
+/* ---- Footer: tiráž katalogu ---------------------------------------------- */
+footer.glass {
+    background: none;
+    backdrop-filter: none;
+    border-top: 1px solid var(--hairline-soft);
+}
+footer::before { display: none; }
+
+/* ---- Chat widget ----------------------------------------------------------- */
+#chatWindow { border-radius: 3px; }
+#chatWindow .bg-gradient-to-r.from-blue-600.to-purple-600 {
+    background: var(--ink-700);
+    border-bottom: 1px solid var(--hairline-soft);
+    border-radius: 0;
+}
+.theme-light #chatWindow .bg-gradient-to-r.from-blue-600.to-purple-600 { background: var(--ink-800); }
+.quick-reply-btn { border-radius: 2px; }
+.quick-reply-btn:hover { transform: none; box-shadow: none; background: var(--signal-soft); }
+
+/* ---- Voice overlay — ztišený orb ----------------------------------------- */
+.voice-orb {
+    background: radial-gradient(circle at center, rgba(78, 162, 224, 0.22) 0%, transparent 70%);
+    box-shadow: 0 0 0 1px var(--hairline), 0 0 40px rgba(78, 162, 224, 0.2);
+}
+.voice-orb-inner {
+    background: var(--signal);
+    box-shadow: var(--neon);
+}
+
+/* ---- Light theme: legacy utility přemapování ------------------------------ */
+.text-gray-300 { color: #c2c6bf; }
+.text-gray-400 { color: #8b9089; }
+.text-gray-500 { color: #6f746f; }
+.theme-light .text-gray-200 { color: #262a33; }
+.theme-light .text-gray-300 { color: #3a3f48; }
+.theme-light .text-gray-400 { color: #62676f; }
+.theme-light .text-gray-500 { color: #7b7f86; }
+.theme-light .text-blue-300,
+.theme-light .text-blue-400 { color: var(--signal-deep); }
+.theme-light .hamburger-line { background: var(--silver-50); }
+.theme-light #mobileMenu { background: rgba(240, 238, 232, 0.98); }
+.theme-light #mobileMenu a, .theme-light #mobileMenu button { color: var(--text-primary); }
+.theme-light #mobileMenuClose { color: var(--text-primary); }
+
+/* Logo intro — sjednotit s galerií */
+.logo-intro-overlay { background: var(--ink-900); }
+.logo-intro-svg .li-circuit { filter: none; }
+
+/* Mono labely u jazykového přepínače */
+.lang-switch-btn { border-radius: 2px; }
+#langToggleDesktopStatic, #langToggleMobileStatic { border-radius: 2px; }
+#langToggleDesktopStatic .lang-switch-btn.bg-white,
+.lang-switch-btn.bg-white { background: var(--silver-50); color: var(--ink-900); }
+
