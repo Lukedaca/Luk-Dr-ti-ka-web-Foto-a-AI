@@ -20,30 +20,30 @@
     var COPY = {
         cs: {
       title: 'Lukáš Drštička - Fotograf & AI Developer | Portfolio',
-      description: 'Portfolio Lukáše Drštičky - fotograf a AI developer z Přerova. Portrétní, sportovní a produktová fotografie, AI chatboty a automatizace na míru.',
+      description: 'Portfolio Lukáše Drštičky - fotograf a AI developer z Přerova. Portrétní a sportovní fotografie, AI chatboty a automatizace na míru.',
       nav: ['Hybridní agent', 'Portfolio', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
       hero: ['Fotografie', 'AI Development', 'Automatizace', 'Fotograf & AI Developer', 'Portfolio', 'Hybridní agent'],
-      ai: ['Hybridní agent', 'Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat'],
+      ai: ['Hybridní agent', 'Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat', 'Vaše zpráva pro hybridního AI agenta'],
       portfolio: ['Portfolio', 'Vše', 'Fotografie', 'AI Projekty'],
       skills: ['Dovednosti & Technologie', 'Specializuji se na sportovní a portrétní fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI.', 'Fotografie', 'AI & Tech', 'Nástroje'],
       process: ['Jak pracuji', 'Jednoduchý proces od návrhu po realizaci', '1. Konzultace', 'Probereme vaše představy, cíle a požadavky projektu', '2. Plánování', 'Vytvoříme detailní plán a časový harmonogram', '3. Realizace', 'Fotografie, kód nebo AI řešení podle plánu', '4. Dokončení', 'Finální úpravy a předání hotového projektu'],
       about: ['O mně', 'Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.'],
-      collaboration: ['Spolupráce', 'Spolupracuji s těmito subjekty', 'Klubový fotograf', 'Sportovní fotografie ze zápasů a klubových akcí. Dokumentace týmu a fanouškovských momentů.', 'AI specialista', 'Implementace AI řešení, automatizace procesů a technologické poradenství pro kulturní platformu.'],
+      collaboration: ['Spolupráce', 'Spolupracuji s těmito subjekty', 'Klubový fotograf', 'Sportovní fotografie ze zápasů a klubových akcí. Dokumentace týmu a fanouškovských momentů.'],
         contact: ['Kontaktní formulář', 'Preferujete telefon? Zavolejte mi nebo napište e-mail a ozvu se zpět.', 'Napište mi zprávu', '(s hybridním agentem)', 'Jméno', 'Email', 'Typ služby', 'Zpráva', 'AI vám pomůže', 'Vaše jméno', 'vas@email.cz', 'Popište svůj projekt...', 'Fotografie', 'AI chatbot', 'Automatizace', 'Konzultace', 'Odeslat zprávu', 'Nová zpráva z webu', 'Toto pole je povinné'],
       footer: ['Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.', 'Newsletter', 'Email pro newsletter', 'vas@email.cz', 'Odebírat', 'Odkazy', 'Kontakt', 'Přerov, CZ', '© 2026 Lukáš Drštička. Všechna práva vyhrazena.', 'Vytvořeno s pomocí Claude, Gemini & Codex | Designed with modern web standards'],
       misc: ['Přeskočit na obsah', 'Zpět na úvodní stránku', 'Otevřít mobilní menu', 'Zavřít menu', 'Přepnout režim', 'Napište zprávu...', 'Smazat historii', 'Zavřít chat', 'Galerie', 'Zavřít galerii', 'Předchozí fotka', 'Další fotka', 'Ukončit hovor', 'Zadejte prosím email.', 'Děkuji! Newsletter bude zaslán na:']
     },
     en: {
       title: 'Lukas Drsticka - Photographer & AI Developer | Portfolio',
-      description: 'Portfolio of Lukas Drsticka - photographer and AI developer from Prerov, Czech Republic. Portrait, sports and product photography, AI chatbots and custom automation.',
+      description: 'Portfolio of Lukas Drsticka - photographer and AI developer from Prerov, Czech Republic. Portrait and sports photography, AI chatbots and custom automation.',
       nav: ['Hybrid agent', 'Portfolio', 'Skills', 'About', 'Collaboration', 'Contact'],
       hero: ['Photography', 'AI Development', 'Automation', 'Photographer & AI Developer', 'View portfolio', 'Hybrid agent'],
-      ai: ['Hybrid agent', 'A chatbot and a voice agent in one. Writes, speaks and instantly proposes the next step. Works in Czech and English.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send'],
+      ai: ['Hybrid agent', 'A chatbot and a voice agent in one. Writes, speaks and instantly proposes the next step. Works in Czech and English.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send', 'Your message for the hybrid AI agent'],
       portfolio: ['Portfolio', 'All', 'Photography', 'AI Projects'],
       skills: ['Skills & Technology', 'I focus on sports and portrait photography. My Fotograf AI app speeds up post-production and practical AI delivery.', 'Photography', 'AI & Tech', 'Tools'],
       process: ['How I work', 'A simple process from concept to delivery', '1. Consultation', 'We go through your goals, expectations and project requirements.', '2. Planning', 'We prepare a clear plan and realistic timeline.', '3. Delivery', 'Photography, code or AI solution delivered according to plan.', '4. Final handoff', 'Final polish and delivery of the finished project.'],
       about: ['About', 'I work across photography and AI solutions. I enjoy connecting creativity with technology and building things that are actually useful.'],
-      collaboration: ['Collaboration', 'I collaborate with these partners', 'Club photographer', 'Sports photography from matches and club events. Team coverage and fan moments.', 'AI specialist', 'AI implementation, process automation and technology consulting for a cultural platform.'],
+      collaboration: ['Collaboration', 'I collaborate with these partners', 'Club photographer', 'Sports photography from matches and club events. Team coverage and fan moments.'],
         contact: ['Contact form', 'Prefer a phone call? Call me or send an email and I will get back to you.', 'Send me a message', '(with hybrid agent)', 'Name', 'Email', 'Service type', 'Message', 'AI can help you', 'Your name', 'you@email.com', 'Describe your project...', 'Photography', 'AI chatbot', 'Automation', 'Consultation', 'Send message', 'New website message', 'This field is required'],
       footer: ['Professional photography and tailor-made AI solutions. I connect creativity with technology.', 'Newsletter', 'Newsletter email', 'you@email.com', 'Subscribe', 'Links', 'Contact', 'Prerov, Czech Republic', '© 2026 Lukas Drsticka. All rights reserved.', 'Built with help from Claude, Gemini & Codex | Designed with modern web standards'],
       misc: ['Skip to content', 'Back to home page', 'Open mobile menu', 'Close menu', 'Toggle theme', 'Type a message...', 'Clear history', 'Close chat', 'Gallery', 'Close gallery', 'Previous photo', 'Next photo', 'End call', 'Please enter your email.', 'Thanks! The newsletter will be sent to:']
@@ -141,6 +141,8 @@
     setText(document.querySelector('#hybridni-agent > div > p'), copy.ai[1]);
     setText(document.querySelector('#hero-chat h3'), copy.ai[2]);
     setAttr(document.getElementById('hero-input'), 'placeholder', copy.ai[3]);
+    setAttr(document.getElementById('hero-input'), 'aria-label', copy.ai[6]);
+    setText(document.querySelector('label[for="hero-input"]'), copy.ai[6]);
     setText(document.querySelector('#voice-call-btn span'), copy.ai[4]);
     setText(document.getElementById('hero-send'), copy.ai[5]);
 
@@ -169,8 +171,8 @@
 
     setText(document.querySelector('#spoluprace h2'), copy.collaboration[0]);
     setText(document.querySelector('#spoluprace p.text-center'), copy.collaboration[1]);
-    setTexts(document.querySelectorAll('#spoluprace span.inline-block'), [copy.collaboration[2], copy.collaboration[4]]);
-    setTexts(document.querySelectorAll('#spoluprace a p.text-gray-400'), [copy.collaboration[3], copy.collaboration[5]]);
+    setTexts(document.querySelectorAll('#spoluprace span.inline-block'), [copy.collaboration[2]]);
+    setTexts(document.querySelectorAll('#spoluprace a p.text-gray-400'), [copy.collaboration[3]]);
 
     setText(document.querySelector('#kontakt h2'), copy.contact[0]);
     setText(document.querySelector('#kontakt .mb-8 p.text-gray-400'), copy.contact[1]);

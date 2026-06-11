@@ -232,7 +232,7 @@ function initCore() {
             if (i18nLoading) return;
 
             i18nLoading = true;
-            loadModule('/dist/js/i18n.min.js?v=14', () => {
+            loadModule('/dist/js/i18n.min.js?v=15', () => {
                 i18nLoading = false;
                 if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
                     window.ldI18n.applyLanguage(selectedLang);

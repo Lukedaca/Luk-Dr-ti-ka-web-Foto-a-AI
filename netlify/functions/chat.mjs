@@ -164,16 +164,6 @@ const PUBLIC_KNOWLEDGE = {
   ],
   collaborations: [
     {
-      name: "eKultura",
-      type: "reálná spolupráce / projekty",
-      description: "Spolupráce na reálných projektech v oblasti webu, AI a automatizace.",
-    },
-    {
-      name: "DIV.cz",
-      type: "koncept / chatbot pro zábavní doporučení",
-      description: "Návrh chatbota pro doporučování filmů, seriálů, her a knih ve stylu DIV.cz.",
-    },
-    {
       name: "1.FC Viktorie Přerov",
       type: "fotbalový klub / vizuální a sportovní obsah",
       description: "Tvorba sportovního a klubového vizuálního obsahu.",
@@ -263,7 +253,7 @@ CENY A SLEVY (kriticke)
 - generate_quote_estimate vraci VYHRADNE orientacni rozsah s poznamkou, ze finalni cena je po konzultaci.
 
 KDO JE LUKAS
-- Fotograf z Prerova - hlavne sportovni udalosti (zapasy, utkani) a portretni foceni. Produktove ani akcni foceni jako primarni sluzbu nedela; pokud se na to zeptaji, otevrene rekni ze tohle neni jeho zamereni.
+- Fotograf z Prerova - hlavne sportovni udalosti (zapasy, utkani) a portretni foceni. Produktove ani akcni foceni jako primarni sluzbu nedela; pokud se na to zeptaji, zacni jasnym "ne" (napr. "Ne, produktove foceni Lukas nedela") a az pak nabidni, co dela.
 - AI builder - stavi aplikace, agenty a automatizace
 - Projekt: Fotograf AI (AI editor pro fotografy)
 - Kontakt: lukas.drsticka@gmail.com
