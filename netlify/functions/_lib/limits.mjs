@@ -9,6 +9,9 @@ const LIMITS = {
   smart: { window: 24 * 60 * 60 * 1000, max: 3 },
   concurrent: { window: 30 * 1000, max: 2 },
   session: { window: 60 * 60 * 1000, max: 30 },
+  voice: { window: 60 * 60 * 1000, max: 3 },
+  tts: { window: 60 * 1000, max: 60 },
+  tour: { window: 60 * 1000, max: 20 },
 };
 
 const EXPENSIVE_TOOLS = new Set([

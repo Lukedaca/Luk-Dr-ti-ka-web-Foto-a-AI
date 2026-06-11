@@ -35,6 +35,15 @@ const PROMPT_INJECTION_PATTERNS = [
   /act\s+as\s+(if\s+)?you\s+(are|were)\s+/i,
 ];
 
+// Pure origin allowlist check — usable from both Web Request handlers and
+// legacy `event.headers` handlers (CJS functions).
+function isAllowedOrigin(candidate) {
+  if (!candidate) return false;
+  if (ALLOWED_ORIGINS.some((allowed) => candidate.startsWith(allowed))) return true;
+  if (ALLOWED_DEV_PATTERNS.some((re) => re.test(candidate))) return true;
+  return false;
+}
+
 function checkOrigin(req) {
   const origin = req.headers.get("origin") || "";
   const referer = req.headers.get("referer") || "";
@@ -191,6 +200,7 @@ async function runSecurityChecks(req, body, options = {}) {
 }
 
 export {
+  isAllowedOrigin,
   checkOrigin,
   checkHoneypot,
   checkUserAgent,

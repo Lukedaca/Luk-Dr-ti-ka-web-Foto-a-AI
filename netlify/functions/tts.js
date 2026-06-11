@@ -2,11 +2,8 @@ const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-3.1-flash-tts-p
 const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Sulafat";
 const MAX_TEXT_LENGTH = 360;
 const TTS_SAMPLE_RATE = 24000;
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 60;
 const TTS_CACHE_MAX = 80;
 
-const ipHits = new Map();
 const audioCache = new Map();
 
 const corsHeaders = {
@@ -25,19 +22,6 @@ function jsonResponse(statusCode, body, extraHeaders) {
     },
     body: JSON.stringify(body),
   };
-}
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  let hits = ipHits.get(ip) || [];
-  hits = hits.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
-  if (hits.length >= RATE_LIMIT_MAX) {
-    ipHits.set(ip, hits);
-    return true;
-  }
-  hits.push(now);
-  ipHits.set(ip, hits);
-  return false;
 }
 
 function cleanTextForSpeech(value) {
@@ -176,12 +160,21 @@ async function handler(event) {
     return jsonResponse(405, { error: "Method not allowed" });
   }
 
+  const candidateOrigin =
+    event.headers["origin"] || event.headers["referer"] || "";
+  const { isAllowedOrigin } = await import("./_lib/security.mjs");
+  if (!isAllowedOrigin(candidateOrigin)) {
+    return jsonResponse(403, { error: "forbidden" });
+  }
+
   const clientIp =
     event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     event.headers["client-ip"] ||
     "unknown";
 
-  if (isRateLimited(clientIp)) {
+  const { checkLimit } = await import("./_lib/limits.mjs");
+  const rl = await checkLimit("tts", clientIp);
+  if (!rl.ok) {
     return jsonResponse(429, { error: "Příliš mnoho TTS požadavků. Zkus to za chvíli." });
   }
 

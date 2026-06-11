@@ -4,6 +4,8 @@
 // Bezpečné: jen vizuální nástroje, žádné odesílání formulářů.
 
 import { SECTIONS, GALLERY_CATEGORIES, SERVICES } from "./_lib/tools.mjs";
+import { isAllowedOrigin } from "./_lib/security.mjs";
+import { checkLimit } from "./_lib/limits.mjs";
 
 const TOUR_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.5-flash";
 const HIGHLIGHT_TARGETS = ["pricing", "portfolio-grid", "contact-form", "skills-grid", "showreel"];
@@ -11,10 +13,6 @@ const THEME_MODES = ["light", "dark", "toggle"];
 const MIN_STEPS = 3;
 const MAX_STEPS = 6;
 const MAX_SAY_LEN = 180;
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 20;
-
-const ipHits = new Map();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,19 +40,6 @@ function getApiKey() {
 function getClientIp(req) {
   const xff = req.headers.get("x-forwarded-for");
   return (xff && xff.split(",")[0].trim()) || req.headers.get("client-ip") || "unknown";
-}
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  let hits = ipHits.get(ip) || [];
-  hits = hits.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  if (hits.length >= RATE_LIMIT_MAX) {
-    ipHits.set(ip, hits);
-    return true;
-  }
-  hits.push(now);
-  ipHits.set(ip, hits);
-  return false;
 }
 
 // Demo data pro předvyplnění formuláře — nikdy se neodesílá, jen vizuální ukázka.
@@ -222,8 +207,14 @@ export default async (req) => {
     return jsonResponse(405, { error: "Method not allowed" });
   }
 
+  const candidateOrigin = req.headers.get("origin") || req.headers.get("referer") || "";
+  if (!isAllowedOrigin(candidateOrigin)) {
+    return jsonResponse(403, { steps: null, error: "forbidden" });
+  }
+
   const ip = getClientIp(req);
-  if (isRateLimited(ip)) {
+  const rl = await checkLimit("tour", ip);
+  if (!rl.ok) {
     return jsonResponse(429, { steps: null, error: "Příliš mnoho požadavků. Zkus to za chvíli." });
   }
 

@@ -2,26 +2,8 @@
 // Generates short-lived tokens so the API key never reaches the client.
 // Rate limited to 3 voice sessions per IP per hour.
 
-const RATE_LIMIT_WINDOW_MS = 3_600_000; // 1 hour
-const RATE_LIMIT_MAX = 3;
 const GEMINI_LIVE_MODEL = process.env.GEMINI_LIVE_MODEL || "gemini-3.1-flash-live-preview";
 const GEMINI_LIVE_VOICE = process.env.GEMINI_LIVE_VOICE || "Charon";
-
-// ── Rate limiter (in-memory, per function instance) ───────────────────────
-const ipHits = new Map();
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  let hits = ipHits.get(ip) || [];
-  hits = hits.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  if (hits.length >= RATE_LIMIT_MAX) {
-    ipHits.set(ip, hits);
-    return true;
-  }
-  hits.push(now);
-  ipHits.set(ip, hits);
-  return false;
-}
 
 // ── CORS headers ──────────────────────────────────────────────────────────
 const corsHeaders = {
@@ -44,12 +26,25 @@ exports.handler = async (event) => {
     };
   }
 
+  const candidateOrigin =
+    event.headers["origin"] || event.headers["referer"] || "";
+  const { isAllowedOrigin } = await import("./_lib/security.mjs");
+  if (!isAllowedOrigin(candidateOrigin)) {
+    return {
+      statusCode: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "forbidden" }),
+    };
+  }
+
   const clientIp =
     event.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     event.headers["client-ip"] ||
     "unknown";
 
-  if (isRateLimited(clientIp)) {
+  const { checkLimit } = await import("./_lib/limits.mjs");
+  const rl = await checkLimit("voice", clientIp);
+  if (!rl.ok) {
     return {
       statusCode: 429,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
