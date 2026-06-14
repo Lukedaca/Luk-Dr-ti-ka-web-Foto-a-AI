@@ -32,10 +32,10 @@ const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
 
 const LATEST_GALLERY = {
-  title: "Přerov vs Velká Bystřice 2.5.2026",
-  projectId: "sport-12",
-  url: "/galerie/prerov-vs-velka-bystrice/",
-  photos: 23,
+  title: "Přerov vs Prostějov B 13.6.2026",
+  projectId: "sport-15",
+  url: "/galerie/prerov-vs-prostejov-b/",
+  photos: 49,
 };
 
 const TECHNICAL_REFUSAL =
@@ -176,6 +176,9 @@ const PUBLIC_KNOWLEDGE = {
     "Přerov vs Mohelnice 18.4.2026",
     "SK Sigma Olomouc vs 1.FC Slovácko 19.4.2026",
     "Přerov vs Velká Bystřice 2.5.2026",
+    "Přerov vs Uničov B 16.5.2026",
+    "Přerov vs Želatovice 29.5.2026",
+    "Přerov vs Prostějov B 13.6.2026",
     "portrétní galerie",
     "sportovní fotografie",
     "AI projekty",
