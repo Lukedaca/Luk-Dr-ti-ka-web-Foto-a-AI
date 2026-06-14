@@ -10,6 +10,9 @@
   var CHATBOT_INACTIVITY_MS = 180000;
   var CHATBOT_API_URL = '/.netlify/functions/chat';
   var CHATBOT_TTS_API_URL = '/.netlify/functions/tts';
+  // Experiment: streaming TTS (SSE chunky → gapless scheduling). Fallback na one-shot výše.
+  var CHATBOT_TTS_STREAM_ENABLED = true;
+  var CHATBOT_TTS_STREAM_URL = '/.netlify/functions/tts-stream';
   var CHATBOT_DEFAULT_MODE = 'talk';
   var CHATBOT_ALLOWED_MODES = { talk: true, think: true, build: true };
   var CHATBOT_VOICE_OUTPUT_KEY = 'lukas_ai_voice_output';
@@ -305,6 +308,10 @@
   var chatbotNativeSpeech = window.speechSynthesis || null;
   var chatbotSpeechRequestId = 0;
   var chatbotAudioQueue = [];
+  // Streaming TTS stav: sdílený kurzor pro gapless plánování + běžící zdroje + řetěz vět
+  var chatbotStreamCursor = 0;
+  var chatbotStreamSources = [];
+  var chatbotStreamChain = Promise.resolve();
   var chatbotAudioPlaying = false;
   var chatbotWarmedUp = false;
   var chatbotTtsWarmedUp = false;
@@ -490,6 +497,15 @@
       }
       chatbotPlaybackSource = null;
     }
+    chatbotStreamCursor = 0;
+    if (chatbotStreamSources.length) {
+      chatbotStreamSources.forEach(function (s) {
+        try { s.stop(0); } catch (err) {}
+        try { s.disconnect(); } catch (err) {}
+      });
+      chatbotStreamSources = [];
+    }
+    chatbotStreamChain = Promise.resolve();
   }
 
   function chatbotFindNativeVoice(lang) {
@@ -705,6 +721,7 @@
       return;
     }
     if (!CHATBOT_CAN_SERVER_TTS) return;
+    if (CHATBOT_TTS_STREAM_ENABLED) { chatbotStreamEnqueueSentence(text, lang, requestId); return; }
     // Placeholder, ať se pořadí vět zachová i kdyby druhý request dorazil dřív
     var slot = { audio: null, sampleRate: CHATBOT_TTS_SAMPLE_RATE, requestId: requestId, ready: false };
     chatbotAudioQueue.push(slot);
@@ -726,6 +743,100 @@
         slot.audio = null;
         chatbotDrainAudioQueue();
       });
+  }
+
+  // ===== Streaming TTS (experiment) =====
+  // Naplánuje Float32 blok na sdílený kurzor → gapless navázání chunků i vět.
+  function chatbotStreamScheduleFloat32(ctx, f32, requestId) {
+    if (!ctx || !f32 || !f32.length || requestId !== chatbotSpeechRequestId) return;
+    var buf = ctx.createBuffer(1, f32.length, CHATBOT_TTS_SAMPLE_RATE);
+    buf.getChannelData(0).set(f32);
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    var startAt = Math.max(chatbotStreamCursor, ctx.currentTime + 0.03);
+    try { src.start(startAt); } catch (err) { return; }
+    chatbotStreamCursor = startAt + buf.duration;
+    chatbotStreamSources.push(src);
+    src.onended = function () {
+      var i = chatbotStreamSources.indexOf(src);
+      if (i >= 0) chatbotStreamSources.splice(i, 1);
+    };
+  }
+
+  // Když SSE stream selže nebo vrátí skoro nic, dojde k one-shot syntéze (současný /tts).
+  function chatbotStreamFallbackOneShot(text, lang, requestId, ctx) {
+    return chatbotRequestSpeechAudio(text, lang).then(function (data) {
+      if (!data || !data.audio || requestId !== chatbotSpeechRequestId) return;
+      var ab = chatbotBase64ToArrayBuffer(data.audio);
+      var int16 = new Int16Array(ab);
+      var f32 = chatbotInt16ToFloat32(int16);
+      chatbotStreamScheduleFloat32(ctx, f32, requestId);
+    }).catch(function (err) { console.warn('TTS one-shot fallback error:', err && err.message); });
+  }
+
+  // Streamuje jednu větu: PCM16 chunky z tts-stream → gapless do AudioContextu.
+  function chatbotStreamOneSentence(text, lang, requestId) {
+    return chatbotEnsurePlaybackContext().then(function (ctx) {
+      if (!ctx || requestId !== chatbotSpeechRequestId) return;
+      if (chatbotStreamCursor < ctx.currentTime) chatbotStreamCursor = ctx.currentTime + 0.05;
+      return fetch(CHATBOT_TTS_STREAM_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: text, lang: lang })
+      }).then(function (res) {
+        if (!res.ok || !res.body || typeof res.body.getReader !== 'function') {
+          throw new Error('tts-stream http ' + res.status);
+        }
+        var reader = res.body.getReader();
+        var leftover = null;
+        var total = 0;
+        function pump() {
+          return reader.read().then(function (r) {
+            if (requestId !== chatbotSpeechRequestId) { try { reader.cancel(); } catch (e) {} return; }
+            if (r.done) return;
+            var value = r.value;
+            if (value && value.length) {
+              total += value.length;
+              var bytes = value;
+              if (leftover) {
+                var merged = new Uint8Array(leftover.length + bytes.length);
+                merged.set(leftover, 0);
+                merged.set(bytes, leftover.length);
+                bytes = merged;
+                leftover = null;
+              }
+              var usable = bytes.length - (bytes.length % 2);
+              if (usable < bytes.length) leftover = bytes.slice(usable);
+              if (usable > 0) {
+                var ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + usable);
+                var int16 = new Int16Array(ab);
+                var f32 = chatbotInt16ToFloat32(int16);
+                chatbotStreamScheduleFloat32(ctx, f32, requestId);
+              }
+            }
+            return pump();
+          });
+        }
+        return pump().then(function () {
+          // Skoro žádné audio (model vrátil text místo zvuku) → fallback one-shot
+          if (total < 1600 && requestId === chatbotSpeechRequestId) {
+            return chatbotStreamFallbackOneShot(text, lang, requestId, ctx);
+          }
+        });
+      }).catch(function (err) {
+        console.warn('TTS stream → fallback:', err && err.message);
+        if (requestId === chatbotSpeechRequestId) return chatbotStreamFallbackOneShot(text, lang, requestId, ctx);
+      });
+    });
+  }
+
+  // Zachová pořadí vět: další věta se streamuje až po dokončení té předchozí.
+  function chatbotStreamEnqueueSentence(text, lang, requestId) {
+    chatbotStreamChain = chatbotStreamChain.then(function () {
+      if (requestId !== chatbotSpeechRequestId) return;
+      return chatbotStreamOneSentence(text, lang, requestId);
+    }).catch(function () {});
   }
 
   function chatbotShowVoiceOutputErrorOnce() {
