@@ -1014,6 +1014,36 @@ function createInlineFunctionStreamFilter() {
   };
 }
 
+// Vyhledávání galerií podle týmu — odvozeno z názvů v portfolio.json (žádný hardcoded
+// seznam soupeřů). Skóre = počet shodujících se týmových slov; vrací galerie s nejvyšším
+// skóre, takže „Přerov vs Brodek" otevře Brodka, ne všech 8 Přerovů, ale „zápasy s Přerovem"
+// vrátí všechny.
+const GALLERY_SEARCH = GALLERIES.map((g) => ({
+  gallery: g,
+  words: normalizeText(g.name)
+    .split(" ")
+    .filter((w) => w.length >= 3 && w !== "vs" && !/^\d+$/.test(w)),
+}));
+
+function galleryTermStem(word) {
+  return word.slice(0, Math.max(4, word.length - 2));
+}
+
+function findGalleriesByTeam(normalized) {
+  let best = 0;
+  const scored = GALLERY_SEARCH.map((entry) => {
+    let score = 0;
+    for (const w of entry.words) {
+      const stem = galleryTermStem(w);
+      if (stem.length >= 4 && normalized.includes(stem)) score += 1;
+    }
+    if (score > best) best = score;
+    return { gallery: entry.gallery, score };
+  });
+  if (best === 0) return [];
+  return scored.filter((s) => s.score === best).map((s) => s.gallery);
+}
+
 function buildFastPathResponse(mode, messages) {
   const lastUser = getLastUserMessage(messages);
   const normalized = normalizeText(lastUser);
@@ -1099,6 +1129,36 @@ function buildFastPathResponse(mode, messages) {
       return `Nejnovější fotogalerie je ${LATEST_GALLERY.title} (${LATEST_GALLERY.photos} fotek). Otevírám ji teď. [[ACTION:project:${LATEST_GALLERY.projectId}]]`;
     }
     return `Nejnovější fotogalerie je ${LATEST_GALLERY.title} (${LATEST_GALLERY.photos} fotek). Pokud chceš, můžu ji rovnou otevřít.`;
+  }
+
+  // Portréty nejsou samostatné galerie, jen single fotky v portfoliu
+  if (includesAny(normalized, ["portret"])) {
+    const action = hasExplicitNavigationIntent(normalized) ? " [[ACTION:scroll:portfolio]]" : "";
+    return `Portréty mám v portfoliu v kategorii Foto — pár ukázek tam vystavených najdeš.${action}`;
+  }
+
+  // Navigace / filtr zápasových galerií podle týmu (Přerov, Sigma, soupeř…)
+  const namesMatchNoun = includesAny(normalized, ["zapas", "utkani"]);
+  const showOrNavIntent =
+    includesAnyPhrase(normalized, SHOW_TARGET_TERMS) || hasExplicitNavigationIntent(normalized);
+
+  if (namesMatchNoun || showOrNavIntent) {
+    const matches = findGalleriesByTeam(normalized);
+    if (matches.length === 1) {
+      const g = matches[0];
+      if (hasExplicitNavigationIntent(normalized)) {
+        return `Otevírám galerii ${g.name} (${g.images.length} fotek). [[ACTION:project:${g.id}]]`;
+      }
+      return `Mám galerii ${g.name} (${g.images.length} fotek). Můžu ji rovnou otevřít.`;
+    }
+    if (matches.length > 1) {
+      const names = matches.map((g) => g.name).join(", ");
+      const example = matches[matches.length - 1].name;
+      return `Mám ${matches.length} galerií, co sedí: ${names}. Kterou otevřít? Klidně napiš třeba „otevři ${example}".`;
+    }
+    if (namesMatchNoun) {
+      return `Mám ${GALLERIES.length} zápasových galerií, nejnovější je ${LATEST_GALLERY.title} (${LATEST_GALLERY.photos} fotek). Řekni tým (třeba Přerov nebo Sigma), nebo otevřu nejnovější.`;
+    }
   }
 
   const asksCollaborationList =
