@@ -2472,6 +2472,30 @@ button#chatBtn.bg-gradient-to-br {
 }
 .theme-light button#chatBtn.bg-gradient-to-br { background: #fffefa; }
 
+/* Chat launcher — jemný „živý" signal glow, ať widget působí aktivně (ne tlačítko mrtvé) */
+@keyframes chatLauncherGlow {
+    0%, 100% { box-shadow: var(--shadow-deep), 0 0 0 0 var(--signal-soft); }
+    50%      { box-shadow: var(--shadow-deep), 0 0 20px 2px var(--signal-soft); }
+}
+button#chatBtn.bg-gradient-to-br {
+    animation: chatLauncherGlow 3.4s ease-in-out infinite;
+}
+
+/* Plynulé otevření chat okna z rohu launcheru (místo skokového display) */
+@keyframes chatWindowIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+#chatWindow:not(.hidden) {
+    animation: chatWindowIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    transform-origin: bottom right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    button#chatBtn.bg-gradient-to-br { animation: none; }
+    #chatWindow:not(.hidden) { animation: none; }
+}
+
 /* ---- Portfolio: stěna galerie — rám, pasparta, štítek POD fotkou -------- */
 .portfolio-item {
     border-radius: 2px;
