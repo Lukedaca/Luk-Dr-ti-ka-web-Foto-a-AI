@@ -5,15 +5,19 @@ const ALLOWED_ORIGINS = [
   "https://lukasdrsticka-ai-and-foto.com",
   "https://www.lukasdrsticka-ai-and-foto.com",
   "https://lukas-drsticka.netlify.app",
+  "https://lukasdrsticka.netlify.app",
 ];
 
 const ALLOWED_DEV_PATTERNS = [
   /^http:\/\/localhost:\d+$/,
   /^http:\/\/127\.0\.0\.1:\d+$/,
   // Netlify deploy previews / branch deploys of THIS site only
-  // (e.g. deploy-preview-11--lukas-drsticka.netlify.app). Scoped to the site
+  // (e.g. deploy-preview-13--lukasdrsticka.netlify.app). Scoped to the site
   // subdomain so it never opens prod functions to arbitrary origins.
+  // Pozn.: reálný site slug je "lukasdrsticka" (bez pomlčky); hyphenovaná verze
+  // ponechána pro jistotu (dead, ale neškodná).
   /^https:\/\/[a-z0-9-]+--lukas-drsticka\.netlify\.app$/,
+  /^https:\/\/[a-z0-9-]+--lukasdrsticka\.netlify\.app$/,
 ];
 
 const BOT_USER_AGENTS = [
