@@ -1367,6 +1367,24 @@
     'hybridni-agent': '#hybridni-agent'
   };
 
+  // ===== Site Adapter (FrameMind) =====
+  // Jediné místo, kde žijí site-specifická fakta tohoto webu.
+  // Engine (resolver/runAction) sahá výhradně sem — nikdy ne na selektory napřímo.
+  // Drop na jiný web = přepojit hodnoty tady, engine se nemění.
+  var CHATBOT_SITE_MANIFEST = {
+    sectionTargets: CHATBOT_SECTION_TARGETS,
+    sectionAliases: CHATBOT_SECTION_ALIASES,
+    highlightTargets: CHATBOT_HIGHLIGHT_TARGETS,
+    projectLinks: CHATBOT_PROJECT_LINKS,
+    serviceCardSelector: function (service) {
+      return '[data-service="' + String(service || '').replace(/"/g, '') + '"]';
+    },
+    contactStatusId: 'contactStatus',
+    portfolioStatsId: 'portfolio-stats',
+    availabilityId: 'availability',
+    latestProjectId: 'sport-15'
+  };
+
   function chatbotNormalizeTargetKey(value) {
     return String(value || '')
       .replace(/^#/, '')
@@ -1497,6 +1515,54 @@
     }).catch(function(err) {
       console.warn('Agent form action failed:', err);
     });
+  }
+
+  // ===== Engine: resolver (čistý, bez side-efektů) =====
+  // Z tool+args vrátí cílový DOM prvek pomocí Site Adapteru. Nic nemění.
+  // Slouží pilíři 1 (ghost kurzor) — kam má kurzor najet a co rozsvítit.
+  function chatbotManifestSectionEl(sectionKey) {
+    var key = chatbotResolveSectionKey(sectionKey);
+    var config = CHATBOT_SITE_MANIFEST.sectionTargets[key];
+    return config ? chatbotFindBySelectors(config.selectors) : null;
+  }
+
+  function chatbotQuerySafe(selector) {
+    if (!selector) return null;
+    try { return document.querySelector(selector); } catch (e) { return null; }
+  }
+
+  function chatbotResolveTarget(tool, args) {
+    args = args || {};
+    var M = CHATBOT_SITE_MANIFEST;
+    switch (tool) {
+      case 'scroll_to':
+        return chatbotManifestSectionEl(args.section);
+      case 'highlight_element':
+        return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target));
+      case 'filter_gallery':
+        return chatbotManifestSectionEl('portfolio');
+      case 'show_pricing':
+      case 'compare_services':
+        return chatbotQuerySafe(M.highlightTargets.pricing);
+      case 'prefill_contact_form':
+      case 'send_inquiry':
+        return chatbotQuerySafe(M.highlightTargets['contact-form']);
+      case 'show_project_detail':
+        return chatbotQuerySafe('[data-project-id="' + String(args.project_id || '').replace(/[^a-z0-9_-]/gi, '') + '"]')
+          || chatbotManifestSectionEl('portfolio');
+      case 'open_lightbox':
+        return chatbotQuerySafe('[data-image-id="' + String(args.image_id || '').replace(/"/g, '') + '"]');
+      case 'compare_before_after':
+        return chatbotQuerySafe('[data-before-after="' + String(args.image_id || '').replace(/"/g, '') + '"]');
+      case 'play_showreel':
+        return chatbotQuerySafe(M.highlightTargets.showreel);
+      case 'show_portfolio_stats':
+        return document.getElementById(M.portfolioStatsId) || chatbotManifestSectionEl('portfolio');
+      case 'check_availability':
+        return document.getElementById(M.availabilityId) || chatbotManifestSectionEl('kontakt');
+      default:
+        return null;
+    }
   }
 
   var CHATBOT_TOOL_HANDLERS = {
@@ -1651,10 +1717,133 @@
     try { handler(action.args || {}); } catch (err) { console.warn('Tool handler error:', action.tool, err); }
   }
 
+  // ===== Engine: ghost kurzor (Pilíř 1) =====
+  // Viditelná "ruka agenta" — po akci najede na cíl a ťukne (spotlight pulz).
+  // pointer-events:none => nikdy neblokuje klik uživatele (důležité pro pilíř 3).
+  var CHATBOT_GHOST_ENABLED = true;
+  var CHATBOT_GHOST_SETTLE_MS = 420;   // počkat, než smooth-scroll dorovná cíl
+  var CHATBOT_GHOST_HIDE_MS = 2200;    // po nečinnosti kurzor zmizí
+  var chatbotGhostEl = null;
+  var chatbotGhostStyleInjected = false;
+  var chatbotGhostHideTimer = null;
+
+  function chatbotReducedMotion() {
+    try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+    catch (e) { return false; }
+  }
+
+  function chatbotGhostEnsureStyle() {
+    if (chatbotGhostStyleInjected) return;
+    chatbotGhostStyleInjected = true;
+    var css =
+      '#chatbot-ghost-cursor{position:fixed;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;' +
+      'z-index:2147482000;pointer-events:none;opacity:0;will-change:transform,opacity;' +
+      'transition:transform .58s cubic-bezier(.22,.61,.36,1),opacity .25s ease;}' +
+      '#chatbot-ghost-cursor .cb-ghost-dot{position:absolute;inset:0;border-radius:50%;' +
+      'background:radial-gradient(circle at 50% 50%,#fff 0%,#eafff4 38%,rgba(0,255,140,.9) 60%,rgba(0,255,140,0) 72%);' +
+      'box-shadow:0 0 14px 4px rgba(0,255,140,.55),0 0 3px 1px rgba(255,255,255,.9);}' +
+      '#chatbot-ghost-cursor .cb-ghost-ring{position:absolute;inset:-6px;border-radius:50%;' +
+      'border:2px solid rgba(0,255,140,.75);opacity:0;}' +
+      '#chatbot-ghost-cursor.cb-ghost-visible{opacity:1;}' +
+      '#chatbot-ghost-cursor.cb-ghost-tap .cb-ghost-ring{animation:cbGhostTap .55s ease-out;}' +
+      '@keyframes cbGhostTap{0%{opacity:.9;transform:scale(.5);}100%{opacity:0;transform:scale(2.1);}}' +
+      '@media (prefers-reduced-motion: reduce){#chatbot-ghost-cursor{transition:opacity .2s ease;}' +
+      '#chatbot-ghost-cursor.cb-ghost-tap .cb-ghost-ring{animation:none;}}';
+    var style = document.createElement('style');
+    style.id = 'chatbot-ghost-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  function chatbotGhostEnsureEl() {
+    if (chatbotGhostEl && document.body.contains(chatbotGhostEl)) return chatbotGhostEl;
+    chatbotGhostEnsureStyle();
+    var el = document.createElement('div');
+    el.id = 'chatbot-ghost-cursor';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = '<span class="cb-ghost-ring"></span><span class="cb-ghost-dot"></span>';
+    document.body.appendChild(el);
+    chatbotGhostEl = el;
+    return el;
+  }
+
+  function chatbotGhostPointAt(target) {
+    if (!CHATBOT_GHOST_ENABLED || !target || typeof target.getBoundingClientRect !== 'function') return;
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var x = Math.max(24, Math.min(rect.left + rect.width / 2, vw - 24));
+    var y = Math.max(24, Math.min(rect.top + rect.height / 2, vh - 24));
+    var el = chatbotGhostEnsureEl();
+    el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+    el.classList.add('cb-ghost-visible');
+    // retrigger tap animace
+    el.classList.remove('cb-ghost-tap');
+    void el.offsetWidth;
+    el.classList.add('cb-ghost-tap');
+    if (chatbotGhostHideTimer) clearTimeout(chatbotGhostHideTimer);
+    chatbotGhostHideTimer = setTimeout(function () {
+      if (chatbotGhostEl) chatbotGhostEl.classList.remove('cb-ghost-visible');
+    }, CHATBOT_GHOST_HIDE_MS);
+  }
+
+  // ===== Engine: interrupt watcher (Pilíř 3, recykluje i Pilíř 2) =====
+  // Hlídá REÁLNÝ vstup uživatele během agentova autonomního tahu.
+  // Agentův scroll dělá jen 'scroll' event a .click() jen 'click' — ty nehlídáme,
+  // takže není potřeba příznak agent-vs-uživatel.
+  var CHATBOT_INTERRUPT_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+  var CHATBOT_AGENT_UI_SELECTOR = '#chatbot-tour-hud, .chatbot-tour-overlay, #chatbot-ghost-cursor';
+  var chatbotInterruptHandler = null;
+
+  function chatbotInterruptOnEvent(e) {
+    if (!chatbotInterruptHandler) return;
+    var node = e && e.target;
+    if (node && node.closest && node.closest(CHATBOT_AGENT_UI_SELECTOR)) return; // vlastní UI agenta
+    var fn = chatbotInterruptHandler;
+    chatbotInterruptDisarm();
+    try { fn(e); } catch (err) {}
+  }
+
+  function chatbotInterruptArm(onInterrupt) {
+    chatbotInterruptHandler = onInterrupt;
+    CHATBOT_INTERRUPT_EVENTS.forEach(function (t) {
+      window.addEventListener(t, chatbotInterruptOnEvent, { capture: true, passive: true });
+    });
+  }
+
+  function chatbotInterruptDisarm() {
+    chatbotInterruptHandler = null;
+    CHATBOT_INTERRUPT_EVENTS.forEach(function (t) {
+      window.removeEventListener(t, chatbotInterruptOnEvent, { capture: true });
+    });
+  }
+
+  // ===== Engine: runAction pipeline =====
+  // Jednotný vstup pro každou akci (chat i tour). Fáze: resolve -> execute -> point.
+  // Další pilíře (barge-in / převzetí řízení) se doplní do fází zde, ne do handlerů.
+  function chatbotRunAction(tool, args) {
+    if (typeof tool !== 'string') return;
+    args = args || {};
+    // FÁZE resolve — kam akce míří (pro ghost kurzor)
+    var target = null;
+    try { target = chatbotResolveTarget(tool, args); } catch (e) {}
+    // FÁZE execute — beze změny
+    chatbotExecuteToolCall({ tool: tool, args: args });
+    // FÁZE point — ghost kurzor najede na cíl po dorovnání scrollu (čerstvý rect)
+    if (target) {
+      setTimeout(function () {
+        try { chatbotGhostPointAt(target); } catch (e) {}
+      }, CHATBOT_GHOST_SETTLE_MS);
+    }
+  }
+
   function chatbotExecuteActions(actions) {
     if (!Array.isArray(actions) || actions.length === 0) return;
     actions.forEach(function(action, idx) {
-      setTimeout(function() { chatbotExecuteToolCall(action); }, idx * 220);
+      setTimeout(function() {
+        if (action) chatbotRunAction(action.tool, action.args);
+      }, idx * 220);
     });
   }
 
@@ -1775,7 +1964,9 @@
     skip.addEventListener('click', chatbotTourSkip);
     var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'chatbot-tour-btn stop'; stop.textContent = t.stop;
     stop.addEventListener('click', chatbotTourStop);
-    top.appendChild(badge); top.appendChild(dots); top.appendChild(skip); top.appendChild(stop);
+    top.appendChild(badge); top.appendChild(dots);
+    if (chatbotTourLiveAvailable()) top.appendChild(chatbotTourLiveBtn());
+    top.appendChild(skip); top.appendChild(stop);
     var cap = document.createElement('div'); cap.className = 'chatbot-tour-caption'; cap.id = 'chatbot-tour-caption';
     hud.appendChild(top); hud.appendChild(cap);
     document.body.appendChild(hud);
@@ -1817,21 +2008,107 @@
     });
   }
 
+  // Stav na úrovni modulu kvůli pauze/resume (Pilíř 3 — převzetí řízení)
+  var chatbotTourSteps = [];
+  var chatbotTourStepLang = 'cs';
+  var chatbotTourIndex = 0;
+  var chatbotTourPaused = false;
+
   function chatbotTourRun(steps, lang) {
-    var i = 0;
-    function step() {
+    chatbotTourSteps = steps;
+    chatbotTourStepLang = lang;
+    chatbotTourIndex = 0;
+    chatbotTourPaused = false;
+    chatbotInterruptArm(chatbotTourOnUserTakeover);
+    chatbotTourStep();
+  }
+
+  function chatbotTourStep() {
+    if (chatbotTourAborted) { chatbotTourFinish(); return; }
+    if (chatbotTourPaused) return;
+    if (chatbotTourIndex >= chatbotTourSteps.length) { chatbotTourFinish(); return; }
+    var s = chatbotTourSteps[chatbotTourIndex];
+    chatbotTourUpdateHud(chatbotTourIndex, chatbotTourSteps.length, s.say);
+    chatbotTourSpeak(s.say, chatbotTourStepLang).then(function() {
       if (chatbotTourAborted) { chatbotTourFinish(); return; }
-      if (i >= steps.length) { chatbotTourFinish(); return; }
-      var s = steps[i];
-      chatbotTourUpdateHud(i, steps.length, s.say);
-      chatbotTourSpeak(s.say, lang).then(function() {
-        if (chatbotTourAborted) { chatbotTourFinish(); return; }
-        try { chatbotExecuteToolCall({ tool: s.tool, args: s.args || {} }); } catch (e) {}
-        i++;
-        chatbotTourTimer = setTimeout(step, 1100);
-      });
-    }
-    step();
+      if (chatbotTourPaused) return; // pauza přišla během řeči — krok se zopakuje po resume
+      try { chatbotRunAction(s.tool, s.args || {}); } catch (e) {}
+      chatbotTourIndex++;
+      chatbotTourTimer = setTimeout(chatbotTourStep, 1100);
+    });
+  }
+
+  function chatbotTourOnUserTakeover() {
+    if (!chatbotTourActive || chatbotTourPaused || chatbotTourAborted) return;
+    chatbotTourPause();
+  }
+
+  function chatbotTourPause() {
+    chatbotTourPaused = true;
+    if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
+    chatbotStopSpeech();
+    if (chatbotGhostEl) chatbotGhostEl.classList.remove('cb-ghost-visible');
+    chatbotInterruptDisarm();
+    chatbotTourRenderPausedHud();
+  }
+
+  function chatbotTourResume() {
+    if (!chatbotTourActive || !chatbotTourPaused) return;
+    chatbotTourPaused = false;
+    chatbotTourRenderHud();
+    chatbotInterruptArm(chatbotTourOnUserTakeover);
+    chatbotTourStep();
+  }
+
+  // ===== Pilíř 2 — barge-in přes předání do full-duplex Live hlasu =====
+  // Spolehlivá detekce řeči nad skriptovaným TTS = echo. Proto explicitní vstup:
+  // tlačítko pozastaví tour a otevře aiVoice (Gemini Live), kde barge-in jede nativně.
+  function chatbotTourLiveAvailable() {
+    return !!(window.aiVoice && typeof window.aiVoice.start === 'function');
+  }
+
+  function chatbotTourLiveBtn() {
+    var isEn = chatbotTourLang() === 'en';
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chatbot-tour-btn live';
+    b.textContent = isEn ? '🎤 Talk live' : '🎤 Mluvit';
+    b.addEventListener('click', chatbotTourGoLive);
+    return b;
+  }
+
+  function chatbotTourGoLive() {
+    if (chatbotTourActive && !chatbotTourPaused) chatbotTourPause();
+    if (!chatbotTourLiveAvailable()) return; // fallback: zůstane pauza
+    try { window.aiVoice.start(); } catch (e) {}
+  }
+
+  function chatbotTourRenderPausedHud() {
+    chatbotTourRemoveHud();
+    var t = chatbotTourStrings() || {};
+    var isEn = chatbotTourLang() === 'en';
+    var txtBadge = t.takeoverBadge || (isEn ? 'You are driving' : 'Řídíš ty');
+    var txtResume = t.resume || (isEn ? '▶ Resume tour' : '▶ Pokračovat');
+    var txtDone = t.done || (isEn ? 'Done' : 'Hotovo');
+    var txtCaption = t.takeover || (isEn
+      ? 'You took control — explore freely. I will continue the tour whenever you want.'
+      : 'Převzal jsi řízení — klidně si web projdi. Až budeš chtít, pokračuju v ukázce.');
+    var hud = document.createElement('div'); hud.className = 'chatbot-tour-hud'; hud.id = 'chatbot-tour-hud';
+    var top = document.createElement('div'); top.className = 'chatbot-tour-hud-top';
+    var badge = document.createElement('span'); badge.className = 'chatbot-tour-badge';
+    var dot = document.createElement('span'); dot.className = 'dot';
+    var blabel = document.createElement('span'); blabel.textContent = txtBadge;
+    badge.appendChild(dot); badge.appendChild(blabel);
+    var resume = document.createElement('button'); resume.type = 'button'; resume.className = 'chatbot-tour-btn'; resume.textContent = txtResume;
+    resume.addEventListener('click', chatbotTourResume);
+    var stop = document.createElement('button'); stop.type = 'button'; stop.className = 'chatbot-tour-btn stop'; stop.textContent = txtDone;
+    stop.addEventListener('click', chatbotTourStop);
+    top.appendChild(badge);
+    if (chatbotTourLiveAvailable()) top.appendChild(chatbotTourLiveBtn());
+    top.appendChild(resume); top.appendChild(stop);
+    var cap = document.createElement('div'); cap.className = 'chatbot-tour-caption'; cap.textContent = txtCaption;
+    hud.appendChild(top); hud.appendChild(cap);
+    document.body.appendChild(hud);
   }
 
   function chatbotTourFetchSteps(context, lang) {
@@ -1879,6 +2156,8 @@
 
   function chatbotTourFinish() {
     chatbotTourActive = false;
+    chatbotTourPaused = false;
+    chatbotInterruptDisarm();
     if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
     chatbotStopSpeech();
     chatbotTourRemoveHud();
