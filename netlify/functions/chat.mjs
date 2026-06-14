@@ -23,6 +23,7 @@ import {
   normalizeVisitorId,
   updateVisitorMemory,
 } from "./_lib/visitor-memory.mjs";
+import PORTFOLIO_DATA from "../../data/portfolio.json";
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
@@ -31,12 +32,50 @@ const GEMINI_NATIVE_MODELS = [CHAT_MODEL];
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
 
-const LATEST_GALLERY = {
+// Galerie se odvozují z data/portfolio.json (jediný zdroj pravdy), takže agent zná
+// vždy aktuální portfolio bez ručních editů tohoto souboru. esbuild JSON inlinuje při
+// buildu funkce; fallback drží poslední známé hodnoty, kdyby data chyběla nebo měla jiný tvar.
+const FALLBACK_LATEST_GALLERY = {
   title: "Přerov vs Prostějov B 13.6.2026",
   projectId: "sport-15",
   url: "/galerie/prerov-vs-prostejov-b/",
   photos: 49,
 };
+
+function deriveGalleries(data) {
+  if (!Array.isArray(data)) return [];
+  return data.filter(
+    (p) =>
+      p &&
+      p.type === "gallery" &&
+      p.id &&
+      p.name &&
+      p.pageUrl &&
+      Array.isArray(p.images) &&
+      p.images.length,
+  );
+}
+
+function galleryDateValue(name) {
+  const m = String(name || "").match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  return m ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])).getTime() : 0;
+}
+
+const GALLERIES = deriveGalleries(PORTFOLIO_DATA);
+
+const LATEST_GALLERY = GALLERIES.length
+  ? (() => {
+      const latest = GALLERIES.reduce((a, b) =>
+        galleryDateValue(b.name) >= galleryDateValue(a.name) ? b : a,
+      );
+      return {
+        title: latest.name,
+        projectId: latest.id,
+        url: latest.pageUrl,
+        photos: latest.images.length,
+      };
+    })()
+  : FALLBACK_LATEST_GALLERY;
 
 const TECHNICAL_REFUSAL =
   "Tenhle chat není určený pro programování, buildění ani technické návody. Pomůžu s focením, portfoliem, spoluprací nebo kontaktem na Lukáše.";
@@ -169,16 +208,9 @@ const PUBLIC_KNOWLEDGE = {
       description: "Tvorba sportovního a klubového vizuálního obsahu.",
     },
   ],
+  // Galerie se generují z portfolio.json (viz GALLERIES), zbytek jsou stálé kategorie.
   portfolioHighlights: [
-    "Sigma Olomouc vs Mainz",
-    "Přerov vs Brodek 14.3.2026",
-    "Přerov vs Postřelmov 28.3.2026",
-    "Přerov vs Mohelnice 18.4.2026",
-    "SK Sigma Olomouc vs 1.FC Slovácko 19.4.2026",
-    "Přerov vs Velká Bystřice 2.5.2026",
-    "Přerov vs Uničov B 16.5.2026",
-    "Přerov vs Želatovice 29.5.2026",
-    "Přerov vs Prostějov B 13.6.2026",
+    ...GALLERIES.map((g) => g.name),
     "portrétní galerie",
     "sportovní fotografie",
     "AI projekty",
