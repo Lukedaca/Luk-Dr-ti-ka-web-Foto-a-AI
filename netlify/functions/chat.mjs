@@ -1385,9 +1385,16 @@ function chatMessagesToGeminiNativePayload(payload) {
       temperature: typeof payload.temperature === "number" ? payload.temperature : 0.3,
       topP: typeof payload.top_p === "number" ? payload.top_p : 0.9,
       maxOutputTokens: typeof payload.max_tokens === "number" ? payload.max_tokens : 240,
-      thinkingConfig: { thinkingBudget: -1 },
+      // thinkingBudget: 0 = bez přemýšlení (rychlý první token), -1 = dynamické (kvalita).
+      thinkingConfig: { thinkingBudget: typeof payload.thinking_budget === "number" ? payload.thinking_budget : -1 },
     },
   };
+}
+
+// Talk a build režim nepotřebují řetězené uvažování — 0 = nejrychlejší první token.
+// Think si reasoning ponechá (dynamické -1).
+function thinkingBudgetForMode(mode) {
+  return normalizeMode(mode) === "think" ? -1 : 0;
 }
 
 function geminiNativeText(data) {
@@ -1457,7 +1464,101 @@ async function fetchGeminiNativeCompletion(payload, label) {
   return lastResponse || new Response("", { status: 502 });
 }
 
+// Reálný streaming: Gemini :streamGenerateContent (SSE) → přepošleme po chuncích
+// v OpenAI delta formátu, který už čte streamLLMResponse. První token teče hned,
+// netýká se to čekání na celou odpověď jako u :generateContent.
+async function fetchGeminiNativeStream(payload, label) {
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) return new Response("", { status: 404 });
+  const body = chatMessagesToGeminiNativePayload(payload);
+  const model = GEMINI_NATIVE_MODELS[0];
+
+  let upstream;
+  try {
+    upstream = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+  } catch (err) {
+    console.warn(`Gemini native ${label} stream fetch error:`, err?.message || err);
+    const r = new Response("", { status: 502 });
+    r.agentProvider = "gemini-native";
+    r.agentModel = model;
+    return r;
+  }
+
+  if (!upstream.ok || !upstream.body) {
+    const errText = await upstream.text().catch(() => "");
+    console.warn(`Gemini native ${label} stream non-ok:`, upstream.status, errText.slice(0, 500));
+    const r = new Response(errText, { status: upstream.status || 502, statusText: upstream.statusText });
+    r.agentProvider = "gemini-native";
+    r.agentModel = model;
+    return r;
+  }
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const reader = upstream.body.getReader();
+
+  const stream = new ReadableStream({
+    start(controller) {
+      let buffer = "";
+      (async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            let sepIndex;
+            while ((sepIndex = buffer.indexOf("\n\n")) !== -1) {
+              const event = buffer.slice(0, sepIndex);
+              buffer = buffer.slice(sepIndex + 2);
+              for (const line of event.split("\n")) {
+                if (!line.startsWith("data:")) continue;
+                const dataStr = line.slice(5).trim();
+                if (!dataStr || dataStr === "[DONE]") continue;
+                let parsed;
+                try {
+                  parsed = JSON.parse(dataStr);
+                } catch {
+                  continue;
+                }
+                const parts = parsed?.candidates?.[0]?.content?.parts;
+                const text = Array.isArray(parts) ? parts.map((p) => p?.text || "").join("") : "";
+                if (text) {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`),
+                  );
+                }
+              }
+            }
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        } catch (err) {
+          console.warn(`Gemini native ${label} stream read error:`, err?.message || err);
+          controller.error(err);
+        }
+      })();
+    },
+  });
+
+  const response = new Response(stream, {
+    status: 200,
+    headers: { "Content-Type": "text/event-stream" },
+  });
+  response.agentProvider = "gemini-native";
+  response.agentModel = model;
+  return response;
+}
+
 async function fetchChatCompletion(apiKey, payload, label) {
+  if (payload.stream) return fetchGeminiNativeStream(payload, label);
   return fetchGeminiNativeCompletion(payload, label);
 }
 
@@ -1678,6 +1779,8 @@ async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, wr
     temperature: inquiryRequest ? Math.max(config.temperature, 0.35) : smallTalkRequest ? Math.max(config.temperature, 0.45) : config.temperature,
     top_p: config.topP,
     max_tokens: inquiryRequest ? Math.max(config.maxOutputTokens, 520) : smallTalkRequest ? Math.min(Math.max(config.maxOutputTokens, 260), 360) : config.maxOutputTokens,
+    // Poptávka chce kvalitní draft → ponech dynamické přemýšlení; jinak podle režimu.
+    thinking_budget: inquiryRequest ? -1 : thinkingBudgetForMode(mode),
     stream: true,
   };
   // Pure Gemini mode: actions are emitted via inline ACTION tags from the
