@@ -134,6 +134,13 @@ body::after {
 
 .portfolio-overlay .text-center { text-align: left; }
 
+/* Agent send — signal, žádný blue→purple gradient */
+.agent-send {
+  background: linear-gradient(135deg, var(--signal-deep), var(--signal));
+  color: #eceee9;
+}
+.agent-send:hover { background: linear-gradient(135deg, var(--signal), var(--signal-hi)); }
+
 @media (min-width: 1024px) {
   #portfolioGrid > :nth-child(7n + 1) { grid-column: span 2; }
 }
