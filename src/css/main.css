@@ -134,6 +134,97 @@ body::after {
 
 .portfolio-overlay .text-center { text-align: left; }
 
+/* Služby — editorial řádky s hairline dělítky */
+.service-list { display: flex; flex-direction: column; }
+.service-row {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  gap: clamp(1.2rem, 3vw, 2.5rem);
+  align-items: start;
+  padding-block: clamp(1.8rem, 4vw, 2.8rem);
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.service-row:first-child { border-top: 1px solid var(--hairline-soft); }
+@media (max-width: 767px) {
+  .service-row { grid-template-columns: 1fr; gap: 0.9rem; }
+}
+.service-num {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: var(--signal);
+  padding-top: 0.55rem;
+}
+.service-title {
+  font-family: var(--font-display);
+  font-weight: 520;
+  font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+  letter-spacing: -0.012em;
+  margin-bottom: 0.7rem;
+}
+.service-desc {
+  color: var(--text-secondary);
+  max-width: 56ch;
+  margin-bottom: 1rem;
+}
+.service-deliverables {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.service-deliverables li {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  padding-left: 1.1rem;
+  position: relative;
+}
+.service-deliverables li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--signal);
+}
+.service-cta { align-self: center; }
+@media (max-width: 767px) { .service-cta { align-self: start; } }
+
+/* O mně — příběh + fakta */
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: start;
+}
+@media (max-width: 1023px) { .about-grid { grid-template-columns: 1fr; } }
+.about-story { margin: 0; }
+.about-facts { margin: 0; border-top: 1px solid var(--hairline); }
+.fact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 0.95rem;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.fact-row dt {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.fact-row dd {
+  font-family: var(--font-display);
+  font-weight: 540;
+  font-size: 1.25rem;
+  margin: 0;
+  text-align: right;
+}
+
 /* Agent send — signal, žádný blue→purple gradient */
 .agent-send {
   background: linear-gradient(135deg, var(--signal-deep), var(--signal));
