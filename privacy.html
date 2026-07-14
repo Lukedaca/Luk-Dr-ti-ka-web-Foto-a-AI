@@ -111,7 +111,7 @@
         </div>
 
         <h1 class="gradient-text">Zásady ochrany osobních údajů</h1>
-        <p class="updated">Účinnost: 8. května 2026</p>
+        <p class="updated">Účinnost: 1. července 2026</p>
 
         <h2>1. Správce osobních údajů</h2>
         <p>
@@ -123,21 +123,25 @@
         <ul>
             <li><strong>Kontaktní formulář</strong> (jméno, e-mail, typ služby, zpráva) – vyřízení poptávky. Právní základ: čl. 6 odst. 1 písm. b) GDPR (jednání před uzavřením smlouvy).</li>
             <li><strong>Newsletter</strong> (e-mail) – zasílání novinek. Právní základ: souhlas, čl. 6 odst. 1 písm. a) GDPR. Odhlásit se lze kdykoli.</li>
-            <li><strong>AI chatbot a hlasový agent</strong> – obsah konverzace zpracovává Google Generative Language API (Gemma 4) za účelem odpovědi. Konverzace se neukládá na serveru, pouze v lokálním úložišti vašeho prohlížeče.</li>
+            <li><strong>AI chatbot a hlasový agent</strong> – obsah konverzace zpracovává Google Generative Language API (Gemma 4) za účelem odpovědi. Komunikujete s umělou inteligencí, ne s člověkem.</li>
+            <li><strong>Přepis konverzace</strong> – po skončení textového rozhovoru se přepis odešle provozovateli (Netlify Forms → e-mail) kvůli vyřízení poptávky; přepis hlasového hovoru se odesílá obdobně přes Formspree. Právní základ: oprávněný zájem, čl. 6 odst. 1 písm. f) GDPR.</li>
+            <li><strong>Volitelná paměť návštěvníka</strong> – jen po kliknutí na „Pamatovat si mě" v chatu se uloží krátké redigované shrnutí (e-maily a telefony se z něj odstraní) na 180 dní, aby agent navázal při příští návštěvě. Bez souhlasu se neukládá nic a souhlas lze kdykoli v chatu odvolat. Právní základ: souhlas, čl. 6 odst. 1 písm. a) GDPR.</li>
             <li><strong>Technické údaje</strong> (IP adresa, user-agent) – rate-limiting a ochrana před zneužitím. Právní základ: oprávněný zájem, čl. 6 odst. 1 písm. f) GDPR.</li>
         </ul>
 
         <h2>3. Doba uchování</h2>
         <p>
             Údaje z kontaktního formuláře uchováváme po dobu nezbytnou pro vyřízení poptávky a navazující komunikaci, nejdéle 3 roky.
-            Newsletter e-mail do odvolání souhlasu. Konverzace s AI agentem nejsou na serveru ukládány.
+            Newsletter e-mail do odvolání souhlasu. Přepisy konverzací s AI agentem uchováváme stejně dlouho, nejdéle 3 roky.
+            Volitelné shrnutí pro opakované návštěvy (jen se souhlasem) se maže automaticky po 180 dnech nebo kdykoli na vyžádání.
         </p>
 
         <h2>4. Příjemci údajů</h2>
         <ul>
-            <li><strong>Netlify, Inc.</strong> – hosting webu a serverless funkce.</li>
-            <li><strong>Formspree</strong> – doručení e-mailů z kontaktního a newsletter formuláře.</li>
+            <li><strong>Netlify, Inc.</strong> – hosting webu, serverless funkce a doručení e-mailů z kontaktního formuláře, poptávek a textového AI chatbotu (Netlify Forms).</li>
+            <li><strong>Formspree</strong> – doručení přepisu hlasových hovorů s AI agentem.</li>
             <li><strong>Google LLC</strong> – Generative Language API pro AI chatbot a hlasového agenta.</li>
+            <li><strong>Upstash, Inc.</strong> – databáze pro volitelnou paměť návštěvníka (jen se souhlasem, viz výše).</li>
             <li><strong>Cloudflare</strong> – ochrana proti botům (Turnstile).</li>
         </ul>
 

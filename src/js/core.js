@@ -232,7 +232,7 @@ function initCore() {
             if (i18nLoading) return;
 
             i18nLoading = true;
-            loadModule('/dist/js/i18n.min.js?v=16', () => {
+            loadModule('/dist/js/i18n.min.js?v=17', () => {
                 i18nLoading = false;
                 if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
                     window.ldI18n.applyLanguage(selectedLang);
@@ -635,41 +635,7 @@ if (document.readyState === 'loading') {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
-    // Hero canvas particles are a progressive enhancement. Keep them off the
-    // critical path, but restore them for real desktop sessions.
-    const heroHeadline = document.querySelector('.hero-headline');
-    if (heroHeadline &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-        !window.matchMedia('(hover: none)').matches &&
-        window.innerWidth >= 768) {
-        let particlesRequested = false;
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=29');
-        const scheduleParticles = () => {
-            if (particlesRequested) return;
-            particlesRequested = true;
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(startParticles, { timeout: 2000 });
-            } else {
-                setTimeout(startParticles, 600);
-            }
-        };
-        heroHeadline.addEventListener('pointerenter', scheduleParticles, { once: true, passive: true });
-        heroHeadline.addEventListener('click', scheduleParticles, { once: true, passive: true });
-        heroHeadline.addEventListener('focusin', scheduleParticles, { once: true });
-
-        const scheduleInitialParticles = () => {
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(scheduleParticles, { timeout: 3500 });
-            } else {
-                setTimeout(scheduleParticles, 1800);
-            }
-        };
-        if (document.readyState === 'complete') {
-            scheduleInitialParticles();
-        } else {
-            window.addEventListener('load', scheduleInitialParticles, { once: true });
-        }
-    }
+    // Editorial redesign: hero je fullbleed fotka, žádné canvas particles.
 
     // Load portfolio module when portfolio section is visible
     const portfolioSection = document.getElementById('portfolio');
@@ -710,7 +676,7 @@ function loadChatbotStack() {
 
     chatbotLoadPromise = new Promise((resolve) => {
         const finish = () => {
-            loadModule('/dist/js/chatbot.min.js?v=23', () => {
+            loadModule('/dist/js/chatbot.min.js?v=24', () => {
                 console.log('Chatbot module loaded');
                 loadModule('/dist/js/voice.min.js?v=12', () => {
                     console.log('Voice module loaded');
