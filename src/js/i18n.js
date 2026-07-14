@@ -19,8 +19,8 @@
 
     var COPY = {
         cs: {
-      title: 'Lukáš Drštička — Fotograf & AI developer | Sport, portréty, AI agenti',
-      description: 'Fotím sport a portréty a stavím AI, která pracuje za mě. Klubový fotograf 1. FC Viktorie Přerov, autor aplikace Fotograf AI a hybridního agenta, který mluví na tomto webu.',
+      title: 'Fotograf Přerov & AI Developer | Lukáš Drštička',
+      description: 'Fotograf Přerov – Lukáš Drštička. Sportovní a portrétní fotografie v Přerově a okolí. AI developer – chatboty, automatizace a webová řešení na míru.',
       nav: ['Hybridní agent', 'Portfolio', 'Služby', 'O mně', 'Spolupráce', 'Kontakt'],
       hero: ['Lukáš Drštička · Fotograf & AI developer · Přerov', 'Fotím sport a portréty. A stavím AI, která pracuje za mě.', 'Domluvit focení', 'Prohlédnout práci'],
       ai: ['Hybridní agent', 'Postavil jsem ho sám. Zeptej se ho na cokoliv.', 'Píše, mluví a rovnou navrhuje další krok — v češtině i angličtině. Stejného agenta můžu postavit i pro váš web. Tohle není demo, běží naostro.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat', 'Vaše zpráva pro hybridního AI agenta'],
@@ -36,8 +36,8 @@
       misc: ['Přeskočit na obsah', 'Zpět na úvodní stránku', 'Otevřít mobilní menu', 'Zavřít menu', 'Přepnout režim', 'Napište zprávu...', 'Smazat historii', 'Zavřít chat', 'Galerie', 'Zavřít galerii', 'Předchozí fotka', 'Další fotka', 'Ukončit hovor', 'Zadejte prosím email.', 'Děkuji! Newsletter bude zaslán na:']
     },
     en: {
-      title: 'Lukas Drsticka — Photographer & AI Developer | Sports, portraits, AI agents',
-      description: 'I shoot sports and portraits and build AI that works for me. Club photographer for 1. FC Viktorie Prerov, creator of the Fotograf AI app and the hybrid agent speaking on this website.',
+      title: 'Photographer Prerov & AI Developer | Lukas Drsticka',
+      description: 'Photographer in Prerov, Czech Republic – Lukas Drsticka. Sports and portrait photography in Prerov and nearby. AI developer – chatbots, automation and custom web solutions.',
       nav: ['Hybrid agent', 'Portfolio', 'Services', 'About', 'Collaboration', 'Contact'],
       hero: ['Lukas Drsticka · Photographer & AI developer · Prerov, CZ', 'I shoot sports and portraits. And I build AI that works for me.', 'Book a shoot', 'View my work'],
       ai: ['Hybrid agent', 'I built it myself. Ask it anything.', 'It writes, speaks and proposes the next step — in Czech and English. I can build the same agent for your website. This is not a demo, it runs live.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send', 'Your message for the hybrid AI agent'],
