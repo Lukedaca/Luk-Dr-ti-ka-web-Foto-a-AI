@@ -43,6 +43,8 @@
 
     <!-- Self-hosted variable fonts (preload pouze display weight) -->
     <link rel="preload" href="/dist/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/dist/fonts/Fraunces-Latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/dist/fonts/Fraunces-LatinExt.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- Additional SEO -->
     <meta name="format-detection" content="telephone=no">
@@ -76,7 +78,7 @@
     --glass-bg: rgba(17, 21, 31, 0.72);
     --glass-border: var(--hairline-soft);
     --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
     --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace;
 }
 
@@ -550,6 +552,7 @@ body > * {
                     </div>
 
                     <p id="hero-chat-helper" class="mt-3 text-sm text-white/60">Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Hybridní agent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.</p>
+                    <p class="mt-1 text-xs text-white/40">Komunikujete s AI agentem, odpovědi i hlas generuje umělá inteligence · <a href="/privacy.html" class="underline hover:text-white/70">jak nakládáme s daty</a></p>
 
                     <div id="hero-quick-replies" class="flex gap-2 flex-wrap mt-4">
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Děláš portrétní focení?">Portréty</button>
@@ -1235,6 +1238,7 @@ body > * {
             </div>
             <div id="messages" class="flex-1 p-4 overflow-y-auto" aria-live="polite"></div>
             <div id="quickReplies" class="px-4 pb-2 hidden"></div>
+            <p class="px-4 text-[11px] leading-snug text-white/50">Komunikujete s AI agentem, odpovědi i hlas generuje umělá inteligence · <a href="/privacy.html" class="underline hover:text-white/80">jak nakládáme s daty</a></p>
             <div class="p-4 border-t border-white/10">
                 <div class="flex gap-2">
                     <label for="chatInput" class="sr-only">Napsat zprávu do chatu</label>
