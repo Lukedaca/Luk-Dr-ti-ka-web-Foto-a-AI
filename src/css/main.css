@@ -110,6 +110,34 @@ body::after {
 }
 .museum-label .label-title { color: var(--text-primary); letter-spacing: 0.1em; }
 
+/* Portfolio — editorial: mono filtry, asymetrický grid, štítky vlevo */
+.filter-btn {
+  padding: 0.5rem 0.15rem;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.filter-btn:hover { color: var(--text-primary); }
+.filter-btn.active {
+  color: var(--signal-hi);
+  border-bottom-color: var(--signal);
+}
+.theme-light .filter-btn.active { color: var(--signal-deep); }
+
+.portfolio-overlay .text-center { text-align: left; }
+
+@media (min-width: 1024px) {
+  #portfolioGrid > :nth-child(7n + 1) { grid-column: span 2; }
+}
+
 .editorial-reveal {
   clip-path: inset(0 0 100% 0);
   transition: clip-path 0.9s cubic-bezier(0.65, 0, 0.35, 1);

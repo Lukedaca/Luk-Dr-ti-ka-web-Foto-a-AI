@@ -556,13 +556,15 @@ header.is-scrolled {
     bottom: 50%;
 }
 
+.portfolio-item {
+    border-radius: 2px;
+    border-color: var(--hairline, rgba(232, 238, 246, 0.1));
+}
+
 .portfolio-item:hover {
-    transform: translateY(-6px) scale(1.015);
-    border-color: var(--glass-border-hi);
-    box-shadow:
-        0 36px 80px -20px rgba(3, 8, 18, 0.7),
-        0 0 0 1px rgba(111, 176, 255, 0.18),
-        0 0 60px -10px rgba(74, 144, 226, 0.45);
+    transform: translateY(-3px);
+    border-color: var(--signal, #4ea2e0);
+    box-shadow: 0 24px 50px -24px rgba(3, 8, 18, 0.6);
 }
 
 .portfolio-item img {
@@ -582,8 +584,8 @@ header.is-scrolled {
         rgba(5, 10, 20, 0) 0%,
         rgba(5, 10, 20, 0.35) 55%,
         rgba(5, 10, 20, 0.86) 100%);
-    opacity: 0.55;
-    transition: opacity 0.4s ease;
+    opacity: 1;
+    transition: background 0.4s ease;
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
@@ -592,7 +594,10 @@ header.is-scrolled {
 }
 
 .portfolio-item:hover .portfolio-overlay {
-    opacity: 1;
+    background: linear-gradient(180deg,
+        rgba(5, 10, 20, 0) 0%,
+        rgba(5, 10, 20, 0.45) 55%,
+        rgba(5, 10, 20, 0.92) 100%);
 }
 
 .portfolio-title {
