@@ -225,6 +225,29 @@ body::after {
   text-align: right;
 }
 
+/* Kontakt — editorial dvousloupec */
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(2.5rem, 6vw, 5.5rem);
+  align-items: start;
+}
+@media (max-width: 1023px) { .contact-grid { grid-template-columns: 1fr; } }
+.contact-claim { margin: 0 0 2rem; max-width: 18ch; }
+.contact-line {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 480;
+  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+  color: var(--signal-hi);
+  text-decoration: none;
+  padding-block: 0.55rem;
+  border-bottom: 1px solid var(--hairline-soft);
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+.contact-line:hover { color: var(--text-primary); border-color: var(--signal); }
+.theme-light .contact-line { color: var(--signal-deep); }
+
 /* Agent send — signal, žádný blue→purple gradient */
 .agent-send {
   background: linear-gradient(135deg, var(--signal-deep), var(--signal));
