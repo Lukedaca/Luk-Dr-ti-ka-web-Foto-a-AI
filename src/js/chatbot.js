@@ -2963,6 +2963,7 @@
     closeWidget: chatbotCloseWidget,
     setMode: chatbotSetMode,
     setVoiceOutput: chatbotSetVoiceOutput,
+    tourStart: chatbotTourStart,
     reinit: chatbotInit
   };
 
