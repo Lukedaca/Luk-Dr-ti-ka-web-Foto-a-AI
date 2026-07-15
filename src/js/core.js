@@ -635,39 +635,21 @@ if (document.readyState === 'loading') {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
-    // Hero canvas particles are a progressive enhancement. Keep them off the
-    // critical path, but restore them for real desktop sessions.
-    const heroHeadline = document.querySelector('.hero-headline');
-    if (heroHeadline &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-        !window.matchMedia('(hover: none)').matches &&
-        window.innerWidth >= 768) {
-        let particlesRequested = false;
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=29');
-        const scheduleParticles = () => {
-            if (particlesRequested) return;
-            particlesRequested = true;
+    // Shader jeviště (stage.js) je progressive enhancement mimo kritickou cestu.
+    // Reduced-motion a mobil řeší stage.js sám (statické varianty).
+    if (document.querySelector('[data-stage]')) {
+        const startStage = () => loadModule('/dist/js/stage.min.js?v=1');
+        const scheduleStage = () => {
             if ('requestIdleCallback' in window) {
-                requestIdleCallback(startParticles, { timeout: 2000 });
+                requestIdleCallback(startStage, { timeout: 2000 });
             } else {
-                setTimeout(startParticles, 600);
-            }
-        };
-        heroHeadline.addEventListener('pointerenter', scheduleParticles, { once: true, passive: true });
-        heroHeadline.addEventListener('click', scheduleParticles, { once: true, passive: true });
-        heroHeadline.addEventListener('focusin', scheduleParticles, { once: true });
-
-        const scheduleInitialParticles = () => {
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(scheduleParticles, { timeout: 3500 });
-            } else {
-                setTimeout(scheduleParticles, 1800);
+                setTimeout(startStage, 600);
             }
         };
         if (document.readyState === 'complete') {
-            scheduleInitialParticles();
+            scheduleStage();
         } else {
-            window.addEventListener('load', scheduleInitialParticles, { once: true });
+            window.addEventListener('load', scheduleStage, { once: true });
         }
     }
 
