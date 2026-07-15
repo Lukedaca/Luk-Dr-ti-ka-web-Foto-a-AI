@@ -43,8 +43,6 @@
 
     <!-- Self-hosted variable fonts (preload pouze display weight) -->
     <link rel="preload" href="/dist/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/dist/fonts/Fraunces-Latin.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/dist/fonts/Fraunces-LatinExt.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- Additional SEO -->
     <meta name="format-detection" content="telephone=no">
@@ -78,7 +76,7 @@
     --glass-bg: rgba(17, 21, 31, 0.72);
     --glass-border: var(--hairline-soft);
     --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-display: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace;
 }
 
@@ -161,30 +159,27 @@ header {
 
 #hero {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
+    justify-content: center;
     min-height: 100svh;
+    padding-inline: 1.5rem;
     position: relative;
 }
-.hero-photo img {
-    position: absolute;
-    inset: 0;
+.hero-exhibit-inner {
+    width: min(1180px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+}
+@media (max-width: 1023px) {
+    .hero-exhibit-inner { grid-template-columns: 1fr; align-items: start; }
+}
+.hero-aperture {
+    display: block;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 30%;
-}
-.hero-shade {
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(to top, rgba(7,9,15,0.94) 0%, rgba(7,9,15,0.55) 34%, rgba(7,9,15,0.12) 60%, rgba(7,9,15,0.28) 100%);
-}
-.hero-content {
-    position: relative;
-    z-index: 2;
-    width: min(100% - 3rem, 1180px);
-    margin-inline: auto;
-    padding-bottom: clamp(5rem, 12vh, 8.5rem);
+    height: auto;
+    aspect-ratio: 1 / 1;
 }
 
 .hero-ambient,
@@ -228,7 +223,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=42">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=41">
     
 
     <!-- Schema.org Structured Data -->
@@ -264,8 +259,8 @@ body > * {
         {"@type": "AdministrativeArea", "name": "Olomoucký kraj"}
       ],
       "sameAs": [
-        "https://www.linkedin.com/in/luk%C3%A1%C5%A1-dr%C5%A1ti%C4%8Dka-573772110/",
-        "https://github.com/Lukedaca"
+        "https://www.linkedin.com/in/lukas-drsticka",
+        "https://github.com/lukas-drsticka"
       ],
       "knowsAbout": ["Fotografie", "Sportovní fotografie", "Portrétní fotografie", "Umělá inteligence", "AI chatboty", "Automatizace", "Webový vývoj"],
       "hasOfferCatalog": {
@@ -277,7 +272,7 @@ body > * {
             "itemOffered": {
               "@type": "Service",
               "name": "Sportovní fotografie Přerov",
-              "description": "Profesionální sportovní fotografie – fotbalové zápasy a sportovní akce v Přerově a okolí"
+              "description": "Profesionální sportovní fotografie – fotbal, hokej, atletika a další sporty v Přerově a okolí"
             }
           },
           {
@@ -369,7 +364,7 @@ body > * {
             <nav class="hidden md:flex items-center space-x-8" aria-label="Hlavní navigace">
                 <a href="#hybridni-agent" class="nav-link hover:text-blue-400 transition">Hybridní agent</a>
                 <a href="#portfolio" class="nav-link hover:text-blue-400 transition">Portfolio</a>
-                <a href="#sluzby" class="nav-link hover:text-blue-400 transition">Služby</a>
+                <a href="#skills" class="nav-link hover:text-blue-400 transition">Dovednosti</a>
                 <a href="#o-mne" class="nav-link hover:text-blue-400 transition">O mně</a>
                 <a href="#spoluprace" class="nav-link hover:text-blue-400 transition">Spolupráce</a>
                 <a href="#kontakt" class="nav-link hover:text-blue-400 transition">Kontakt</a>
@@ -400,7 +395,7 @@ body > * {
         <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobilní navigace">
             <a href="#hybridni-agent" class="mobile-menu-link hover:text-blue-400 transition">Hybridní agent</a>
             <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
-            <a href="#sluzby" class="mobile-menu-link hover:text-blue-400 transition">Služby</a>
+            <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
             <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
             <a href="#spoluprace" class="mobile-menu-link hover:text-blue-400 transition">Spolupráce</a>
             <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
@@ -419,32 +414,72 @@ body > * {
     </div>
 
     <main id="main" class="pt-20" tabindex="-1">
-        <!-- Hero — editorial monografie: fullbleed fotka + claim -->
-        <section id="hero" class="hero-editorial relative min-h-screen overflow-hidden">
-            <picture class="hero-photo">
-                <source type="image/avif" srcset="/assets/hero/hero-sigma-1400.avif 1400w, /assets/hero/hero-sigma-2400.avif 2400w" sizes="100vw">
-                <source type="image/webp" srcset="/assets/hero/hero-sigma-1400.webp 1400w, /assets/hero/hero-sigma-2400.webp 2400w" sizes="100vw">
-                <img src="/assets/hero/hero-sigma-2400.jpg"
-                     srcset="/assets/hero/hero-sigma-1400.jpg 1400w, /assets/hero/hero-sigma-2400.jpg 2400w"
-                     sizes="100vw"
-                     width="2400" height="1667"
-                     alt="Souboj o míč v zápase SK Sigma Olomouc proti 1.FC Slovácko"
-                     fetchpriority="high" decoding="async" data-cine-parallax="0.12">
-            </picture>
-            <div class="hero-shade" aria-hidden="true"></div>
+        <!-- Hero Section — „Výstava": kinetická rytina clony jako exponát, muzejní štítek vedle -->
+        <section id="hero" class="hero-exhibit relative min-h-screen overflow-hidden">
+            <div class="hero-exhibit-inner">
+                <figure class="hero-frame">
+                    <div class="hero-frame-mat">
+                        <svg class="hero-aperture" viewBox="0 0 600 600" role="img" aria-label="Kinetická kresba clony objektivu — fotografie a AI" width="600" height="600">
+                            <defs>
+                                <path id="ap-text-circle" d="M 300 76 A 224 224 0 1 1 299.9 76" fill="none"/>
+                            </defs>
 
-            <div class="hero-content">
-                <p class="hero-eyebrow">Lukáš Drštička · Fotograf &amp; AI developer · Přerov</p>
-                <h1 class="editorial-headline hero-claim" data-cine-split>Fotím sport a&nbsp;portréty. A&nbsp;stavím AI, která pracuje za&nbsp;mě.</h1>
-                <div class="hero-cta-row">
-                    <a href="#kontakt" class="hero-cta hero-cta-primary">Domluvit focení</a>
-                    <a href="#portfolio" class="hero-cta">Prohlédnout práci</a>
+                            <!-- Vnější prstenec + rytá stupnice -->
+                            <g class="ap-ring-outer">
+                                <circle cx="300" cy="300" r="252" class="ap-hairline"/>
+                                <circle cx="300" cy="300" r="244" class="ap-ticks"/>
+                            </g>
+
+                            <!-- Kruhový mono text — pomalu obíhá -->
+                            <g class="ap-text-ring" aria-hidden="true">
+                                <text class="ap-text">
+                                    <textPath href="#ap-text-circle" startOffset="0">FOTOGRAFIE&#160;&#160;·&#160;&#160;AI&#160;&#160;·&#160;&#160;AUTOMATIZACE&#160;&#160;·&#160;&#160;WEB&#160;&#160;·&#160;&#160;FOTOGRAFIE&#160;&#160;·&#160;&#160;AI&#160;&#160;·&#160;&#160;AUTOMATIZACE&#160;&#160;·&#160;&#160;WEB&#160;&#160;·</textPath>
+                                </text>
+                            </g>
+
+                            <!-- Lamely clony — 8 čepelí, pomalé dýchání -->
+                            <g class="ap-blades">
+                                <g><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(45 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(90 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(135 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(180 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(225 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(270 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                                <g transform="rotate(315 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
+                            </g>
+
+                            <!-- Střed: ohnisko + circuit linka z loga (AI) -->
+                            <circle cx="300" cy="300" r="70" class="ap-hairline-soft"/>
+                            <circle cx="300" cy="300" r="4" class="ap-focus"/>
+                            <g class="ap-circuit" aria-hidden="true">
+                                <path d="M 304 300 L 352 300 L 368 284 L 416 284 M 368 284 L 392 284 L 404 272 M 416 284 L 448 284 L 462 298 L 506 298" class="ap-circuit-path"/>
+                                <circle cx="506" cy="298" r="3.5" class="ap-circuit-dot"/>
+                            </g>
+
+                            <!-- Rytá značení objektivu -->
+                            <text x="300" y="557" text-anchor="middle" class="ap-engrave">f/1.4&#160;&#160;·&#160;&#160;35&#160;mm</text>
+                        </svg>
+                    </div>
+                    <figcaption class="hero-plate">
+                        <span class="hero-plate-no">№ 01</span>
+                        <span class="hero-plate-line" aria-hidden="true"></span>
+                        <span class="hero-plate-meta">Clona · 2026</span>
+                    </figcaption>
+                </figure>
+
+                <div class="hero-label">
+                    <h1 class="hero-h1 hero-kicker">
+                        <span data-hero-role-a>Fotograf</span> <span class="hero-amp">&amp;</span> <span data-hero-role-b>AI Developer</span>
+                    </h1>
+
+                    <h2 class="hero-name">Lukáš Drštička</h2>
+
+                    <div class="hero-cta-row text-center">
+                        <a href="#portfolio" class="hero-cta hero-cta-primary">Portfolio</a>
+                        <a href="#hybridni-agent" class="hero-cta">Hybridní agent</a>
+                    </div>
                 </div>
-            </div>
-
-            <div class="museum-label hero-photo-label" aria-hidden="true">
-                <span class="label-title">SK Sigma Olomouc × 1.FC Slovácko</span>
-                <span>19.&nbsp;4.&nbsp;2026</span>
             </div>
 
             <a href="#hybridni-agent" class="hero-scroll-cue" aria-label="Posunout na obsah">
@@ -453,15 +488,25 @@ body > * {
             </a>
         </section>
 
+        <!-- Scroll-velocity marquee — brand texture mezi hero a agentem -->
+        <div class="cine-marquee" aria-hidden="true">
+            <div class="cine-marquee-track" data-cine-marquee>
+                <span class="cine-marquee-item">
+                    Sport <span class="cine-dot"></span>
+                    <span class="cine-fill">Portrét</span> <span class="cine-dot"></span>
+                    Fotografie <span class="cine-dot"></span>
+                    AI <span class="cine-dot"></span>
+                    <span class="cine-fill">Automatizace</span> <span class="cine-dot"></span>
+                    Web <span class="cine-dot"></span>
+                </span>
+            </div>
+        </div>
+
         <!-- Hybridní agent Section -->
         <section id="hybridni-agent" class="py-24 reveal">
             <div class="container mx-auto px-6 section-wrap">
-                <div class="chapter-head">
-                    <span class="chapter-num">02</span>
-                    <h2 class="chapter-title section-title">Hybridní agent</h2>
-                </div>
-                <p class="editorial-sub mb-4 max-w-3xl section-sub">Postavil jsem ho sám. Zeptej se ho na cokoliv.</p>
-                <p class="text-gray-400 mb-12 max-w-2xl agent-intro-note">Píše, mluví a rovnou navrhuje další krok — v češtině i angličtině. Stejného agenta můžu postavit i pro váš web. Tohle není demo, běží naostro.</p>
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Hybridní agent</h2>
+                <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.</p>
 
                 <div class="max-w-4xl mx-auto">
                     <div id="hero-chat" class="glass rounded-[2rem] p-6 md:p-8 text-left">
@@ -498,14 +543,13 @@ body > * {
                                 <span class="text-sm font-semibold whitespace-nowrap">Mluvit hlasem</span>
                             </button>
                             <button id="hero-send" aria-label="Odeslat zprávu"
-                                    class="agent-send flex-1 sm:flex-none px-5 py-3 rounded-xl text-sm font-semibold transition whitespace-nowrap">
+                                    class="flex-1 sm:flex-none px-5 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-semibold hover:opacity-90 transition whitespace-nowrap">
                                 Odeslat
                             </button>
                         </div>
                     </div>
 
                     <p id="hero-chat-helper" class="mt-3 text-sm text-white/60">Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Hybridní agent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.</p>
-                    <p class="mt-1 text-xs text-white/40">Komunikujete s AI agentem, odpovědi i hlas generuje umělá inteligence · <a href="/privacy.html" class="underline hover:text-white/70">jak nakládáme s daty</a></p>
 
                     <div id="hero-quick-replies" class="flex gap-2 flex-wrap mt-4">
                         <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Děláš portrétní focení?">Portréty</button>
@@ -520,19 +564,16 @@ body > * {
 
         <section id="portfolio" class="py-24 reveal is-visible">
             <div class="container mx-auto px-6 section-wrap">
-                <div class="chapter-head">
-                    <span class="chapter-num">01</span>
-                    <h2 class="chapter-title section-title">Vybraná práce</h2>
-                </div>
-
-                <div class="flex gap-6 mb-12 flex-wrap">
-                    <button class="filter-btn active" data-filter="all">Vše</button>
-                    <button class="filter-btn" data-filter="foto">Fotografie</button>
-                    <button class="filter-btn" data-filter="ai">AI Projekty</button>
+                <h2 class="text-4xl font-bold mb-12 text-center gradient-text section-title">Portfolio</h2>
+                
+                <div class="flex justify-center gap-4 mb-12 flex-wrap">
+                    <button class="filter-btn active glass px-6 py-2 rounded-full" data-filter="all">Vše</button>
+                    <button class="filter-btn glass px-6 py-2 rounded-full" data-filter="foto">Fotografie</button>
+                    <button class="filter-btn glass px-6 py-2 rounded-full" data-filter="ai">AI Projekty</button>
                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="portfolioGrid">
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-1-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-1-card.webp" type="image/webp">
@@ -545,7 +586,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-2-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-2-card.webp" type="image/webp">
@@ -558,7 +599,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-3-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-3-card.webp" type="image/webp">
@@ -571,7 +612,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-4-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-4-card.webp" type="image/webp">
@@ -584,7 +625,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-5-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-5-card.webp" type="image/webp">
@@ -597,7 +638,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/sport-6-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sport-6-card.webp" type="image/webp">
@@ -610,7 +651,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <a href="/galerie/sigma-vs-mainz/" class="portfolio-item overflow-hidden block" data-category="foto" data-project-id="sport-7" data-project-index="6" aria-label="Otevřít galerii Sigma Olomouc vs Mainz">
+                    <a href="/galerie/sigma-vs-mainz/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-7" data-project-index="6" aria-label="Otevřít galerii Sigma Olomouc vs Mainz">
                         <picture>
                             <source srcset="dist/images/portfolio/sigma-mainz-01-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/sigma-mainz-01-card.webp" type="image/webp">
@@ -623,7 +664,7 @@ body > * {
                             </div>
                         </div>
                     </a>
-                    <a href="/galerie/prerov-vs-brodek/" class="portfolio-item overflow-hidden block" data-category="foto" data-project-id="sport-8" data-project-index="7" aria-label="Otevřít galerii Přerov vs Brodek">
+                    <a href="/galerie/prerov-vs-brodek/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-8" data-project-index="7" aria-label="Otevřít galerii Přerov vs Brodek">
                         <picture>
                             <source srcset="dist/images/portfolio/prerov-brodek/IMG_8812-thumb.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/prerov-brodek/IMG_8812-thumb.webp" type="image/webp">
@@ -636,7 +677,7 @@ body > * {
                             </div>
                         </div>
                     </a>
-                    <a href="/galerie/prerov-vs-postelmov/" class="portfolio-item overflow-hidden block" data-category="foto" data-project-id="sport-9" data-project-index="8" aria-label="Otevřít galerii Přerov vs Postřelmov">
+                    <a href="/galerie/prerov-vs-postelmov/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-9" data-project-index="8" aria-label="Otevřít galerii Přerov vs Postřelmov">
                         <picture>
                             <source srcset="dist/images/portfolio/prerov-postelmov/IMG_8983-thumb.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/prerov-postelmov/IMG_8983-thumb.webp" type="image/webp">
@@ -649,7 +690,7 @@ body > * {
                             </div>
                         </div>
                     </a>
-                    <a href="/galerie/prerov-vs-zelatovice/" class="portfolio-item overflow-hidden block" data-category="foto" data-project-id="sport-14" data-project-index="13" aria-label="Otevřít galerii Přerov vs Želatovice">
+                    <a href="/galerie/prerov-vs-zelatovice/" class="portfolio-item rounded-xl overflow-hidden block" data-category="foto" data-project-id="sport-14" data-project-index="13" aria-label="Otevřít galerii Přerov vs Želatovice">
                         <picture>
                             <source srcset="dist/images/portfolio/prerov-zelatovice/IMG_0128-thumb.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/prerov-zelatovice/IMG_0128-thumb.webp" type="image/webp">
@@ -662,7 +703,7 @@ body > * {
                             </div>
                         </div>
                     </a>
-                    <div class="portfolio-item overflow-hidden" data-category="ai">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
                             <source srcset="dist/images/portfolio/ai-1-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/ai-1-card.webp" type="image/webp">
@@ -675,7 +716,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="ai">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
                             <source srcset="dist/images/portfolio/ai-2-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/ai-2-card.webp" type="image/webp">
@@ -688,7 +729,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="ai">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="ai">
                         <picture>
                             <source srcset="dist/images/portfolio/ai-3-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/ai-3-card.webp" type="image/webp">
@@ -701,7 +742,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/portret-1-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/portret-1-card.webp" type="image/webp">
@@ -714,7 +755,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/portret-2-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/portret-2-card.webp" type="image/webp">
@@ -727,7 +768,7 @@ body > * {
                             </div>
                         </div>
                     </div>
-                    <div class="portfolio-item overflow-hidden" data-category="foto">
+                    <div class="portfolio-item rounded-xl overflow-hidden" data-category="foto">
                         <picture>
                             <source srcset="dist/images/portfolio/portret-3-card.avif" type="image/avif">
                             <source srcset="dist/images/portfolio/portret-3-card.webp" type="image/webp">
@@ -744,90 +785,215 @@ body > * {
             </div>
         </section>
 
-        <!-- Služby — konkrétní nabídka s deliverables -->
-        <section id="sluzby" class="py-24 reveal">
-            <div class="container mx-auto px-6 section-wrap">
-                <div class="chapter-head">
-                    <span class="chapter-num">03</span>
-                    <h2 class="chapter-title section-title">Služby</h2>
+        <!-- Skills Section -->
+
+
+
+        <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent reveal">
+            <div class="container mx-auto px-6 max-w-6xl section-wrap">
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Dovednosti & Technologie</h2>
+                <p class="text-center text-gray-400 mb-16 max-w-2xl mx-auto">
+                    Specializuji se na sportovní a portrétní fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI (semiagent).
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Photography Skills -->
+                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+                        <div class="text-5xl mb-4">📷</div>
+                        <h3 class="text-2xl font-bold mb-6">Fotografie</h3>
+
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Portrétní foto</span>
+                                    <span class="text-sm text-blue-400">95%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="95" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Sportovní foto</span>
+                                    <span class="text-sm text-blue-400">92%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="92" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Akční sekvence</span>
+                                    <span class="text-sm text-blue-400">88%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="88" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">AI postprodukce (Fotograf AI)</span>
+                                    <span class="text-sm text-blue-400">94%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="94" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="service-list">
-                    <article class="service-row" data-cine-reveal>
-                        <span class="service-num">3.1</span>
-                        <div class="service-body">
-                            <h3 class="service-title">Focení zápasů</h3>
-                            <p class="service-desc">Celý zápas od rozcvičky po děkovačku. Akce, souboje, emoce, střídačka i fanoušci — jako klubový fotograf 1.&nbsp;FC Viktorie Přerov vím, které momenty klub potřebuje.</p>
-                            <ul class="service-deliverables">
-                                <li>Galerie nejlepších momentů ve full rozlišení</li>
-                                <li>Výběr připravený ke sdílení pro klub, hráče i sociální sítě</li>
-                                <li>Online galerie na tomto webu</li>
-                            </ul>
-                        </div>
-                        <a href="#kontakt" class="hero-cta service-cta">Domluvit termín</a>
-                    </article>
+                    <!-- AI/Dev Skills -->
+                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+                        <div class="text-5xl mb-4">🤖</div>
+                        <h3 class="text-2xl font-bold mb-6">AI & Tech</h3>
 
-                    <article class="service-row" data-cine-reveal>
-                        <span class="service-num">3.2</span>
-                        <div class="service-body">
-                            <h3 class="service-title">Portréty</h3>
-                            <p class="service-desc">Portrétní focení s atmosférou — venku i v interiéru, s kouřem, světlem a náladou. Postprodukci zrychluje moje vlastní aplikace Fotograf&nbsp;AI, takže výsledky dostanete rychle.</p>
-                            <ul class="service-deliverables">
-                                <li>Upravené fotografie ve full rozlišení</li>
-                                <li>Výběr děláme společně, žádné překvapení</li>
-                                <li>Rychlé dodání díky AI postprodukci</li>
-                            </ul>
-                        </div>
-                        <a href="#kontakt" class="hero-cta service-cta">Domluvit focení</a>
-                    </article>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Vibecoding (Claude, Gemini)</span>
+                                    <span class="text-sm text-blue-400">92%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="92" style="width: 0%"></div>
+                                </div>
+                            </div>
 
-                    <article class="service-row" data-cine-reveal>
-                        <span class="service-num">3.3</span>
-                        <div class="service-body">
-                            <h3 class="service-title">AI &amp; web na míru</h3>
-                            <p class="service-desc">Hybridní agent, který mluví za váš web — stejný, jako běží na této stránce. Weby, chatboti a automatizace, které si nejdřív postavím a otestuju sám na sobě.</p>
-                            <ul class="service-deliverables">
-                                <li>Živá ukázka: agent na tomto webu, zeptejte se ho</li>
-                                <li>Řešení na míru bez zbytečných služeb a fixních nákladů</li>
-                                <li>Předání s dokumentací a zaškolením</li>
-                            </ul>
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">ChatGPT & Codex</span>
+                                    <span class="text-sm text-blue-400">90%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="90" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Agentní kódování</span>
+                                    <span class="text-sm text-blue-400">88%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="88" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm">Automatizace workflow</span>
+                                    <span class="text-sm text-blue-400">86%</span>
+                                </div>
+                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="86" style="width: 0%"></div>
+                            </div>
                         </div>
-                        <a href="#hybridni-agent" class="hero-cta service-cta">Vyzkoušet agenta</a>
-                    </article>
+                    </div>
+                </div>
+
+                    <!-- Tools -->
+                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
+                        <div class="text-5xl mb-4">🛠️</div>
+                        <h3 class="text-2xl font-bold mb-6">Nástroje</h3>
+
+                        <div class="flex flex-wrap gap-3">
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Adobe Lightroom</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Photoshop</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">VS Code</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Git/GitHub</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Fotograf AI (semiagent)</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Vibecoding</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Claude</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Gemini</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">ChatGPT</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Codex</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Agentní kódování</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Figma</span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Tailwind CSS</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- O mně — příběh místo skill barů -->
-        <section id="o-mne" class="py-24 reveal">
-            <div class="container mx-auto px-6 section-wrap">
-                <div class="chapter-head">
-                    <span class="chapter-num">04</span>
-                    <h2 class="chapter-title section-title">O mně</h2>
-                </div>
+        <!-- Timeline/Process Section -->
+        <section class="py-24 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent reveal">
+            <div class="container mx-auto px-6 max-w-5xl section-wrap">
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Jak pracuji</h2>
+                <p class="text-center text-gray-400 mb-16">Jednoduchý proces od návrhu po realizaci</p>
 
-                <div class="about-grid">
-                    <p class="editorial-sub about-story" data-cine-reveal>
-                        Jsem fotograf, který si postavil vlastní AI. Fotím fotbal pro 1.&nbsp;FC Viktorie Přerov a portréty, které mají náladu. Postprodukci mi zrychluje Fotograf&nbsp;AI — aplikace, kterou jsem si napsal sám. A tenhle web včetně agenta, který na něm mluví za mě, je taky moje práce. Kreativita a technologie u mě nejsou dvě profese — jedna pohání druhou.
+                <div class="relative">
+                    <!-- Vertical Line -->
+                    <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-blue-500 opacity-30"></div>
+
+                    <!-- Step 1 -->
+                    <div class="relative flex flex-col md:flex-row items-center mb-16">
+                        <div class="w-full md:w-1/2 px-4 md:pr-12 md:px-0 text-center md:text-right">
+                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
+                                <h3 class="text-xl md:text-2xl font-bold mb-2">1. Konzultace</h3>
+                                <p class="text-gray-300">Probereme vaše představy, cíle a požadavky projektu</p>
+                            </div>
+                        </div>
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
+                            💬
+                        </div>
+                        <div class="hidden md:block md:w-1/2 md:pl-12"></div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="relative flex flex-col md:flex-row items-center mb-16">
+                        <div class="hidden md:block md:w-1/2 md:pr-12"></div>
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
+                            📋
+                        </div>
+                        <div class="w-full md:w-1/2 px-4 md:pl-12 md:px-0 text-center md:text-left order-1 md:order-none">
+                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
+                                <h3 class="text-xl md:text-2xl font-bold mb-2">2. Plánování</h3>
+                                <p class="text-gray-300">Vytvoříme detailní plán a časový harmonogram</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="relative flex flex-col md:flex-row items-center mb-16">
+                        <div class="w-full md:w-1/2 px-4 md:pr-12 md:px-0 text-center md:text-right">
+                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
+                                <h3 class="text-xl md:text-2xl font-bold mb-2">3. Realizace</h3>
+                                <p class="text-gray-300">Fotografie, kód nebo AI řešení podle plánu</p>
+                            </div>
+                        </div>
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
+                            ⚡
+                        </div>
+                        <div class="hidden md:block md:w-1/2 md:pl-12"></div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="relative flex flex-col md:flex-row items-center">
+                        <div class="hidden md:block md:w-1/2 md:pr-12"></div>
+                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
+                            ✨
+                        </div>
+                        <div class="w-full md:w-1/2 px-4 md:pl-12 md:px-0 text-center md:text-left order-1 md:order-none">
+                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
+                                <h3 class="text-xl md:text-2xl font-bold mb-2">4. Dokončení</h3>
+                                <p class="text-gray-300">Finální úpravy a předání hotového projektu</p>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </section>
+
+        <section id="o-mne" class="py-24 reveal">
+            <div class="container mx-auto px-6 max-w-4xl section-wrap">
+                <div class="glass card rounded-3xl p-12 text-center">
+                    <h2 class="text-4xl font-bold mb-8 gradient-text section-title">O mně</h2>
+                    <p class="text-xl text-gray-300 leading-relaxed">
+                        Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.
                     </p>
-                    <dl class="about-facts">
-                        <div class="fact-row">
-                            <dt>Zápasové galerie</dt>
-                            <dd>9</dd>
-                        </div>
-                        <div class="fact-row">
-                            <dt>Fotek ze zápasů v portfoliu</dt>
-                            <dd>240+</dd>
-                        </div>
-                        <div class="fact-row">
-                            <dt>AI projekty v provozu</dt>
-                            <dd>3</dd>
-                        </div>
-                        <div class="fact-row">
-                            <dt>Hybridní agent</dt>
-                            <dd>právě s ním mluvíte</dd>
-                        </div>
-                    </dl>
                 </div>
             </div>
         </section>
@@ -835,11 +1001,8 @@ body > * {
         <!-- Spolupráce Section -->
         <section id="spoluprace" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-5xl section-wrap">
-                <div class="chapter-head">
-                    <span class="chapter-num">05</span>
-                    <h2 class="chapter-title section-title">Spolupráce</h2>
-                </div>
-                <p class="text-gray-400 mb-12 max-w-2xl section-sub">Spolupracuji s těmito subjekty</p>
+                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Spolupráce</h2>
+                <p class="text-center text-gray-400 mb-12 max-w-2xl mx-auto">Spolupracuji s těmito subjekty</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- FC Přerov -->
@@ -857,30 +1020,27 @@ body > * {
         </section>
 
         <section id="kontakt" class="py-24 reveal">
-            <div class="container mx-auto px-6 section-wrap">
-                <div class="chapter-head">
-                    <span class="chapter-num">06</span>
-                    <h2 class="chapter-title section-title">Kontakt</h2>
-                </div>
+            <div class="container mx-auto px-6 max-w-4xl section-wrap">
+                <div class="glass card rounded-3xl p-12">
+                    <h2 class="text-4xl font-bold mb-8 text-center gradient-text section-title">Kontaktní formulář</h2>
 
-                <div class="contact-grid">
-                    <div class="contact-intro">
-                        <p class="editorial-sub contact-claim">Domluvme focení. Nebo AI, která bude pracovat za&nbsp;vás.</p>
-                        <a href="mailto:lukas.drsticka@gmail.com" class="contact-line">
+                    <div class="mb-8 text-center">
+                        <a href="mailto:lukas.drsticka@gmail.com" class="text-2xl text-blue-400 hover:text-blue-300 transition">
                             lukas.drsticka@gmail.com
                         </a>
-                        <a href="tel:+420721624429" class="contact-line">
+                        <a href="tel:+420721624429" class="block text-2xl text-blue-400 hover:text-blue-300 transition mt-2">
                             +420 721 624 429
                         </a>
-                        <p class="text-gray-400 mt-6 max-w-md">Preferujete telefon? Zavolejte mi nebo napište e‑mail a ozvu se zpět. Rychlou odpověď dostanete i od hybridního agenta v chatu.</p>
+                        <p class="text-gray-400 mt-4">Preferujete telefon? Zavolejte mi nebo napište e‑mail a ozvu se zpět.</p>
                     </div>
 
-                    <div class="contact-form-wrap">
-                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <div class="mt-12">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 justify-center">
+                            <span>✉️</span>
                             <span>Napište mi zprávu</span>
                             <span class="text-sm text-blue-400">(s hybridním agentem)</span>
                         </h3>
-
+                        
                         <form id="contactForm" name="contact" class="space-y-4" action="/" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
                             <input type="hidden" name="form-name" value="contact">
                             <p class="hidden" aria-hidden="true" style="display:none">
@@ -919,7 +1079,7 @@ body > * {
                                 <div id="aiSuggestions"></div>
                             </div>
                             
-                            <button type="submit" class="agent-send w-full py-3 rounded-xl transition font-semibold">
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-3 rounded-xl hover:opacity-90 transition font-semibold">
                                 Odeslat zprávu
                             </button>
                             <p id="contactStatus" class="text-sm text-gray-400" role="status" aria-live="polite"></p>
@@ -1004,7 +1164,7 @@ body > * {
                     <h4 class="font-semibold mb-4">Odkazy</h4>
                     <ul class="space-y-2 text-gray-400">
                         <li><a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a></li>
-                        <li><a href="#sluzby" class="hover:text-blue-400 transition">Služby</a></li>
+                        <li><a href="#skills" class="hover:text-blue-400 transition">Dovednosti</a></li>
                         <li><a href="#o-mne" class="hover:text-blue-400 transition">O mně</a></li>
                         <li><a href="#spoluprace" class="hover:text-blue-400 transition">Spolupráce</a></li>
                         <li><a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a></li>
@@ -1075,7 +1235,6 @@ body > * {
             </div>
             <div id="messages" class="flex-1 p-4 overflow-y-auto" aria-live="polite"></div>
             <div id="quickReplies" class="px-4 pb-2 hidden"></div>
-            <p class="px-4 text-[11px] leading-snug text-white/50">Komunikujete s AI agentem, odpovědi i hlas generuje umělá inteligence · <a href="/privacy.html" class="underline hover:text-white/80">jak nakládáme s daty</a></p>
             <div class="p-4 border-t border-white/10">
                 <div class="flex gap-2">
                     <label for="chatInput" class="sr-only">Napsat zprávu do chatu</label>
@@ -1097,7 +1256,7 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/boot.min.js?v=48" defer></script>
+    <script src="/dist/js/boot.min.js?v=47" defer></script>
     <!-- Cinematic scroll layer: Lenis smooth scroll + split-text + clip reveals + velocity marquee -->
     <script src="/dist/js/cinematic.min.js?v=2" defer></script>
 

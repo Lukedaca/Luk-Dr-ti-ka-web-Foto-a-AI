@@ -19,37 +19,33 @@
 
     var COPY = {
         cs: {
-      title: 'Fotograf Přerov & AI Developer | Lukáš Drštička',
-      description: 'Fotograf Přerov – Lukáš Drštička. Sportovní a portrétní fotografie v Přerově a okolí. AI developer – chatboty, automatizace a webová řešení na míru.',
-      nav: ['Hybridní agent', 'Portfolio', 'Služby', 'O mně', 'Spolupráce', 'Kontakt'],
-      hero: ['Lukáš Drštička · Fotograf & AI developer · Přerov', 'Fotím sport a portréty. A stavím AI, která pracuje za mě.', 'Domluvit focení', 'Prohlédnout práci'],
-      ai: ['Hybridní agent', 'Postavil jsem ho sám. Zeptej se ho na cokoliv.', 'Píše, mluví a rovnou navrhuje další krok — v češtině i angličtině. Stejného agenta můžu postavit i pro váš web. Tohle není demo, běží naostro.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat', 'Vaše zpráva pro hybridního AI agenta'],
-      portfolio: ['Vybraná práce', 'Vše', 'Fotografie', 'AI Projekty'],
-      services: ['Služby',
-        'Focení zápasů', 'Celý zápas od rozcvičky po děkovačku. Akce, souboje, emoce, střídačka i fanoušci — jako klubový fotograf 1. FC Viktorie Přerov vím, které momenty klub potřebuje.', 'Galerie nejlepších momentů ve full rozlišení', 'Výběr připravený ke sdílení pro klub, hráče i sociální sítě', 'Online galerie na tomto webu', 'Domluvit termín',
-        'Portréty', 'Portrétní focení s atmosférou — venku i v interiéru, s kouřem, světlem a náladou. Postprodukci zrychluje moje vlastní aplikace Fotograf AI, takže výsledky dostanete rychle.', 'Upravené fotografie ve full rozlišení', 'Výběr děláme společně, žádné překvapení', 'Rychlé dodání díky AI postprodukci', 'Domluvit focení',
-        'AI & web na míru', 'Hybridní agent, který mluví za váš web — stejný, jako běží na této stránce. Weby, chatboti a automatizace, které si nejdřív postavím a otestuju sám na sobě.', 'Živá ukázka: agent na tomto webu, zeptejte se ho', 'Řešení na míru bez zbytečných služeb a fixních nákladů', 'Předání s dokumentací a zaškolením', 'Vyzkoušet agenta'],
-      about: ['O mně', 'Jsem fotograf, který si postavil vlastní AI. Fotím fotbal pro 1. FC Viktorie Přerov a portréty, které mají náladu. Postprodukci mi zrychluje Fotograf AI — aplikace, kterou jsem si napsal sám. A tenhle web včetně agenta, který na něm mluví za mě, je taky moje práce. Kreativita a technologie u mě nejsou dvě profese — jedna pohání druhou.', 'Zápasové galerie', 'Fotek ze zápasů v portfoliu', 'AI projekty v provozu', 'Hybridní agent', 'právě s ním mluvíte'],
+      title: 'Lukáš Drštička - Fotograf & AI Developer | Portfolio',
+      description: 'Portfolio Lukáše Drštičky - fotograf a AI developer z Přerova. Portrétní a sportovní fotografie, AI chatboty a automatizace na míru.',
+      nav: ['Hybridní agent', 'Portfolio', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
+      hero: ['Fotografie', 'AI Development', 'Automatizace', 'Fotograf & AI Developer', 'Portfolio', 'Hybridní agent'],
+      ai: ['Hybridní agent', 'Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat', 'Vaše zpráva pro hybridního AI agenta'],
+      portfolio: ['Portfolio', 'Vše', 'Fotografie', 'AI Projekty'],
+      skills: ['Dovednosti & Technologie', 'Specializuji se na sportovní a portrétní fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI.', 'Fotografie', 'AI & Tech', 'Nástroje'],
+      process: ['Jak pracuji', 'Jednoduchý proces od návrhu po realizaci', '1. Konzultace', 'Probereme vaše představy, cíle a požadavky projektu', '2. Plánování', 'Vytvoříme detailní plán a časový harmonogram', '3. Realizace', 'Fotografie, kód nebo AI řešení podle plánu', '4. Dokončení', 'Finální úpravy a předání hotového projektu'],
+      about: ['O mně', 'Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.'],
       collaboration: ['Spolupráce', 'Spolupracuji s těmito subjekty', 'Klubový fotograf', 'Sportovní fotografie ze zápasů a klubových akcí. Dokumentace týmu a fanouškovských momentů.'],
-        contact: ['Kontakt', 'Domluvme focení. Nebo AI, která bude pracovat za vás.', 'Preferujete telefon? Zavolejte mi nebo napište e-mail a ozvu se zpět. Rychlou odpověď dostanete i od hybridního agenta v chatu.', 'Napište mi zprávu', '(s hybridním agentem)', 'Jméno', 'Email', 'Typ služby', 'Zpráva', 'AI vám pomůže', 'Vaše jméno', 'vas@email.cz', 'Popište svůj projekt...', 'Fotografie', 'AI chatbot', 'Automatizace', 'Konzultace', 'Odeslat zprávu', 'Nová zpráva z webu', 'Toto pole je povinné'],
-      footer: ['Sportovní a portrétní fotografie. AI agenti a weby, které si nejdřív stavím a testuju sám na sobě.', 'Newsletter', 'Email pro newsletter', 'vas@email.cz', 'Odebírat', 'Odkazy', 'Kontakt', 'Přerov, CZ', '© 2026 Lukáš Drštička. Všechna práva vyhrazena.', 'Vytvořeno s pomocí Claude, Gemini & Codex | Designed with modern web standards'],
+        contact: ['Kontaktní formulář', 'Preferujete telefon? Zavolejte mi nebo napište e-mail a ozvu se zpět.', 'Napište mi zprávu', '(s hybridním agentem)', 'Jméno', 'Email', 'Typ služby', 'Zpráva', 'AI vám pomůže', 'Vaše jméno', 'vas@email.cz', 'Popište svůj projekt...', 'Fotografie', 'AI chatbot', 'Automatizace', 'Konzultace', 'Odeslat zprávu', 'Nová zpráva z webu', 'Toto pole je povinné'],
+      footer: ['Profesionální fotografie a AI řešení na míru. Propojuji kreativitu s technologií.', 'Newsletter', 'Email pro newsletter', 'vas@email.cz', 'Odebírat', 'Odkazy', 'Kontakt', 'Přerov, CZ', '© 2026 Lukáš Drštička. Všechna práva vyhrazena.', 'Vytvořeno s pomocí Claude, Gemini & Codex | Designed with modern web standards'],
       misc: ['Přeskočit na obsah', 'Zpět na úvodní stránku', 'Otevřít mobilní menu', 'Zavřít menu', 'Přepnout režim', 'Napište zprávu...', 'Smazat historii', 'Zavřít chat', 'Galerie', 'Zavřít galerii', 'Předchozí fotka', 'Další fotka', 'Ukončit hovor', 'Zadejte prosím email.', 'Děkuji! Newsletter bude zaslán na:']
     },
     en: {
-      title: 'Photographer Prerov & AI Developer | Lukas Drsticka',
-      description: 'Photographer in Prerov, Czech Republic – Lukas Drsticka. Sports and portrait photography in Prerov and nearby. AI developer – chatbots, automation and custom web solutions.',
-      nav: ['Hybrid agent', 'Portfolio', 'Services', 'About', 'Collaboration', 'Contact'],
-      hero: ['Lukas Drsticka · Photographer & AI developer · Prerov, CZ', 'I shoot sports and portraits. And I build AI that works for me.', 'Book a shoot', 'View my work'],
-      ai: ['Hybrid agent', 'I built it myself. Ask it anything.', 'It writes, speaks and proposes the next step — in Czech and English. I can build the same agent for your website. This is not a demo, it runs live.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send', 'Your message for the hybrid AI agent'],
-      portfolio: ['Selected work', 'All', 'Photography', 'AI Projects'],
-      services: ['Services',
-        'Match photography', 'A full match from warm-up to the final whistle. Action, duels, emotions, the bench and the fans — as the club photographer of 1. FC Viktorie Prerov I know which moments a club needs.', 'A gallery of the best moments in full resolution', 'A selection ready to share for the club, players and social media', 'An online gallery on this website', 'Book a date',
-        'Portraits', 'Portrait photography with atmosphere — outdoors or indoors, with smoke, light and mood. Post-production is accelerated by my own app Fotograf AI, so you get your results fast.', 'Edited photos in full resolution', 'We pick the selection together, no surprises', 'Fast delivery thanks to AI post-production', 'Book a shoot',
-        'Custom AI & web', 'A hybrid agent that speaks for your website — the same one running on this page. Websites, chatbots and automation that I build and test on myself first.', 'Live proof: the agent on this site, go ask it', 'Tailored solutions with no unnecessary services or fixed costs', 'Handover with documentation and training', 'Try the agent'],
-      about: ['About', 'I am a photographer who built his own AI. I shoot football for 1. FC Viktorie Prerov and portraits with real mood. My own app Fotograf AI speeds up my post-production. And this website — including the agent speaking on it — is my work too. Creativity and technology are not two separate professions for me; one powers the other.', 'Match galleries', 'Match photos in portfolio', 'AI projects in production', 'Hybrid agent', 'you are talking to it right now'],
+      title: 'Lukas Drsticka - Photographer & AI Developer | Portfolio',
+      description: 'Portfolio of Lukas Drsticka - photographer and AI developer from Prerov, Czech Republic. Portrait and sports photography, AI chatbots and custom automation.',
+      nav: ['Hybrid agent', 'Portfolio', 'Skills', 'About', 'Collaboration', 'Contact'],
+      hero: ['Photography', 'AI Development', 'Automation', 'Photographer & AI Developer', 'View portfolio', 'Hybrid agent'],
+      ai: ['Hybrid agent', 'A chatbot and a voice agent in one. Writes, speaks and instantly proposes the next step. Works in Czech and English.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send', 'Your message for the hybrid AI agent'],
+      portfolio: ['Portfolio', 'All', 'Photography', 'AI Projects'],
+      skills: ['Skills & Technology', 'I focus on sports and portrait photography. My Fotograf AI app speeds up post-production and practical AI delivery.', 'Photography', 'AI & Tech', 'Tools'],
+      process: ['How I work', 'A simple process from concept to delivery', '1. Consultation', 'We go through your goals, expectations and project requirements.', '2. Planning', 'We prepare a clear plan and realistic timeline.', '3. Delivery', 'Photography, code or AI solution delivered according to plan.', '4. Final handoff', 'Final polish and delivery of the finished project.'],
+      about: ['About', 'I work across photography and AI solutions. I enjoy connecting creativity with technology and building things that are actually useful.'],
       collaboration: ['Collaboration', 'I collaborate with these partners', 'Club photographer', 'Sports photography from matches and club events. Team coverage and fan moments.'],
-        contact: ['Contact', 'Let’s book a shoot. Or AI that will work for you.', 'Prefer a phone call? Call me or send an email and I will get back to you. The hybrid agent in the chat can answer quickly too.', 'Send me a message', '(with hybrid agent)', 'Name', 'Email', 'Service type', 'Message', 'AI can help you', 'Your name', 'you@email.com', 'Describe your project...', 'Photography', 'AI chatbot', 'Automation', 'Consultation', 'Send message', 'New website message', 'This field is required'],
-      footer: ['Sports and portrait photography. AI agents and websites I always build and test on myself first.', 'Newsletter', 'Newsletter email', 'you@email.com', 'Subscribe', 'Links', 'Contact', 'Prerov, Czech Republic', '© 2026 Lukas Drsticka. All rights reserved.', 'Built with help from Claude, Gemini & Codex | Designed with modern web standards'],
+        contact: ['Contact form', 'Prefer a phone call? Call me or send an email and I will get back to you.', 'Send me a message', '(with hybrid agent)', 'Name', 'Email', 'Service type', 'Message', 'AI can help you', 'Your name', 'you@email.com', 'Describe your project...', 'Photography', 'AI chatbot', 'Automation', 'Consultation', 'Send message', 'New website message', 'This field is required'],
+      footer: ['Professional photography and tailor-made AI solutions. I connect creativity with technology.', 'Newsletter', 'Newsletter email', 'you@email.com', 'Subscribe', 'Links', 'Contact', 'Prerov, Czech Republic', '© 2026 Lukas Drsticka. All rights reserved.', 'Built with help from Claude, Gemini & Codex | Designed with modern web standards'],
       misc: ['Skip to content', 'Back to home page', 'Open mobile menu', 'Close menu', 'Toggle theme', 'Type a message...', 'Clear history', 'Close chat', 'Gallery', 'Close gallery', 'Previous photo', 'Next photo', 'End call', 'Please enter your email.', 'Thanks! The newsletter will be sent to:']
     }
   };
@@ -136,76 +132,80 @@
     setAttr(document.getElementById('mobileMenuClose'), 'aria-label', copy.misc[3]);
     setAttr(document.getElementById('themeToggle'), 'aria-label', copy.misc[4]);
 
-    setText(document.querySelector('#hero .hero-eyebrow'), copy.hero[0]);
-    setText(document.querySelector('#hero .hero-claim'), copy.hero[1]);
-    setText(document.querySelector('#hero .hero-cta-row a[href="#kontakt"]'), copy.hero[2]);
-    setText(document.querySelector('#hero .hero-cta-row a[href="#portfolio"]'), copy.hero[3]);
+    setTexts(document.querySelectorAll('#hero .mb-6 .chip'), copy.hero.slice(0, 3));
+    // Hero h1 obsahuje dot + amp spany — přepisovat jen textové části, ne celý textContent.
+    var heroRole = copy.hero[3].split(' & ');
+    setText(document.querySelector('#hero h1 [data-hero-role-a]'), heroRole[0]);
+    setText(document.querySelector('#hero h1 [data-hero-role-b]'), heroRole[1] || '');
+    setText(document.querySelector('#hero .text-center a[href="#portfolio"]'), copy.hero[4]);
+    setText(document.querySelector('#hero .text-center a[href="#hybridni-agent"]'), copy.hero[5]);
 
-    setText(document.querySelector('#hybridni-agent .chapter-title'), copy.ai[0]);
-    setText(document.querySelector('#hybridni-agent .section-sub'), copy.ai[1]);
-    setText(document.querySelector('#hybridni-agent .agent-intro-note'), copy.ai[2]);
-    setText(document.querySelector('#hero-chat h3'), copy.ai[3]);
-    setAttr(document.getElementById('hero-input'), 'placeholder', copy.ai[4]);
-    setAttr(document.getElementById('hero-input'), 'aria-label', copy.ai[7]);
-    setText(document.querySelector('label[for="hero-input"]'), copy.ai[7]);
-    setText(document.querySelector('#voice-call-btn span'), copy.ai[5]);
-    setText(document.getElementById('hero-send'), copy.ai[6]);
+    setText(document.querySelector('#hybridni-agent > div > h2'), copy.ai[0]);
+    setText(document.querySelector('#hybridni-agent > div > p'), copy.ai[1]);
+    setText(document.querySelector('#hero-chat h3'), copy.ai[2]);
+    setAttr(document.getElementById('hero-input'), 'placeholder', copy.ai[3]);
+    setAttr(document.getElementById('hero-input'), 'aria-label', copy.ai[6]);
+    setText(document.querySelector('label[for="hero-input"]'), copy.ai[6]);
+    setText(document.querySelector('#voice-call-btn span'), copy.ai[4]);
+    setText(document.getElementById('hero-send'), copy.ai[5]);
 
-    setText(document.querySelector('#portfolio .chapter-title'), copy.portfolio[0]);
+    setText(document.querySelector('#portfolio > div > h2'), copy.portfolio[0]);
     setTexts(document.querySelectorAll('#portfolio .filter-btn'), copy.portfolio.slice(1));
 
-    setText(document.querySelector('#sluzby .chapter-title'), copy.services[0]);
-    document.querySelectorAll('#sluzby .service-row').forEach(function(row, index) {
-      var base = 1 + index * 6;
-      setText(row.querySelector('.service-title'), copy.services[base]);
-      setText(row.querySelector('.service-desc'), copy.services[base + 1]);
-      setTexts(row.querySelectorAll('.service-deliverables li'), copy.services.slice(base + 2, base + 5));
-      setText(row.querySelector('.service-cta'), copy.services[base + 5]);
-    });
+    setText(document.querySelector('#skills > div > h2'), copy.skills[0]);
+    setText(document.querySelector('#skills > div > p'), copy.skills[1]);
+    setTexts(document.querySelectorAll('#skills .grid > div > h3'), copy.skills.slice(2));
 
-    setText(document.querySelector('#o-mne .chapter-title'), copy.about[0]);
-    setText(document.querySelector('#o-mne .about-story'), copy.about[1]);
-    setTexts(document.querySelectorAll('#o-mne .fact-row dt'), copy.about.slice(2, 6));
-    var factRows = document.querySelectorAll('#o-mne .fact-row');
-    if (factRows.length) {
-      setText(factRows[factRows.length - 1].querySelector('dd'), copy.about[6]);
+    var sections = document.querySelectorAll('main > section');
+    var process = sections[4];
+    if (process) {
+      setText(process.querySelector('h2'), copy.process[0]);
+      setText(process.querySelector('p.text-center'), copy.process[1]);
+      var processTitles = process.querySelectorAll('h3');
+      var processBodies = process.querySelectorAll('.glass.card p');
+      setText(processTitles[0], copy.process[2]); setText(processBodies[0], copy.process[3]);
+      setText(processTitles[1], copy.process[4]); setText(processBodies[1], copy.process[5]);
+      setText(processTitles[2], copy.process[6]); setText(processBodies[2], copy.process[7]);
+      setText(processTitles[3], copy.process[8]); setText(processBodies[3], copy.process[9]);
     }
 
-    setText(document.querySelector('#spoluprace .chapter-title'), copy.collaboration[0]);
-    setText(document.querySelector('#spoluprace .section-sub'), copy.collaboration[1]);
+    setText(document.querySelector('#o-mne h2'), copy.about[0]);
+    setText(document.querySelector('#o-mne p'), copy.about[1]);
+
+    setText(document.querySelector('#spoluprace h2'), copy.collaboration[0]);
+    setText(document.querySelector('#spoluprace p.text-center'), copy.collaboration[1]);
     setTexts(document.querySelectorAll('#spoluprace span.inline-block'), [copy.collaboration[2]]);
     setTexts(document.querySelectorAll('#spoluprace a p.text-gray-400'), [copy.collaboration[3]]);
 
-    setText(document.querySelector('#kontakt .chapter-title'), copy.contact[0]);
-    setText(document.querySelector('#kontakt .contact-claim'), copy.contact[1]);
-    setText(document.querySelector('#kontakt .contact-intro p.text-gray-400'), copy.contact[2]);
-    var contactHeadingSpans = document.querySelectorAll('#kontakt .contact-form-wrap h3 span');
-    if (contactHeadingSpans.length >= 2) {
-      setText(contactHeadingSpans[0], copy.contact[3]);
-      setText(contactHeadingSpans[1], copy.contact[4]);
+    setText(document.querySelector('#kontakt h2'), copy.contact[0]);
+    setText(document.querySelector('#kontakt .mb-8 p.text-gray-400'), copy.contact[1]);
+    var contactHeadingSpans = document.querySelectorAll('#kontakt .mt-12 h3 span');
+    if (contactHeadingSpans.length >= 3) {
+      setText(contactHeadingSpans[1], copy.contact[2]);
+      setText(contactHeadingSpans[2], copy.contact[3]);
     }
     var labels = document.querySelectorAll('#kontakt label.block.text-sm');
     if (labels.length >= 4) {
-      setText(labels[0], copy.contact[5]);
-      setText(labels[1], copy.contact[6]);
-      setText(labels[2], copy.contact[7]);
+      setText(labels[0], copy.contact[4]);
+      setText(labels[1], copy.contact[5]);
+      setText(labels[2], copy.contact[6]);
       var messageSpans = labels[3].querySelectorAll('span');
       if (messageSpans.length >= 2) {
-        setText(messageSpans[0], copy.contact[8]);
-        setText(messageSpans[1], copy.contact[9]);
+        setText(messageSpans[0], copy.contact[7]);
+        setText(messageSpans[1], copy.contact[8]);
       }
     }
-    setAttr(document.getElementById('contactName'), 'placeholder', copy.contact[10]);
-    setAttr(document.getElementById('contactEmail'), 'placeholder', copy.contact[11]);
-    setAttr(document.getElementById('contactMessage'), 'placeholder', copy.contact[12]);
-    setText(document.getElementById('contactNameError'), copy.contact[19]);
-    setText(document.getElementById('contactEmailError'), copy.contact[19]);
-    setText(document.getElementById('contactServiceError'), copy.contact[19]);
-    setText(document.getElementById('contactMessageError'), copy.contact[19]);
-    setTexts(document.querySelectorAll('#contactService option'), copy.contact.slice(13, 17));
-    setText(document.querySelector('#contactForm button[type="submit"]'), copy.contact[17]);
+    setAttr(document.getElementById('contactName'), 'placeholder', copy.contact[9]);
+    setAttr(document.getElementById('contactEmail'), 'placeholder', copy.contact[10]);
+    setAttr(document.getElementById('contactMessage'), 'placeholder', copy.contact[11]);
+    setText(document.getElementById('contactNameError'), copy.contact[18]);
+    setText(document.getElementById('contactEmailError'), copy.contact[18]);
+    setText(document.getElementById('contactServiceError'), copy.contact[18]);
+    setText(document.getElementById('contactMessageError'), copy.contact[18]);
+    setTexts(document.querySelectorAll('#contactService option'), copy.contact.slice(12, 16));
+    setText(document.querySelector('#contactForm button[type="submit"]'), copy.contact[16]);
     var subject = document.querySelector('#contactForm input[name="_subject"]');
-    if (subject) subject.value = copy.contact[18];
+    if (subject) subject.value = copy.contact[17];
 
     setText(document.querySelector('footer .md\\:col-span-2 p.text-gray-400'), copy.footer[0]);
     setText(document.querySelector('footer h4.font-semibold.mb-3'), copy.footer[1]);

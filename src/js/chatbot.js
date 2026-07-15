@@ -1380,14 +1380,8 @@
       block: 'start'
     },
     'skills': {
-      // Editorial redesign: sekce Dovednosti nahrazena sekcí Služby (#sluzby).
-      selectors: ['#sluzby', '#skills'],
-      highlight: '#sluzby',
-      block: 'start'
-    },
-    'sluzby': {
-      selectors: ['#sluzby'],
-      highlight: '#sluzby',
+      selectors: ['#skills'],
+      highlight: 'skills-grid',
       block: 'start'
     },
     'o-mne': {
@@ -1446,11 +1440,10 @@
     'lukas': 'o-mne',
     'spoluprace': 'spoluprace',
     'spolupraci': 'spoluprace',
-    'sluzby': 'sluzby',
-    'sluzbach': 'sluzby',
-    'sluzbami': 'sluzby',
-    'sluzeb': 'sluzby',
-    'services': 'sluzby',
+    'sluzby': 'spoluprace',
+    'sluzbach': 'spoluprace',
+    'sluzbami': 'spoluprace',
+    'sluzeb': 'spoluprace',
     'kontakt': 'kontakt',
     'kontaktu': 'kontakt',
     'contact': 'kontakt',
@@ -1477,9 +1470,8 @@
     'portfolio': '#portfolioGrid, #portfolio-grid, #portfolio',
     'contact-form': '#contactForm, #contact-form, form[name="contact"]',
     'kontakt': '#contactForm, #contact-form, form[name="contact"], #kontakt',
-    'skills-grid': '#sluzby, #skills-grid, #skills',
-    'skills': '#sluzby, #skills-grid, #skills',
-    'sluzby': '#sluzby',
+    'skills-grid': '#skills-grid, #skills',
+    'skills': '#skills-grid, #skills',
     'showreel': '#showreel',
     'spoluprace': '#spoluprace',
     'o-mne': '#o-mne',
@@ -1976,7 +1968,7 @@
   var CHATBOT_TOUR_FALLBACK = {
     cs: [
       { say: 'Ráda vám naživo ukážu, co tenhle hybridní agent zvládne.', tool: 'scroll_to', args: { section: 'hybridni-agent' } },
-      { say: 'Tohle je hybridní agent — mluví a zároveň sám ovládá celý web.', tool: 'highlight_element', args: { target: 'hybridni-agent' } },
+      { say: 'Tohle je hybridní agent — mluví a zároveň sám ovládá celý web.', tool: 'highlight_element', args: { target: 'skills-grid' } },
       { say: 'Takhle bych vašim klientům ukázala portfolio.', tool: 'filter_gallery', args: { category: 'all' } },
       { say: 'A čísla, která budují důvěru.', tool: 'show_portfolio_stats', args: {} },
       { say: 'A takhle nezávazně chytnete poptávku.', tool: 'scroll_to', args: { section: 'kontakt' } },
@@ -1984,7 +1976,7 @@
     ],
     en: [
       { say: 'Let me show you live what this hybrid agent can do.', tool: 'scroll_to', args: { section: 'hybridni-agent' } },
-      { say: 'This is the hybrid agent — it talks and drives the whole site itself.', tool: 'highlight_element', args: { target: 'hybridni-agent' } },
+      { say: 'This is the hybrid agent — it talks and drives the whole site itself.', tool: 'highlight_element', args: { target: 'skills-grid' } },
       { say: 'This is how I would show your clients the portfolio.', tool: 'filter_gallery', args: { category: 'all' } },
       { say: 'And the numbers that build trust.', tool: 'show_portfolio_stats', args: {} },
       { say: 'And this is how you capture a lead, no pressure.', tool: 'scroll_to', args: { section: 'kontakt' } },

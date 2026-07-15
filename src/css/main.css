@@ -15,260 +15,6 @@
        url('/dist/fonts/Geist-Variable.woff2') format('woff2');
 }
 
-/* Editorial display serif (Fraunces) — latin + latin-ext (čeština) */
-@font-face {
-  font-family: 'Fraunces';
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url('/dist/fonts/Fraunces-Latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Fraunces';
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url('/dist/fonts/Fraunces-LatinExt.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-/* ==========================================================================
-   Editorial vrstva — „monografie": grain, pasparta, muzejní štítky, kapitoly
-   ========================================================================== */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.038;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
-  background-size: 180px 180px;
-}
-.theme-light body::after { opacity: 0.05; }
-
-.editorial-headline {
-  font-family: var(--font-display);
-  font-weight: 560;
-  font-variation-settings: 'opsz' 144;
-  font-size: clamp(2.6rem, 7.5vw, 7.5rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
-.editorial-sub {
-  font-family: var(--font-display);
-  font-weight: 420;
-  font-size: clamp(1.5rem, 3.4vw, 2.8rem);
-  line-height: 1.12;
-  letter-spacing: -0.012em;
-  text-wrap: balance;
-}
-
-.chapter-head {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  border-top: 1px solid var(--hairline);
-  padding-top: 1.1rem;
-  margin-bottom: clamp(2rem, 5vw, 3.5rem);
-}
-.chapter-num {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  letter-spacing: 0.22em;
-  color: var(--signal);
-}
-.chapter-title {
-  font-family: var(--font-display);
-  font-weight: 520;
-  font-size: clamp(1.9rem, 4.2vw, 3.4rem);
-  line-height: 1.05;
-  letter-spacing: -0.015em;
-}
-
-.exhibit-frame {
-  position: relative;
-  padding: clamp(0.6rem, 1.4vw, 1rem);
-  background: var(--bg-secondary);
-  border: 1px solid var(--hairline);
-}
-.exhibit-frame img { display: block; width: 100%; height: auto; }
-
-.museum-label {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.65rem 0.15rem 0.1rem;
-}
-.museum-label .label-title { color: var(--text-primary); letter-spacing: 0.1em; }
-
-/* Portfolio — editorial: mono filtry, asymetrický grid, štítky vlevo */
-.filter-btn {
-  padding: 0.5rem 0.15rem;
-  border: 0;
-  border-bottom: 1px solid transparent;
-  background: none;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: color 0.3s ease, border-color 0.3s ease;
-}
-.filter-btn:hover { color: var(--text-primary); }
-.filter-btn.active {
-  color: var(--signal-hi);
-  border-bottom-color: var(--signal);
-}
-.theme-light .filter-btn.active { color: var(--signal-deep); }
-
-.portfolio-overlay .text-center { text-align: left; }
-
-/* Služby — editorial řádky s hairline dělítky */
-.service-list { display: flex; flex-direction: column; }
-.service-row {
-  display: grid;
-  grid-template-columns: 5rem minmax(0, 1fr) auto;
-  gap: clamp(1.2rem, 3vw, 2.5rem);
-  align-items: start;
-  padding-block: clamp(1.8rem, 4vw, 2.8rem);
-  border-bottom: 1px solid var(--hairline-soft);
-}
-.service-row:first-child { border-top: 1px solid var(--hairline-soft); }
-@media (max-width: 767px) {
-  .service-row { grid-template-columns: 1fr; gap: 0.9rem; }
-}
-.service-num {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  color: var(--signal);
-  padding-top: 0.55rem;
-}
-.service-title {
-  font-family: var(--font-display);
-  font-weight: 520;
-  font-size: clamp(1.5rem, 2.8vw, 2.2rem);
-  letter-spacing: -0.012em;
-  margin-bottom: 0.7rem;
-}
-.service-desc {
-  color: var(--text-secondary);
-  max-width: 56ch;
-  margin-bottom: 1rem;
-}
-.service-deliverables {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.service-deliverables li {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  letter-spacing: 0.06em;
-  color: var(--text-secondary);
-  padding-left: 1.1rem;
-  position: relative;
-}
-.service-deliverables li::before {
-  content: '—';
-  position: absolute;
-  left: 0;
-  color: var(--signal);
-}
-.service-cta { align-self: center; }
-@media (max-width: 767px) { .service-cta { align-self: start; } }
-
-/* O mně — příběh + fakta */
-.about-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
-  gap: clamp(2rem, 6vw, 5rem);
-  align-items: start;
-}
-@media (max-width: 1023px) { .about-grid { grid-template-columns: 1fr; } }
-.about-story { margin: 0; }
-.about-facts { margin: 0; border-top: 1px solid var(--hairline); }
-.fact-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  padding-block: 0.95rem;
-  border-bottom: 1px solid var(--hairline-soft);
-}
-.fact-row dt {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-.fact-row dd {
-  font-family: var(--font-display);
-  font-weight: 540;
-  font-size: 1.25rem;
-  margin: 0;
-  text-align: right;
-}
-
-/* Kontakt — editorial dvousloupec */
-.contact-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: clamp(2.5rem, 6vw, 5.5rem);
-  align-items: start;
-}
-@media (max-width: 1023px) { .contact-grid { grid-template-columns: 1fr; } }
-.contact-claim { margin: 0 0 2rem; max-width: 18ch; }
-.contact-line {
-  display: block;
-  font-family: var(--font-display);
-  font-weight: 480;
-  font-size: clamp(1.25rem, 2.4vw, 1.7rem);
-  color: var(--signal-hi);
-  text-decoration: none;
-  padding-block: 0.55rem;
-  border-bottom: 1px solid var(--hairline-soft);
-  transition: color 0.3s ease, border-color 0.3s ease;
-}
-.contact-line:hover { color: var(--text-primary); border-color: var(--signal); }
-.theme-light .contact-line { color: var(--signal-deep); }
-
-/* Agent send — signal, žádný blue→purple gradient */
-.agent-send {
-  background: linear-gradient(135deg, var(--signal-deep), var(--signal));
-  color: #eceee9;
-}
-.agent-send:hover { background: linear-gradient(135deg, var(--signal), var(--signal-hi)); }
-
-@media (min-width: 1024px) {
-  #portfolioGrid > :nth-child(7n + 1) { grid-column: span 2; }
-}
-
-.editorial-reveal {
-  clip-path: inset(0 0 100% 0);
-  transition: clip-path 0.9s cubic-bezier(0.65, 0, 0.35, 1);
-}
-.editorial-reveal.is-revealed { clip-path: inset(0 0 0 0); }
-
-@media (prefers-reduced-motion: reduce) {
-  .editorial-reveal { clip-path: none; transition: none; }
-}
-
 @layer utilities {
   .glass {
     background: var(--glass-bg, rgba(20, 33, 61, 0.55));
@@ -729,6 +475,46 @@ html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
   clip-path: inset(0 0 0 0);
 }
 
+/* ---- Scroll-velocity marquee ----------------------------------------- */
+/* Marquee ztišený na galerijní ticker — drobné mono, vlasové linky, žádný outline text */
+.cine-marquee {
+  position: relative;
+  overflow: hidden;
+  padding: 0.85rem 0;
+  border-block: 1px solid var(--hairline-soft, rgba(236, 238, 233, 0.07));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.cine-marquee-track {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  will-change: transform;
+}
+.cine-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1.6rem, 3vw, 2.8rem);
+  padding-inline: clamp(0.9rem, 2vw, 1.6rem);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 500;
+  font-size: 0.68rem;
+  letter-spacing: 0.32em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--text-secondary, #767c78);
+}
+.cine-marquee-item .cine-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--signal, #4ea2e0);
+  flex: none;
+}
+.cine-marquee-item .cine-fill {
+  color: var(--signal, #4ea2e0);
+}
+
 /* ---- Reduced motion: everything resolves to its final, calm state ----- */
 @media (prefers-reduced-motion: reduce) {
   html.cine-ready .cine-split-ready .char,
@@ -738,49 +524,181 @@ html.cine-ready [data-cine-reveal="slit"].cine-reveal-ready.cine-in {
     clip-path: none !important;
     transition: none !important;
   }
+  .cine-marquee-track { transform: none !important; }
 }
 
 /* ==========================================================================
-   HERO — editorial monografie: fullbleed sportovní fotka, claim dole vlevo.
-   Fotka je vždy pod tmavou clonou → texty mají fixní světlé barvy
-   nezávislé na theme (light mode nesmí obrátit text na fotce).
+   HERO — „Výstava": kinetická rytina clony jako rámovaný exponát.
+   Žádný full-bleed, žádná obří typografie. Muzejní štítek vedle díla.
    ========================================================================== */
-.hero-eyebrow {
-  margin: 0 0 1.3rem;
+.hero-exhibit {
+  background: var(--ink-900);
+  padding-block: clamp(5.5rem, 12vh, 8rem) clamp(3rem, 8vh, 5rem);
+}
+
+/* Rám: vlasová linka + pasparta + měkký věšákový stín */
+.hero-frame {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  max-width: min(560px, calc(100svh - 16rem));
+  border: 1px solid var(--hairline);
+  background: var(--ink-800);
+  padding: clamp(0.6rem, 1.4vw, 1.1rem);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.55);
+}
+/* Závěsná struna ke stropu galerie */
+.hero-frame::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 1px;
+  height: clamp(60px, 14vh, 140px);
+  background: linear-gradient(180deg, transparent, var(--hairline));
+}
+/* Bodové světlo na stěně za exponátem */
+.hero-frame::after {
+  content: '';
+  position: absolute;
+  inset: -22% -28%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse 58% 52% at 50% 42%,
+    rgba(78, 162, 224, 0.10),
+    rgba(236, 238, 233, 0.04) 45%,
+    transparent 72%);
+}
+@media (max-width: 1023px) {
+  .hero-frame { margin-inline: auto; max-width: min(440px, 88vw); }
+}
+.theme-light .hero-frame {
+  background: #fffefa;
+  box-shadow: 0 24px 50px -28px rgba(21, 24, 31, 0.35);
+}
+.hero-frame-mat {
+  border: 1px solid var(--hairline-soft);
+  overflow: hidden;
+  padding: clamp(1rem, 2.4vw, 2.2rem);
+}
+
+/* --- Kinetická rytina clony (SVG) --- */
+.hero-aperture { display: block; width: 100%; height: auto; }
+.ap-hairline      { fill: none; stroke: rgba(236, 238, 233, 0.3); stroke-width: 1; }
+.ap-hairline-soft { fill: none; stroke: rgba(236, 238, 233, 0.16); stroke-width: 1; }
+.theme-light .ap-hairline      { stroke: rgba(21, 24, 31, 0.36); }
+.theme-light .ap-hairline-soft { stroke: rgba(21, 24, 31, 0.18); }
+.ap-ticks {
+  fill: none;
+  stroke: rgba(236, 238, 233, 0.18);
+  stroke-width: 7;
+  stroke-dasharray: 1 11.93;
+}
+.theme-light .ap-ticks { stroke: rgba(21, 24, 31, 0.2); }
+.ap-text-ring {
+  transform-origin: 300px 300px;
+  animation: apSpin 140s linear infinite;
+}
+.ap-text {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.42em;
+  fill: var(--text-secondary);
+  opacity: 0.85;
+}
+.ap-blades {
+  transform-origin: 300px 300px;
+  animation: apSpin 90s linear infinite reverse;
+}
+.ap-blade {
+  stroke: var(--silver-100);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+.ap-focus {
+  fill: var(--signal);
+  transform-origin: 300px 300px;
+  animation: apFocus 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(108, 188, 239, 0.8)) drop-shadow(0 0 14px rgba(78, 162, 224, 0.5));
+}
+.ap-circuit-path {
+  fill: none;
+  stroke: var(--signal);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: apDraw 1.8s cubic-bezier(0.6, 0, 0.4, 1) 0.5s forwards;
+  filter: drop-shadow(0 0 4px rgba(108, 188, 239, 0.7)) drop-shadow(0 0 12px rgba(78, 162, 224, 0.4));
+}
+.ap-circuit-dot {
+  fill: var(--signal-hi);
+  opacity: 0;
+  animation: apFadeIn 0.5s ease-out 2.1s forwards;
+  filter: drop-shadow(0 0 5px rgba(108, 188, 239, 0.9)) drop-shadow(0 0 14px rgba(78, 162, 224, 0.5));
+}
+.ap-engrave {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.35em;
+  fill: var(--text-secondary);
+}
+@keyframes apSpin   { to { transform: rotate(360deg); } }
+@keyframes apFocus  { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.6); opacity: 1; } }
+@keyframes apDraw   { to { stroke-dashoffset: 0; } }
+@keyframes apFadeIn { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .ap-text-ring, .ap-blades, .ap-focus { animation: none; }
+  .ap-circuit-path { animation: none; stroke-dashoffset: 0; }
+  .ap-circuit-dot { animation: none; opacity: 1; }
+}
+
+/* Štítek pod dílem — mono, drobný, číslo exponátu */
+.hero-plate {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.85rem;
+  padding-inline: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.hero-plate-line {
+  flex: 1;
+  height: 1px;
+  background: var(--hairline-soft);
+}
+
+/* Muzejní popisek vedle díla */
+.hero-label {
+  padding-bottom: clamp(0.5rem, 2vh, 1.5rem);
+}
+.hero-kicker {
+  margin: 0 0 1.1rem;
   font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(236, 238, 233, 0.78);
+  color: var(--text-secondary);
 }
-.hero-claim {
-  margin: 0 0 2.2rem;
-  max-width: 21ch;
-  color: #eceee9;
-  text-shadow: 0 2px 24px rgba(7, 9, 15, 0.5);
+.hero-kicker .hero-amp {
+  color: var(--signal);
+  font-style: normal;
 }
-.hero-content .hero-cta {
-  color: #eceee9;
-  border-color: rgba(236, 238, 233, 0.32);
+.hero-name {
+  margin: 0 0 1.9rem;
+  font-family: var(--font-display);
+  font-weight: 350;
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
 }
-.hero-content .hero-cta-primary,
-.hero-content .hero-cta:hover {
-  color: var(--signal-hi);
-  border-color: var(--signal);
-}
-.hero-photo-label {
-  position: absolute;
-  right: clamp(1rem, 3vw, 2.2rem);
-  bottom: 1.1rem;
-  z-index: 2;
-  color: rgba(236, 238, 233, 0.55);
-}
-.hero-photo-label .label-title { color: rgba(236, 238, 233, 0.8); }
-@media (max-width: 767px) {
-  .hero-photo-label { display: none; }
-}
-.hero-editorial .hero-scroll-cue { color: rgba(236, 238, 233, 0.6); }
 
 /* CTA — tiché, katalogové */
 .hero-cta-row {
