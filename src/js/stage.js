@@ -248,6 +248,46 @@ import {
             if (el.hasAttribute('data-stage-image')) opts.image = el.getAttribute('data-stage-image');
             stageMount(el, name, opts);
         });
+        setupPortfolioAccent();
+    }
+
+    // PulsingBorder akcent na hover portfolio karet — jeden sdílený WebGL
+    // context, host div se přesouvá na aktuální kartu. Jen desktop.
+    function setupPortfolioAccent() {
+        if (reducedMotionQuery.matches || mobileQuery.matches) return;
+        const grid = document.getElementById('portfolioGrid');
+        if (!grid) return;
+
+        let host = null;
+        let currentCard = null;
+
+        const ensureHost = () => {
+            if (host) return host;
+            host = document.createElement('div');
+            host.className = 'stage-card-accent';
+            host.setAttribute('aria-hidden', 'true');
+            return host;
+        };
+
+        grid.addEventListener('pointerover', (e) => {
+            const card = e.target && e.target.closest ? e.target.closest('.portfolio-item') : null;
+            if (!card || card === currentCard) return;
+            currentCard = card;
+            const el = ensureHost();
+            card.appendChild(el);
+            if (!instances.has(el)) {
+                stageMount(el, 'pulsing-border', { forceAnimate: true });
+            }
+            requestAnimationFrame(() => el.classList.add('on'));
+        });
+
+        grid.addEventListener('pointerout', (e) => {
+            if (!currentCard) return;
+            const to = e.relatedTarget;
+            if (to && currentCard.contains(to)) return;
+            if (host) host.classList.remove('on');
+            currentCard = null;
+        });
     }
 
     window.ldStage = {
