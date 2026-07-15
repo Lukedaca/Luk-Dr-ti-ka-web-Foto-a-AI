@@ -1945,7 +1945,77 @@
     if (target) {
       setTimeout(function () {
         try { chatbotGhostPointAt(target); } catch (e) {}
+        // Světelná choreografie jen během tour — cíl kroku svítí, scéna ztmavne
+        if (chatbotTourActive && !chatbotTourPaused) {
+          try { chatbotStageSpotlightOn(target); } catch (e) {}
+        }
       }, CHATBOT_GHOST_SETTLE_MS);
+    }
+  }
+
+  // ===== Světelná choreografie tour (Agent Stage) =====
+  // Spotlight = fixed overlay s radiální maskou na cíl kroku, scéna kolem ztmavne.
+  // God rays (stage.js) svítí nad cílem. Cleanup při pauze/konci tour.
+  var chatbotStageSpotlightEl = null;
+  var chatbotStageRaysEl = null;
+
+  function chatbotStageEnsureSpotlight() {
+    if (chatbotStageSpotlightEl) return chatbotStageSpotlightEl;
+    var el = document.createElement('div');
+    el.id = 'chatbot-stage-spotlight';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+    chatbotStageSpotlightEl = el;
+    return el;
+  }
+
+  function chatbotStageSpotlightOn(target) {
+    if (chatbotReducedMotion()) return;
+    if (!target || typeof target.getBoundingClientRect !== 'function') return;
+    var rect = target.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) return;
+    var cx = rect.left + rect.width / 2;
+    var cy = rect.top + rect.height / 2;
+    var r = Math.max(rect.width, rect.height) / 2 + 70;
+    var el = chatbotStageEnsureSpotlight();
+    el.style.setProperty('--sp-x', Math.round(cx) + 'px');
+    el.style.setProperty('--sp-y', Math.round(cy) + 'px');
+    el.style.setProperty('--sp-r', Math.round(r) + 'px');
+    el.classList.add('on');
+
+    // God rays canvas nad cílem (jen když je stage.js k dispozici)
+    if (window.ldStage) {
+      if (!chatbotStageRaysEl) {
+        chatbotStageRaysEl = document.createElement('div');
+        chatbotStageRaysEl.id = 'chatbot-stage-rays';
+        chatbotStageRaysEl.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(chatbotStageRaysEl);
+        window.ldStage.mount(chatbotStageRaysEl, 'god-rays', { forceAnimate: true });
+      }
+      var size = Math.min(Math.max(rect.width, rect.height) + 160, 560);
+      chatbotStageRaysEl.style.width = Math.round(size) + 'px';
+      chatbotStageRaysEl.style.height = Math.round(size) + 'px';
+      chatbotStageRaysEl.style.left = Math.round(cx - size / 2) + 'px';
+      chatbotStageRaysEl.style.top = Math.round(cy - size / 2) + 'px';
+      chatbotStageRaysEl.classList.add('on');
+    }
+  }
+
+  function chatbotStageSpotlightOff() {
+    if (chatbotStageSpotlightEl) chatbotStageSpotlightEl.classList.remove('on');
+    if (chatbotStageRaysEl) chatbotStageRaysEl.classList.remove('on');
+  }
+
+  function chatbotStageSpotlightDispose() {
+    chatbotStageSpotlightOff();
+    if (chatbotStageRaysEl) {
+      if (window.ldStage) { try { window.ldStage.unmount(chatbotStageRaysEl); } catch (e) {} }
+      if (chatbotStageRaysEl.parentNode) chatbotStageRaysEl.parentNode.removeChild(chatbotStageRaysEl);
+      chatbotStageRaysEl = null;
+    }
+    if (chatbotStageSpotlightEl) {
+      if (chatbotStageSpotlightEl.parentNode) chatbotStageSpotlightEl.parentNode.removeChild(chatbotStageSpotlightEl);
+      chatbotStageSpotlightEl = null;
     }
   }
 
@@ -2015,7 +2085,12 @@
       '.chatbot-tour-dots i.on{background:linear-gradient(90deg,#2563eb,#7c3aed)}',
       '.chatbot-tour-btn{padding:.3rem .7rem;border-radius:.6rem;font-size:.78rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff}',
       '.chatbot-tour-btn.stop{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5)}',
-      '.chatbot-tour-caption{font-size:.95rem;line-height:1.4;font-weight:500}'
+      '.chatbot-tour-caption{font-size:.95rem;line-height:1.4;font-weight:500}',
+      '#chatbot-stage-spotlight{position:fixed;inset:0;z-index:9996;pointer-events:none;background:rgba(3,6,14,.52);opacity:0;transition:opacity .45s ease;-webkit-mask-image:radial-gradient(circle var(--sp-r,180px) at var(--sp-x,50%) var(--sp-y,50%),transparent 58%,#000 100%);mask-image:radial-gradient(circle var(--sp-r,180px) at var(--sp-x,50%) var(--sp-y,50%),transparent 58%,#000 100%)}',
+      '#chatbot-stage-spotlight.on{opacity:1}',
+      '#chatbot-stage-rays{position:fixed;z-index:9995;pointer-events:none;opacity:0;transition:opacity .5s ease}',
+      '#chatbot-stage-rays.on{opacity:.65}',
+      '#chatbot-stage-rays canvas{display:block;width:100%;height:100%}'
     ].join('');
     var style = document.createElement('style');
     style.id = 'chatbot-tour-style';
@@ -2159,6 +2234,7 @@
     if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
     chatbotStopSpeech();
     if (chatbotGhostEl) chatbotGhostEl.classList.remove('cb-ghost-visible');
+    chatbotStageSpotlightOff();
     chatbotInterruptDisarm();
     chatbotTourRenderPausedHud();
   }
@@ -2272,6 +2348,7 @@
     if (chatbotTourTimer) { clearTimeout(chatbotTourTimer); chatbotTourTimer = null; }
     chatbotStopSpeech();
     chatbotTourRemoveHud();
+    chatbotStageSpotlightDispose();
     var btn = document.getElementById('hero-tour-btn');
     if (btn) btn.disabled = false;
   }
