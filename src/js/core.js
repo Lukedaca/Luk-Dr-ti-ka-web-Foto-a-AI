@@ -232,7 +232,7 @@ function initCore() {
             if (i18nLoading) return;
 
             i18nLoading = true;
-            loadModule('/dist/js/i18n.min.js?v=16', () => {
+            loadModule('/dist/js/i18n.min.js?v=18', () => {
                 i18nLoading = false;
                 if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
                     window.ldI18n.applyLanguage(selectedLang);
@@ -816,7 +816,7 @@ function loadChatbotStack() {
 
     chatbotLoadPromise = new Promise((resolve) => {
         const finish = () => {
-            loadModule('/dist/js/chatbot.min.js?v=23', () => {
+            loadModule('/dist/js/chatbot.min.js?v=25', () => {
                 console.log('Chatbot module loaded');
                 loadModule('/dist/js/voice.min.js?v=12', () => {
                     console.log('Voice module loaded');
