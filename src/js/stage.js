@@ -55,6 +55,8 @@ import {
         'neuro-noise': {
             fragment: neuroNoiseFragmentShader,
             speed: 0.2,
+            // Fullscreen měkký pattern — render v 1× DPR s pixel stropem, upscale není vidět
+            pixel: { minRatio: 1, maxCount: 1400000 },
             colors: () => ({
                 u_colorBack: cssColor('--ink-900', '#050d1d'),
                 u_colorMid: withAlpha(cssColor('--signal-deep', '#2c7ec0'), 0.55),
@@ -68,6 +70,7 @@ import {
         'god-rays': {
             fragment: godRaysFragmentShader,
             speed: 0.5,
+            pixel: { minRatio: 1, maxCount: 2000000 },
             colors: () => ({
                 u_colorBack: TRANSPARENT,
                 u_colorBloom: withAlpha(cssColor('--signal', '#4ea2e0'), 0.6),
@@ -90,6 +93,7 @@ import {
         'pulsing-border': {
             fragment: pulsingBorderFragmentShader,
             speed: 0.6,
+            pixel: { minRatio: 1.5 },
             colors: () => ({
                 u_colorBack: TRANSPARENT,
                 u_colors: [
@@ -191,7 +195,10 @@ import {
             const baseSpeed = (opts && typeof opts.speed === 'number') ? opts.speed : def.speed;
             const speed = isStatic ? 0 : baseSpeed;
 
-            const mount = new ShaderMount(el, def.fragment, uniforms, undefined, speed);
+            // minPixelRatio (default 2!) a maxPixelCount drží počet pixelů na uzdě —
+            // fullscreen scény jinak renderují miliony pixelů navíc bez viditelného zisku
+            const pixel = def.pixel || {};
+            const mount = new ShaderMount(el, def.fragment, uniforms, undefined, speed, 0, pixel.minRatio, pixel.maxCount);
 
             const record = { mount, def, opts: opts || {}, baseSpeed, isStatic, observer: null };
 
