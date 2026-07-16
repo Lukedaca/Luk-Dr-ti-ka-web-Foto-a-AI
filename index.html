@@ -338,6 +338,33 @@ body > * {
             <text class="li-claim" x="160" y="172" text-anchor="middle">FOTOGRAFIE  &#183;  AI  &#183;  AUTOMATIZACE</text>
         </svg>
     </div>
+    <!-- Intro se odjišťuje hned při parsování — overlay kryje první paint, žádný pozdější výskok.
+         Orchestraci (LiquidMetal vs. SVG) přebírá stage.js, pojistka spustí SVG i bez něj. -->
+    <script>
+    (function () {
+        try {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            var force = window.location.search.indexOf('intro=1') !== -1;
+            var seen = false;
+            try {
+                seen = !!sessionStorage.getItem('ld_logo_intro_v2');
+                if (!seen) sessionStorage.setItem('ld_logo_intro_v2', '1');
+            } catch (e) { /* private mode — pokračuj jednorázově */ }
+            if (seen && !force) return;
+            var overlay = document.querySelector('.logo-intro-overlay');
+            if (!overlay) return;
+            overlay.classList.add('logo-intro-wait');
+            document.body.classList.add('logo-intro-active');
+            window.ldIntroArmed = true;
+            window.ldIntroFailsafe = setTimeout(function () {
+                if (!window.ldIntroArmed) return;
+                window.ldIntroArmed = false;
+                overlay.classList.remove('logo-intro-wait');
+                setTimeout(function () { document.body.classList.remove('logo-intro-active'); }, 1450);
+            }, 1800);
+        } catch (e) { /* intro je jen ozdoba */ }
+    })();
+    </script>
 
     <!-- Shutter Line — vertikální leitmotiv (kreslí se podle scroll progress) -->
     <div class="shutter-line" aria-hidden="true"></div>
@@ -1206,7 +1233,9 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/boot.min.js?v=49" defer></script>
+    <script src="/dist/js/boot.min.js?v=50" defer></script>
+    <!-- Shader jeviště = primární vizuál — načítá se hned (defer), ne až po gestu přes core -->
+    <script src="/dist/js/stage.min.js?v=2" defer></script>
     <!-- Cinematic scroll layer: Lenis smooth scroll + split-text + clip reveals + velocity marquee -->
     <script src="/dist/js/cinematic.min.js?v=2" defer></script>
 

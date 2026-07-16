@@ -256,6 +256,68 @@ import {
             stageMount(el, name, opts);
         });
         setupPortfolioAccent();
+        runLogoIntro();
+    }
+
+    // Logo intro — odjištěno inline skriptem v index.html (overlay kryje první
+    // paint). Stage přebírá orchestraci: LiquidMetal kůže, do 600 ms rozhodnutí,
+    // jinak SVG fallback. Pojistku (ldIntroFailsafe) ruší převzetím.
+    function runLogoIntro() {
+        if (!window.ldIntroArmed) return;
+        window.ldIntroArmed = false;
+        if (window.ldIntroFailsafe) clearTimeout(window.ldIntroFailsafe);
+
+        const overlay = document.querySelector('.logo-intro-overlay');
+        if (!overlay) {
+            document.body.classList.remove('logo-intro-active');
+            return;
+        }
+        const metalHost = overlay.querySelector('.logo-intro-metal');
+
+        const runSvgIntro = () => {
+            overlay.classList.remove('logo-intro-wait');
+            setTimeout(() => document.body.classList.remove('logo-intro-active'), 1450);
+        };
+
+        // Mobil/reduced-motion: metal je animovaný — rovnou SVG
+        if (!metalHost || isStaticContext(null)) {
+            runSvgIntro();
+            return;
+        }
+
+        let decided = false;
+        const fallbackTimer = setTimeout(() => {
+            if (decided) return;
+            decided = true;
+            runSvgIntro();
+        }, 600);
+
+        stageMount(metalHost, 'liquid-metal', {
+            image: '/assets/brand/ld-mark.svg',
+            forceAnimate: true
+        }).then((inst) => {
+            if (decided) {
+                if (inst) stageUnmount(metalHost);
+                return;
+            }
+            decided = true;
+            clearTimeout(fallbackTimer);
+            if (!inst) {
+                runSvgIntro();
+                return;
+            }
+            overlay.classList.remove('logo-intro-wait');
+            overlay.classList.add('logo-intro-has-metal');
+            setTimeout(() => {
+                document.body.classList.remove('logo-intro-active');
+                setTimeout(() => stageUnmount(metalHost), 450);
+            }, 1900);
+        }).catch(() => {
+            if (decided) return;
+            decided = true;
+            clearTimeout(fallbackTimer);
+            runSvgIntro();
+        });
     }
 
     // PulsingBorder akcent na hover portfolio karet — jeden sdílený WebGL

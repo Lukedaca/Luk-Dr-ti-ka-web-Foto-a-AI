@@ -348,86 +348,8 @@ function initCore() {
     };
 
 
-    // Logo intro — 1× za session, ne při SW reload, respektuje reduced-motion.
-    // Agent Stage: primárně LiquidMetal kůže (stage.js), SVG animace jako fallback.
-    const setupLogoIntro = () => {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        if (window.ldCachePurgeReloading) return;
-        const force = window.location.search.includes('intro=1');
-        try {
-            if (!force && sessionStorage.getItem('ld_logo_intro_v2')) return;
-            sessionStorage.setItem('ld_logo_intro_v2', '1');
-        } catch (e) { /* private mode — pokračuj jednorázově */ }
-
-        const overlay = document.querySelector('.logo-intro-overlay');
-        const metalHost = overlay ? overlay.querySelector('.logo-intro-metal') : null;
-
-        const runSvgIntro = () => {
-            if (overlay) overlay.classList.remove('logo-intro-wait');
-            document.body.classList.add('logo-intro-active');
-            setTimeout(() => {
-                document.body.classList.remove('logo-intro-active');
-            }, 1450);
-        };
-
-        if (!overlay || !metalHost) {
-            runSvgIntro();
-            return;
-        }
-
-        // Clona nahoru hned, rozhodnutí metal vs. SVG do 600 ms
-        overlay.classList.add('logo-intro-wait');
-        document.body.classList.add('logo-intro-active');
-
-        let decided = false;
-        const fallbackTimer = setTimeout(() => {
-            if (decided) return;
-            decided = true;
-            document.body.classList.remove('logo-intro-active');
-            requestAnimationFrame(runSvgIntro);
-        }, 600);
-
-        const runMetalIntro = () => {
-            if (decided) return;
-            window.ldStage.mount(metalHost, 'liquid-metal', {
-                image: '/assets/brand/ld-mark.svg',
-                forceAnimate: true
-            }).then((inst) => {
-                if (decided) {
-                    if (inst) window.ldStage.unmount(metalHost);
-                    return;
-                }
-                decided = true;
-                clearTimeout(fallbackTimer);
-                overlay.classList.remove('logo-intro-wait');
-                if (!inst) {
-                    document.body.classList.remove('logo-intro-active');
-                    requestAnimationFrame(runSvgIntro);
-                    return;
-                }
-                overlay.classList.add('logo-intro-has-metal');
-                setTimeout(() => {
-                    document.body.classList.remove('logo-intro-active');
-                    setTimeout(() => window.ldStage.unmount(metalHost), 450);
-                }, 1900);
-            }).catch(() => {
-                if (decided) return;
-                decided = true;
-                clearTimeout(fallbackTimer);
-                document.body.classList.remove('logo-intro-active');
-                requestAnimationFrame(runSvgIntro);
-            });
-        };
-
-        if (window.ldStage) {
-            runMetalIntro();
-        } else {
-            window.addEventListener('ld:stage-ready', runMetalIntro, { once: true });
-            loadModule('/dist/js/stage.min.js?v=1');
-        }
-    };
-
-    setupLogoIntro();
+    // Logo intro řídí inline skript v index.html + stage.js (overlay kryje
+    // první paint; core se načítá až po gestu, na intro je pozdě).
 
     // Agent uvítací bublina — 1× za session nabídne tour vs. volné prohlížení
     const setupAgentWelcome = () => {
@@ -759,23 +681,8 @@ if (document.readyState === 'loading') {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
-    // Shader jeviště (stage.js) je progressive enhancement mimo kritickou cestu.
-    // Reduced-motion a mobil řeší stage.js sám (statické varianty).
-    if (document.querySelector('[data-stage]')) {
-        const startStage = () => loadModule('/dist/js/stage.min.js?v=1');
-        const scheduleStage = () => {
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(startStage, { timeout: 2000 });
-            } else {
-                setTimeout(startStage, 600);
-            }
-        };
-        if (document.readyState === 'complete') {
-            scheduleStage();
-        } else {
-            window.addEventListener('load', scheduleStage, { once: true });
-        }
-    }
+    // stage.min.js se načítá deferovaným tagem přímo v index.html — je to
+    // primární vizuál, nesmí čekat na gesto/idle.
 
     // Load portfolio module when portfolio section is visible
     const portfolioSection = document.getElementById('portfolio');

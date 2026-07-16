@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const CORE_SRC = '/dist/js/core.min.js?v=43';
+    const CORE_SRC = '/dist/js/core.min.js?v=44';
     const REPLAY_SELECTOR = [
         '#chatBtn',
         '#themeToggle',
