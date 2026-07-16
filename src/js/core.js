@@ -232,7 +232,7 @@ function initCore() {
             if (i18nLoading) return;
 
             i18nLoading = true;
-            loadModule('/dist/js/i18n.min.js?v=16', () => {
+            loadModule('/dist/js/i18n.min.js?v=18', () => {
                 i18nLoading = false;
                 if (window.ldI18n && typeof window.ldI18n.applyLanguage === 'function') {
                     window.ldI18n.applyLanguage(selectedLang);
@@ -348,23 +348,147 @@ function initCore() {
     };
 
 
-    // Logo intro — 1× za session, ne při SW reload, respektuje reduced-motion
+    // Logo intro — 1× za session, ne při SW reload, respektuje reduced-motion.
+    // Agent Stage: primárně LiquidMetal kůže (stage.js), SVG animace jako fallback.
     const setupLogoIntro = () => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         if (window.ldCachePurgeReloading) return;
+        const force = window.location.search.includes('intro=1');
         try {
-            if (sessionStorage.getItem('ld_logo_intro_v2')) return;
+            if (!force && sessionStorage.getItem('ld_logo_intro_v2')) return;
             sessionStorage.setItem('ld_logo_intro_v2', '1');
         } catch (e) { /* private mode — pokračuj jednorázově */ }
+
+        const overlay = document.querySelector('.logo-intro-overlay');
+        const metalHost = overlay ? overlay.querySelector('.logo-intro-metal') : null;
+
+        const runSvgIntro = () => {
+            if (overlay) overlay.classList.remove('logo-intro-wait');
+            document.body.classList.add('logo-intro-active');
+            setTimeout(() => {
+                document.body.classList.remove('logo-intro-active');
+            }, 1450);
+        };
+
+        if (!overlay || !metalHost) {
+            runSvgIntro();
+            return;
+        }
+
+        // Clona nahoru hned, rozhodnutí metal vs. SVG do 600 ms
+        overlay.classList.add('logo-intro-wait');
         document.body.classList.add('logo-intro-active');
-        setTimeout(() => {
+
+        let decided = false;
+        const fallbackTimer = setTimeout(() => {
+            if (decided) return;
+            decided = true;
             document.body.classList.remove('logo-intro-active');
-        }, 1450);
+            requestAnimationFrame(runSvgIntro);
+        }, 600);
+
+        const runMetalIntro = () => {
+            if (decided) return;
+            window.ldStage.mount(metalHost, 'liquid-metal', {
+                image: '/assets/brand/ld-mark.svg',
+                forceAnimate: true
+            }).then((inst) => {
+                if (decided) {
+                    if (inst) window.ldStage.unmount(metalHost);
+                    return;
+                }
+                decided = true;
+                clearTimeout(fallbackTimer);
+                overlay.classList.remove('logo-intro-wait');
+                if (!inst) {
+                    document.body.classList.remove('logo-intro-active');
+                    requestAnimationFrame(runSvgIntro);
+                    return;
+                }
+                overlay.classList.add('logo-intro-has-metal');
+                setTimeout(() => {
+                    document.body.classList.remove('logo-intro-active');
+                    setTimeout(() => window.ldStage.unmount(metalHost), 450);
+                }, 1900);
+            }).catch(() => {
+                if (decided) return;
+                decided = true;
+                clearTimeout(fallbackTimer);
+                document.body.classList.remove('logo-intro-active');
+                requestAnimationFrame(runSvgIntro);
+            });
+        };
+
+        if (window.ldStage) {
+            runMetalIntro();
+        } else {
+            window.addEventListener('ld:stage-ready', runMetalIntro, { once: true });
+            loadModule('/dist/js/stage.min.js?v=1');
+        }
     };
 
-    if (window.location.search.includes('intro=1')) {
-        setupLogoIntro();
-    }
+    setupLogoIntro();
+
+    // Agent uvítací bublina — 1× za session nabídne tour vs. volné prohlížení
+    const setupAgentWelcome = () => {
+        try {
+            if (sessionStorage.getItem('ld_agent_welcome_v1')) return;
+        } catch (e) { /* private mode — ukaž jednorázově */ }
+
+        const isEn = (document.documentElement.getAttribute('lang') || 'cs').indexOf('en') === 0;
+        const t = isEn ? {
+            kicker: 'Hybrid agent',
+            text: 'Hi, I’m Lukáš’s hybrid agent. Want me to walk you through the site?',
+            start: 'Show me around',
+            dismiss: 'I’ll look around'
+        } : {
+            kicker: 'Hybridní agent',
+            text: 'Ahoj, jsem Lukášův hybridní agent. Chceš provést webem?',
+            start: 'Proveď mě',
+            dismiss: 'Porozhlédnu se sám'
+        };
+
+        const bubble = document.createElement('div');
+        bubble.className = 'agent-welcome';
+        bubble.setAttribute('role', 'dialog');
+        bubble.setAttribute('aria-label', t.kicker);
+        bubble.innerHTML =
+            '<span class="agent-welcome-kicker">' + t.kicker + '</span>' +
+            '<p class="agent-welcome-text">' + t.text + '</p>' +
+            '<div class="agent-welcome-actions">' +
+            '<button type="button" class="agent-welcome-start">' + t.start + '</button>' +
+            '<button type="button" class="agent-welcome-dismiss">' + t.dismiss + '</button>' +
+            '</div>';
+
+        let hideTimer = null;
+        const close = () => {
+            if (hideTimer) clearTimeout(hideTimer);
+            bubble.classList.remove('is-visible');
+            setTimeout(() => bubble.remove(), 400);
+        };
+
+        bubble.querySelector('.agent-welcome-dismiss').addEventListener('click', close);
+        bubble.querySelector('.agent-welcome-start').addEventListener('click', () => {
+            close();
+            loadChatbotStack().then((chat) => {
+                if (chat && typeof chat.tourStart === 'function') {
+                    chat.tourStart();
+                } else {
+                    const btn = document.getElementById('hero-tour-btn');
+                    if (btn) btn.click();
+                }
+            });
+        });
+
+        setTimeout(() => {
+            try { sessionStorage.setItem('ld_agent_welcome_v1', '1'); } catch (e) { /* noop */ }
+            document.body.appendChild(bubble);
+            requestAnimationFrame(() => bubble.classList.add('is-visible'));
+            hideTimer = setTimeout(close, 20000);
+        }, 4000);
+    };
+
+    setupAgentWelcome();
 
     // Cursor spotlight, hero ambient + dot-grid spotlight reveal
     const cursorSpotlight = document.getElementById('cursorSpotlight');
@@ -635,39 +759,21 @@ if (document.readyState === 'loading') {
 
 // Lazy loading logic for other modules
 function lazyLoadModules() {
-    // Hero canvas particles are a progressive enhancement. Keep them off the
-    // critical path, but restore them for real desktop sessions.
-    const heroHeadline = document.querySelector('.hero-headline');
-    if (heroHeadline &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-        !window.matchMedia('(hover: none)').matches &&
-        window.innerWidth >= 768) {
-        let particlesRequested = false;
-        const startParticles = () => loadModule('/dist/js/hero-particles.min.js?v=29');
-        const scheduleParticles = () => {
-            if (particlesRequested) return;
-            particlesRequested = true;
+    // Shader jeviště (stage.js) je progressive enhancement mimo kritickou cestu.
+    // Reduced-motion a mobil řeší stage.js sám (statické varianty).
+    if (document.querySelector('[data-stage]')) {
+        const startStage = () => loadModule('/dist/js/stage.min.js?v=1');
+        const scheduleStage = () => {
             if ('requestIdleCallback' in window) {
-                requestIdleCallback(startParticles, { timeout: 2000 });
+                requestIdleCallback(startStage, { timeout: 2000 });
             } else {
-                setTimeout(startParticles, 600);
-            }
-        };
-        heroHeadline.addEventListener('pointerenter', scheduleParticles, { once: true, passive: true });
-        heroHeadline.addEventListener('click', scheduleParticles, { once: true, passive: true });
-        heroHeadline.addEventListener('focusin', scheduleParticles, { once: true });
-
-        const scheduleInitialParticles = () => {
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(scheduleParticles, { timeout: 3500 });
-            } else {
-                setTimeout(scheduleParticles, 1800);
+                setTimeout(startStage, 600);
             }
         };
         if (document.readyState === 'complete') {
-            scheduleInitialParticles();
+            scheduleStage();
         } else {
-            window.addEventListener('load', scheduleInitialParticles, { once: true });
+            window.addEventListener('load', scheduleStage, { once: true });
         }
     }
 
@@ -710,7 +816,7 @@ function loadChatbotStack() {
 
     chatbotLoadPromise = new Promise((resolve) => {
         const finish = () => {
-            loadModule('/dist/js/chatbot.min.js?v=23', () => {
+            loadModule('/dist/js/chatbot.min.js?v=25', () => {
                 console.log('Chatbot module loaded');
                 loadModule('/dist/js/voice.min.js?v=12', () => {
                     console.log('Voice module loaded');

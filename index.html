@@ -167,20 +167,13 @@ header {
 }
 .hero-exhibit-inner {
     width: min(1180px, 100%);
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
-    gap: clamp(2rem, 5vw, 4.5rem);
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
 }
-@media (max-width: 1023px) {
-    .hero-exhibit-inner { grid-template-columns: 1fr; align-items: start; }
-}
-.hero-aperture {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1 / 1;
-}
+.hero-exhibit-inner .hero-h1 { text-align: center; max-width: 16ch; }
+.hero-exhibit-inner .hero-cta-row { justify-content: center; }
 
 .hero-ambient,
 #cursorSpotlight,
@@ -223,7 +216,7 @@ body > * {
         </style>
 
     <!-- Combined Tailwind + custom CSS. Kept render-stable to prevent CLS. -->
-    <link rel="stylesheet" href="/dist/css/styles.min.css?v=41">
+    <link rel="stylesheet" href="/dist/css/styles.min.css?v=43">
     
 
     <!-- Schema.org Structured Data -->
@@ -259,8 +252,8 @@ body > * {
         {"@type": "AdministrativeArea", "name": "Olomoucký kraj"}
       ],
       "sameAs": [
-        "https://www.linkedin.com/in/lukas-drsticka",
-        "https://github.com/lukas-drsticka"
+        "https://www.linkedin.com/in/luk%C3%A1%C5%A1-dr%C5%A1ti%C4%8Dka-573772110/",
+        "https://github.com/Lukedaca"
       ],
       "knowsAbout": ["Fotografie", "Sportovní fotografie", "Portrétní fotografie", "Umělá inteligence", "AI chatboty", "Automatizace", "Webový vývoj"],
       "hasOfferCatalog": {
@@ -272,7 +265,7 @@ body > * {
             "itemOffered": {
               "@type": "Service",
               "name": "Sportovní fotografie Přerov",
-              "description": "Profesionální sportovní fotografie – fotbal, hokej, atletika a další sporty v Přerově a okolí"
+              "description": "Profesionální sportovní fotografie – fotbalové zápasy a sportovní akce v Přerově a okolí"
             }
           },
           {
@@ -322,6 +315,7 @@ body > * {
 
     <!-- Logo intro overlay (zobrazí se 1× za session, JS přidá .logo-intro-active na <body>) -->
     <div class="logo-intro-overlay" aria-hidden="true">
+        <div class="logo-intro-metal"></div>
         <svg class="logo-intro-svg" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lukáš Drštička intro">
             <!-- L -->
             <path class="li-letter li-l" d="M 40 40 L 40 130 L 95 130" />
@@ -416,58 +410,8 @@ body > * {
     <main id="main" class="pt-20" tabindex="-1">
         <!-- Hero Section — „Výstava": kinetická rytina clony jako exponát, muzejní štítek vedle -->
         <section id="hero" class="hero-exhibit relative min-h-screen overflow-hidden">
+            <div class="hero-stage" data-stage="neuro-noise" aria-hidden="true"></div>
             <div class="hero-exhibit-inner">
-                <figure class="hero-frame">
-                    <div class="hero-frame-mat">
-                        <svg class="hero-aperture" viewBox="0 0 600 600" role="img" aria-label="Kinetická kresba clony objektivu — fotografie a AI" width="600" height="600">
-                            <defs>
-                                <path id="ap-text-circle" d="M 300 76 A 224 224 0 1 1 299.9 76" fill="none"/>
-                            </defs>
-
-                            <!-- Vnější prstenec + rytá stupnice -->
-                            <g class="ap-ring-outer">
-                                <circle cx="300" cy="300" r="252" class="ap-hairline"/>
-                                <circle cx="300" cy="300" r="244" class="ap-ticks"/>
-                            </g>
-
-                            <!-- Kruhový mono text — pomalu obíhá -->
-                            <g class="ap-text-ring" aria-hidden="true">
-                                <text class="ap-text">
-                                    <textPath href="#ap-text-circle" startOffset="0">FOTOGRAFIE&#160;&#160;·&#160;&#160;AI&#160;&#160;·&#160;&#160;AUTOMATIZACE&#160;&#160;·&#160;&#160;WEB&#160;&#160;·&#160;&#160;FOTOGRAFIE&#160;&#160;·&#160;&#160;AI&#160;&#160;·&#160;&#160;AUTOMATIZACE&#160;&#160;·&#160;&#160;WEB&#160;&#160;·</textPath>
-                                </text>
-                            </g>
-
-                            <!-- Lamely clony — 8 čepelí, pomalé dýchání -->
-                            <g class="ap-blades">
-                                <g><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                                <g transform="rotate(45 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                                <g transform="rotate(90 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                                <g transform="rotate(135 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                                <g transform="rotate(180 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                                <g transform="rotate(225 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                                <g transform="rotate(270 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                                <g transform="rotate(315 300 300)"><line x1="500" y1="300" x2="330.7" y2="362.9" class="ap-blade"/></g>
-                            </g>
-
-                            <!-- Střed: ohnisko + circuit linka z loga (AI) -->
-                            <circle cx="300" cy="300" r="70" class="ap-hairline-soft"/>
-                            <circle cx="300" cy="300" r="4" class="ap-focus"/>
-                            <g class="ap-circuit" aria-hidden="true">
-                                <path d="M 304 300 L 352 300 L 368 284 L 416 284 M 368 284 L 392 284 L 404 272 M 416 284 L 448 284 L 462 298 L 506 298" class="ap-circuit-path"/>
-                                <circle cx="506" cy="298" r="3.5" class="ap-circuit-dot"/>
-                            </g>
-
-                            <!-- Rytá značení objektivu -->
-                            <text x="300" y="557" text-anchor="middle" class="ap-engrave">f/1.4&#160;&#160;·&#160;&#160;35&#160;mm</text>
-                        </svg>
-                    </div>
-                    <figcaption class="hero-plate">
-                        <span class="hero-plate-no">№ 01</span>
-                        <span class="hero-plate-line" aria-hidden="true"></span>
-                        <span class="hero-plate-meta">Clona · 2026</span>
-                    </figcaption>
-                </figure>
-
                 <div class="hero-label">
                     <h1 class="hero-h1 hero-kicker">
                         <span data-hero-role-a>Fotograf</span> <span class="hero-amp">&amp;</span> <span data-hero-role-b>AI Developer</span>
@@ -561,6 +505,8 @@ body > * {
                 </div>
             </div>
         </section>
+
+        <div class="stage-divider" data-stage="waves" data-stage-static aria-hidden="true"></div>
 
         <section id="portfolio" class="py-24 reveal is-visible">
             <div class="container mx-auto px-6 section-wrap">
@@ -987,6 +933,8 @@ body > * {
                 </div>
         </section>
 
+        <div class="stage-divider" data-stage="waves" data-stage-static aria-hidden="true"></div>
+
         <section id="o-mne" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-4xl section-wrap">
                 <div class="glass card rounded-3xl p-12 text-center">
@@ -1018,6 +966,8 @@ body > * {
                 </div>
             </div>
         </section>
+
+        <div class="stage-divider" data-stage="waves" data-stage-static aria-hidden="true"></div>
 
         <section id="kontakt" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-4xl section-wrap">
@@ -1256,7 +1206,7 @@ body > * {
 
     <!-- Main JavaScript with defer for optimal performance -->
     <!-- Core module (lazy loads other modules) -->
-    <script src="/dist/js/boot.min.js?v=47" defer></script>
+    <script src="/dist/js/boot.min.js?v=49" defer></script>
     <!-- Cinematic scroll layer: Lenis smooth scroll + split-text + clip reveals + velocity marquee -->
     <script src="/dist/js/cinematic.min.js?v=2" defer></script>
 

@@ -1,11 +1,11 @@
 # Lukáš Drštička — Fotograf & AI Developer
 
-> Portfolio fotografa a AI developera z Přerova. Specializace na portrétní, sportovní a produktovou fotografii, vývoj AI chatbotů, hlasových agentů a automatizaci procesů.
+> Osobní web fotografa a AI developera z Přerova. Specializace na sportovní a portrétní fotografii (klubový fotograf 1. FC Viktorie Přerov), vývoj AI chatbotů, hlasových agentů a automatizaci. Na webu běží hybridní agent, kterého si autor postavil sám.
 
 ## Stránky
 
-- [Úvod](https://lukasdrsticka-ai-and-foto.com/): Hero sekce, hybridní AI agent (chat + hlas), portfolio, dovednosti, kontakt
-- [Portfolio](https://lukasdrsticka-ai-and-foto.com/#portfolio): Fotografie a AI projekty
+- [Úvod](https://lukasdrsticka-ai-and-foto.com/): Hero, hybridní AI agent (chat + hlas), portfolio, dovednosti, kontakt
+- [Portfolio](https://lukasdrsticka-ai-and-foto.com/#portfolio): Zápasové galerie, portréty a AI projekty
 - [Hybridní agent](https://lukasdrsticka-ai-and-foto.com/#hybridni-agent): Chatbot a hlasový agent v jednom (čeština + angličtina)
 - [O mně](https://lukasdrsticka-ai-and-foto.com/#o-mne): Profil a zaměření
 - [Spolupráce](https://lukasdrsticka-ai-and-foto.com/#spoluprace): Klubová sportovní fotografie, AI implementace

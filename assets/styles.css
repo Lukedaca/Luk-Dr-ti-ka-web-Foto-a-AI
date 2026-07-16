@@ -2817,3 +2817,133 @@ footer::before { display: none; }
 /* Performance mode výše vypíná body::after !important — zrno stěny chceme zpět */
 body::after { display: block !important; }
 
+/* ==========================================================================
+   AGENT STAGE — shader jeviště (stage.js), intro metal kůže, uvítací bublina
+   ========================================================================== */
+
+/* Hero: NeuroNoise pozadí za obsahem (canvas mountuje stage.js) */
+.hero-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+.hero-stage canvas { display: block; width: 100%; height: 100%; }
+.hero-exhibit .hero-exhibit-inner { position: relative; z-index: 1; }
+.hero-exhibit .hero-scroll-cue { z-index: 1; }
+
+/* Logo intro: LiquidMetal kůže (stage.js), SVG animace jako fallback */
+.logo-intro-metal {
+    position: relative;
+    width: clamp(200px, 28vw, 360px);
+    aspect-ratio: 16 / 10;
+    display: none;
+}
+.logo-intro-overlay.logo-intro-has-metal .logo-intro-metal { display: block; }
+.logo-intro-overlay.logo-intro-has-metal .logo-intro-svg { display: none; }
+
+/* Čekání na rozhodnutí metal vs. SVG — clona je vidět, SVG stojí */
+.logo-intro-overlay.logo-intro-wait .logo-intro-svg { opacity: 0; }
+.logo-intro-overlay.logo-intro-wait .logo-intro-svg * { animation-play-state: paused !important; }
+
+/* Agent uvítací bublina — 1× za session, nad chat launcherem */
+.agent-welcome {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 6.5rem;
+    z-index: 9998;
+    max-width: 320px;
+    padding: 1.1rem 1.2rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border-hi);
+    border-radius: 1.1rem;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-signal);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.agent-welcome.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.agent-welcome-kicker {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--signal-hi);
+    margin-bottom: 0.45rem;
+}
+.agent-welcome-text {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin: 0 0 0.85rem;
+}
+.agent-welcome-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.agent-welcome-start,
+.agent-welcome-dismiss {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    transition: opacity 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+}
+.agent-welcome-start {
+    background: linear-gradient(120deg, var(--signal-deep), var(--signal));
+    color: #fff;
+    border: none;
+}
+.agent-welcome-start:hover { opacity: 0.9; }
+.agent-welcome-dismiss {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+}
+.agent-welcome-dismiss:hover { background: rgba(255, 255, 255, 0.06); }
+
+@media (max-width: 640px) {
+    .agent-welcome {
+        right: 1rem;
+        left: 1rem;
+        bottom: 5.5rem;
+        max-width: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agent-welcome { transition: none; }
+}
+
+/* Waves předěly mezi sekcemi — statický shader pattern (stage.js) */
+.stage-divider {
+    position: relative;
+    height: 64px;
+    max-width: 1100px;
+    margin: 0 auto;
+    opacity: 0.45;
+    pointer-events: none;
+}
+.stage-divider canvas { display: block; width: 100%; height: 100%; }
+
+/* PulsingBorder akcent na hover portfolio karty (host přesouvá stage.js) */
+.portfolio-item { position: relative; }
+.stage-card-accent {
+    position: absolute;
+    inset: -8px;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.stage-card-accent.on { opacity: 1; }
+.stage-card-accent canvas { display: block; width: 100%; height: 100%; }
+

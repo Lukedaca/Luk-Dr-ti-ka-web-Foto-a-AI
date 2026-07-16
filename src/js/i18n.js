@@ -19,8 +19,8 @@
 
     var COPY = {
         cs: {
-      title: 'Lukáš Drštička - Fotograf & AI Developer | Portfolio',
-      description: 'Portfolio Lukáše Drštičky - fotograf a AI developer z Přerova. Portrétní a sportovní fotografie, AI chatboty a automatizace na míru.',
+      title: 'Fotograf Přerov & AI Developer | Lukáš Drštička',
+      description: 'Fotograf Přerov – Lukáš Drštička. Sportovní a portrétní fotografie v Přerově a okolí. AI developer – chatboty, automatizace a webová řešení na míru.',
       nav: ['Hybridní agent', 'Portfolio', 'Dovednosti', 'O mně', 'Spolupráce', 'Kontakt'],
       hero: ['Fotografie', 'AI Development', 'Automatizace', 'Fotograf & AI Developer', 'Portfolio', 'Hybridní agent'],
       ai: ['Hybridní agent', 'Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.', 'Piš mi nebo klikni na Mluvit hlasem', 'Zeptej se česky nebo in English...', 'Mluvit hlasem', 'Odeslat', 'Vaše zpráva pro hybridního AI agenta'],
@@ -34,8 +34,8 @@
       misc: ['Přeskočit na obsah', 'Zpět na úvodní stránku', 'Otevřít mobilní menu', 'Zavřít menu', 'Přepnout režim', 'Napište zprávu...', 'Smazat historii', 'Zavřít chat', 'Galerie', 'Zavřít galerii', 'Předchozí fotka', 'Další fotka', 'Ukončit hovor', 'Zadejte prosím email.', 'Děkuji! Newsletter bude zaslán na:']
     },
     en: {
-      title: 'Lukas Drsticka - Photographer & AI Developer | Portfolio',
-      description: 'Portfolio of Lukas Drsticka - photographer and AI developer from Prerov, Czech Republic. Portrait and sports photography, AI chatbots and custom automation.',
+      title: 'Photographer Prerov & AI Developer | Lukas Drsticka',
+      description: 'Photographer in Prerov, Czech Republic – Lukas Drsticka. Sports and portrait photography in Prerov and nearby. AI developer – chatbots, automation and custom web solutions.',
       nav: ['Hybrid agent', 'Portfolio', 'Skills', 'About', 'Collaboration', 'Contact'],
       hero: ['Photography', 'AI Development', 'Automation', 'Photographer & AI Developer', 'View portfolio', 'Hybrid agent'],
       ai: ['Hybrid agent', 'A chatbot and a voice agent in one. Writes, speaks and instantly proposes the next step. Works in Czech and English.', 'Write to me or click Talk by voice', 'Ask in English or switch to Czech...', 'Talk by voice', 'Send', 'Your message for the hybrid AI agent'],
