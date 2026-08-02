@@ -247,14 +247,36 @@ import {
         });
     });
 
+    // Scéna se mountuje, až když se blíží do viewportu. Každý mount stojí WebGL
+    // kontext + kompilaci shaderu, a dividery sedí hluboko na stránce (ř. 536,
+    // 963, 997) — dřív se všechny tři kompilovaly hned při načtení, přestože je
+    // nikdo nevidí. Hero je ve viewportu, takže mu observer zavolá callback
+    // okamžitě a chová se dál jako dřív.
+    const LAZY_MOUNT_MARGIN = '400px';
+
+    function stageOptsFor(el) {
+        const opts = {};
+        if (el.hasAttribute('data-stage-static')) opts.static = true;
+        if (el.hasAttribute('data-stage-image')) opts.image = el.getAttribute('data-stage-image');
+        return opts;
+    }
+
     function autoMount() {
-        document.querySelectorAll('[data-stage]').forEach((el) => {
-            const name = el.getAttribute('data-stage');
-            const opts = {};
-            if (el.hasAttribute('data-stage-static')) opts.static = true;
-            if (el.hasAttribute('data-stage-image')) opts.image = el.getAttribute('data-stage-image');
-            stageMount(el, name, opts);
-        });
+        const nodes = document.querySelectorAll('[data-stage]');
+
+        if (!('IntersectionObserver' in window)) {
+            nodes.forEach((el) => stageMount(el, el.getAttribute('data-stage'), stageOptsFor(el)));
+        } else {
+            const mountObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    obs.unobserve(entry.target);
+                    stageMount(entry.target, entry.target.getAttribute('data-stage'), stageOptsFor(entry.target));
+                });
+            }, { rootMargin: LAZY_MOUNT_MARGIN });
+            nodes.forEach((el) => mountObserver.observe(el));
+        }
+
         setupPortfolioAccent();
         runLogoIntro();
     }
