@@ -262,19 +262,38 @@ import {
     }
 
     function autoMount() {
-        const nodes = document.querySelectorAll('[data-stage]');
+        const nodes = Array.from(document.querySelectorAll('[data-stage]'));
+        const mountNow = (el) => stageMount(el, el.getAttribute('data-stage'), stageOptsFor(el));
 
         if (!('IntersectionObserver' in window)) {
-            nodes.forEach((el) => stageMount(el, el.getAttribute('data-stage'), stageOptsFor(el)));
-        } else {
+            nodes.forEach(mountNow);
+            setupPortfolioAccent();
+            runLogoIntro();
+            return;
+        }
+
+        // Co je při načtení v prvním viewportu (hero), mountujeme rovnou podle
+        // geometrie. Na skrytém tabu IntersectionObserver protnutí nehlásí, a
+        // hero je nosný vizuál — nesmí záviset na tom, jestli má tab fokus.
+        const viewport = window.innerHeight || document.documentElement.clientHeight;
+        const eager = [];
+        const lazy = [];
+        nodes.forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            (rect.top < viewport && rect.bottom > 0 ? eager : lazy).push(el);
+        });
+
+        eager.forEach(mountNow);
+
+        if (lazy.length) {
             const mountObserver = new IntersectionObserver((entries, obs) => {
                 entries.forEach((entry) => {
                     if (!entry.isIntersecting) return;
                     obs.unobserve(entry.target);
-                    stageMount(entry.target, entry.target.getAttribute('data-stage'), stageOptsFor(entry.target));
+                    mountNow(entry.target);
                 });
             }, { rootMargin: LAZY_MOUNT_MARGIN });
-            nodes.forEach((el) => mountObserver.observe(el));
+            lazy.forEach((el) => mountObserver.observe(el));
         }
 
         setupPortfolioAccent();
