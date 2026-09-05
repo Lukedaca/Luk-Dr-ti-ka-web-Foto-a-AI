@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-05T20:00:00.000Z",
+  "records": [
+    {
+      "id": "about.lukas",
+      "type": "about",
+      "content": "Lukáš Drštička fotografuje a vyvíjí moderní AI řešení v Přerově a Olomouckém kraji. Propojuje kreativní vizuální tvorbu s technologiemi a automatizací. Je autorem konceptu FrameMind a klubovým fotografem 1. FC Viktorie Přerov.",
+      "sourceUrl": "https://lukasdrsticka.cz/#o-mne",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": true,
+      "tags": [
+        "o-mne",
+        "lukas",
+        "autor",
+        "prerov"
+      ],
+      "intents": [
+        "about",
+        "identity"
+      ],
+      "contentHash": "b349a91e8643028de067dcd5476ddd32d8d631fd125dffbd0eb5b6b8c96c1b5c"
+    },
+    {
+      "id": "services.sports_photo",
+      "type": "service",
+      "content": "Profesionální sportovní fotografie: Lukáš Drštička fotí fotbalové zápasy, turnaje a sportovní akce v Přerově, Olomouci a okolí jako oficiální klubový fotograf 1. FC Viktorie Přerov. Zajišťuje dynamické snímky ze hry, momenty ze střídačky i atmosféru fanoušků.",
+      "sourceUrl": "https://lukasdrsticka.cz/#spoluprace",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": true,
+      "tags": [
+        "sport",
+        "fotbal",
+        "viktorka",
+        "zapas",
+        "fotografie"
+      ],
+      "intents": [
+        "sports_photo",
+        "services"
+      ],
+      "contentHash": "eaad122dcd5ea75ba953a618521d4cced9772cb905f69892ce72a9ce59beb27f"
+    },
+    {
+      "id": "services.portrait_photo",
+      "type": "service",
+      "content": "Portrétní fotografie v ateliéru i exteriéru: individuální, rodinné i kreativní portréty (festivalový styl, kouřové efekty). Focení probíhá v Přerově a okolí s důrazem na přirozenost a osobitou atmosféru.",
+      "sourceUrl": "https://lukasdrsticka.cz/#portfolio",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": true,
+      "tags": [
+        "portret",
+        "atelier",
+        "exterier",
+        "foceni"
+      ],
+      "intents": [
+        "portrait_photo",
+        "services"
+      ],
+      "contentHash": "bf4f413a895ce6d227a47d1cdd92e067bdfd5ca09c50cb9205a84d465c3842b0"
+    },
+    {
+      "id": "services.ai_agents",
+      "type": "service",
+      "content": "Vývoj AI chatbotů a hybridních agentů: Lukáš vytváří inteligentní agenty pro weby, kteří návštěvníka nejen informují, ale dokážou web přímo ovládat (otevírat sekce, filtrovat obsah, vyplňovat formuláře a komunikovat hlasem).",
+      "sourceUrl": "https://lukasdrsticka.cz/#hybridni-agent",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": true,
+      "tags": [
+        "ai",
+        "agent",
+        "chatbot",
+        "framemind",
+        "automatizace"
+      ],
+      "intents": [
+        "ai_agents",
+        "services"
+      ],
+      "contentHash": "8a41dbce5c868cddaab7114d6412bc7da9a2a7d2effd736524d73480d7b4d531"
+    },
+    {
+      "id": "pricing.general",
+      "type": "pricing",
+      "content": "Ceník služeb Lukáše Drštičky: Focení i vývoj AI agentů se kalkulují na míru podle rozsahu, lokality a náročnosti projektu. Pro nezávaznou cenovou nabídku stačí napsat přes kontaktní formulář nebo na lukas.drsticka@gmail.com.",
+      "sourceUrl": "https://lukasdrsticka.cz/#kontakt",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": true,
+      "tags": [
+        "cenik",
+        "ceny",
+        "kalkulace",
+        "nabidka"
+      ],
+      "intents": [
+        "pricing"
+      ],
+      "contentHash": "e57db7b163a2cd196682ca5f8c31523a4e14445a0be0a3022848050a147c82aa"
+    },
+    {
+      "id": "process.workflow",
+      "type": "process",
+      "content": "Postup spolupráce má 4 jednoduché kroky: 1. Konzultace (probereme představy a cíle), 2. Plánování (časový harmonogram), 3. Realizace (fotografie, kód nebo AI řešení), 4. Dokončení (finální úpravy a předání).",
+      "sourceUrl": "https://lukasdrsticka.cz/#spoluprace",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": false,
+      "tags": [
+        "proces",
+        "postup",
+        "jak-pracuji",
+        "kroky"
+      ],
+      "intents": [
+        "process"
+      ],
+      "contentHash": "3f7d515a867c616ca31bc035edfddd0aced6d4e985f58fa41bf3337238b470a0"
+    },
+    {
+      "id": "portfolio.galleries",
+      "type": "portfolio",
+      "content": "V portfoliu najdete sportovní i portrétní fotografie a AI projekty. Ze zápasů jsou k dispozici samostatné fotogalerie: Přerov vs Velká Bystrice, Želatovice, Postřelmov, Brodek, Mohelnice, Prostějov B, Uničov B i Sigma Olomouc vs Mainz, Slovácko a Mladá Boleslav.",
+      "sourceUrl": "https://lukasdrsticka.cz/#portfolio",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": false,
+      "tags": [
+        "galerie",
+        "fotky",
+        "zapas",
+        "sigma",
+        "prerov"
+      ],
+      "intents": [
+        "portfolio_galleries",
+        "portfolio"
+      ],
+      "contentHash": "02ead99938efd99a37c0d5f9491fb5ed68c1a7fb305240fd9c46d1681a6f0630"
+    },
+    {
+      "id": "contact.general",
+      "type": "contact",
+      "content": "Kontakt na Lukáše Drštičku: e-mail lukas.drsticka@gmail.com, telefon +420 721 624 429, sídlo Přerov (Olomoucký kraj). Poptávku můžete odeslat i přímo přes formulář na webu.",
+      "sourceUrl": "https://lukasdrsticka.cz/#kontakt",
+      "fetchedAt": "2026-09-05T20:00:00.000Z",
+      "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
+      "critical": true,
+      "tags": [
+        "kontakt",
+        "telefon",
+        "email",
+        "adresa"
+      ],
+      "intents": [
+        "contact"
+      ],
+      "contentHash": "b1024acb724db9b1b4fff491c211f2a3ac9d0c57ae3ad3482c507321fe98d3a9"
+    }
+  ]
+}

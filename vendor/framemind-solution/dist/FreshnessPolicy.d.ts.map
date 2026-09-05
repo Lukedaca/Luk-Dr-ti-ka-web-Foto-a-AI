@@ -1,0 +1,1 @@
+{"version":3,"file":"FreshnessPolicy.d.ts","sourceRoot":"","sources":["../src/FreshnessPolicy.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,YAAY,CAAC;AAElD,MAAM,MAAM,eAAe,GAAG,OAAO,GAAG,OAAO,GAAG,YAAY,CAAC;AAE/D,qBAAa,eAAe;IAC1B,QAAQ,CAAC,MAAM,EAAE,eAAe,EAAE,GAAG,OAAa,GAAG,eAAe;IAUpE,cAAc,CAAC,MAAM,EAAE,eAAe,EAAE,GAAG,OAAa,GAAG,OAAO;CAGnE"}

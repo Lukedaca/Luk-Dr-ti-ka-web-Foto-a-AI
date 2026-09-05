@@ -1,0 +1,1 @@
+{"version":3,"file":"NoopLearningSink.d.ts","sourceRoot":"","sources":["../src/NoopLearningSink.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,aAAa,EAAE,YAAY,EAAE,MAAM,YAAY,CAAC;AAE9D,qBAAa,gBAAiB,YAAW,YAAY;IACnD,QAAQ,CAAC,EAAE,UAAU;IAEf,MAAM,CAAC,MAAM,EAAE,aAAa,GAAG,OAAO,CAAC,IAAI,CAAC;CAGnD"}

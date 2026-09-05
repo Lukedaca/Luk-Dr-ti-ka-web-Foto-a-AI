@@ -8,6 +8,7 @@
     "build:css": "npx tailwindcss -i src/css/main.css -o dist/css/tailwind.tmp.css --minify && node scripts/build-css.js",
     "build:js": "node scripts/build-js.js",
     "build:images": "node scripts/optimize-images.js",
+    "test": "node --test tests/*.test.mjs",
     "watch:css": "npx tailwindcss -i src/css/main.css -o dist/css/styles.min.css --watch",
     "dev": "npx concurrently \"npm run watch:css\" \"npx serve .\""
   },

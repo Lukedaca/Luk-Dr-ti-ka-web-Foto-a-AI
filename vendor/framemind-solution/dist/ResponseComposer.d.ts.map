@@ -1,0 +1,1 @@
+{"version":3,"file":"ResponseComposer.d.ts","sourceRoot":"","sources":["../src/ResponseComposer.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,eAAe,EAAE,MAAM,YAAY,CAAC;AASnE,qBAAa,gBAAgB;IAC3B,OAAO,CAAC,QAAQ,EAAE,MAAM,GAAG,SAAS,EAAE,MAAM,EAAE,eAAe,GAAG,SAAS,EAAE,OAAO,EAAE,eAAe,GAAG,MAAM;CAY7G"}

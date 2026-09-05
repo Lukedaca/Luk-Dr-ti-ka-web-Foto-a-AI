@@ -1,0 +1,1 @@
+{"version":3,"file":"DisabledProviderAdapter.d.ts","sourceRoot":"","sources":["../src/DisabledProviderAdapter.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,eAAe,EAAE,gBAAgB,EAAE,MAAM,YAAY,CAAC;AAErF,qBAAa,uBAAwB,YAAW,eAAe;IAC7D,QAAQ,CAAC,EAAE,cAAc;IACzB,QAAQ,CAAC,OAAO,SAAS;IAEnB,QAAQ,CAAC,QAAQ,EAAE,eAAe,GAAG,OAAO,CAAC,gBAAgB,CAAC;CAGrE"}

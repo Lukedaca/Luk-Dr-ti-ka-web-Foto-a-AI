@@ -2,8 +2,26 @@
  * chatbot.js - Lukas AI public + agent workbench experience
  * Shared state (window.aiChat) drives both hero chat and floating widget.
  */
+import {
+  hasExplicitUiActionIntent,
+  findSiteLinkIntent,
+  collectDomSiteLinks,
+  PendingNavigationManager,
+  extractProfileSiteLinks,
+} from '../../vendor/framemind-solution/dist/index.js';
+import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
+
 ;(function chatbotIIFE() {
   'use strict';
+
+  var lukasEngine = null;
+  function chatbotGetLukasEngine() {
+    if (!lukasEngine) {
+      lukasEngine = createLukasEngine();
+    }
+    return lukasEngine;
+  }
+  var pendingNavManager = new PendingNavigationManager();
 
   var CHATBOT_AGENT_FORM_URL = '/';
   var CHATBOT_AGENT_FORM_NAME = 'lukas-ai-agent';
@@ -506,6 +524,7 @@
       chatbotStreamSources = [];
     }
     chatbotStreamChain = Promise.resolve();
+    pendingNavManager.cancel();
   }
 
   function chatbotFindNativeVoice(lang) {
@@ -554,6 +573,10 @@
 
       var voice = chatbotFindNativeVoice(utterance.lang);
       if (voice) utterance.voice = voice;
+
+      utterance.onend = function () {
+        pendingNavManager.flush();
+      };
 
       chatbotNativeSpeech.speak(utterance);
       return true;
@@ -712,6 +735,9 @@
       .then(function() {
         chatbotAudioPlaying = false;
         chatbotDrainAudioQueue();
+        if (chatbotAudioQueue.length === 0 && !chatbotAudioPlaying) {
+          pendingNavManager.flush();
+        }
       });
   }
 
@@ -761,6 +787,9 @@
     src.onended = function () {
       var i = chatbotStreamSources.indexOf(src);
       if (i >= 0) chatbotStreamSources.splice(i, 1);
+      if (chatbotStreamSources.length === 0) {
+        pendingNavManager.flush();
+      }
     };
   }
 
@@ -1597,6 +1626,11 @@
       case 'scroll':
         chatbotScrollToSection(action.target);
         break;
+      case 'navigate':
+        if (CHATBOT_TOOL_HANDLERS.navigate) {
+          CHATBOT_TOOL_HANDLERS.navigate({ path: action.target || (action.args && action.args.path) });
+        }
+        break;
       case 'filter':
         chatbotApplyPortfolioFilter(action.target);
         break;
@@ -1648,6 +1682,11 @@
     switch (tool) {
       case 'scroll_to':
         return chatbotManifestSectionEl(args.section);
+      case 'navigate':
+        if (args && args.path && args.path.startsWith('#')) {
+          return chatbotManifestSectionEl(args.path.slice(1));
+        }
+        return null;
       case 'highlight_element':
         return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target));
       case 'filter_gallery':
@@ -1679,6 +1718,22 @@
   var CHATBOT_TOOL_HANDLERS = {
     scroll_to: function(args) {
       chatbotScrollToSection(args.section);
+    },
+    navigate: function(args) {
+      if (!args || !args.path) return;
+      var targetPath = args.path;
+      if (targetPath.startsWith('#')) {
+        chatbotScrollToSection(targetPath.slice(1));
+      } else {
+        var wantsVoice = chatbotState.voiceOutputEnabled && !(window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active');
+        if (wantsVoice && (chatbotAudioPlaying || chatbotStreamSources.length > 0)) {
+          pendingNavManager.schedule(function() {
+            window.location.href = targetPath;
+          });
+        } else {
+          window.location.href = targetPath;
+        }
+      }
     },
     highlight_element: function(args) {
       chatbotHighlightSelector(args.target);
@@ -2513,35 +2568,46 @@
     }
   }
 
-  function chatbotHandleSend(text) {
-    if (!text || !text.trim()) return;
-    if (chatbotState.isProcessing) return;
-    text = text.trim();
+  function chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId) {
+    var bubbles = chatbotCreateStreamingBubbles();
+    if (bubbles) bubbles.replace(replyText);
 
-    if (chatbotDOM.heroInput) chatbotDOM.heroInput.value = '';
-    if (chatbotDOM.chatInput) chatbotDOM.chatInput.value = '';
+    chatbotState.messages.push({ role: 'assistant', content: replyText });
+    chatbotState.isProcessing = false;
 
-    chatbotHideQuickReplies();
-    chatbotRenderBubble(chatbotDOM.heroMessages, 'user', text);
-    chatbotRenderBubble(chatbotDOM.messages, 'user', text);
+    // Update workbench + quick replies from defaults (client-side, fast)
+    var defaultWb = chatbotDefaultWorkbench(modeAtSend);
+    defaultWb.artifactBody = replyText.slice(0, 420);
+    chatbotSetMode(modeAtSend, false);
+    chatbotRenderWorkbench(defaultWb);
+    var defaultReplies = chatbotModeMeta(modeAtSend).replies || [];
+    chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, defaultReplies);
+    chatbotRenderQuickReplies(chatbotDOM.quickReplies, defaultReplies);
 
-    var voiceCommand = chatbotDetectVoiceOutputCommand(text);
-    if (voiceCommand) {
-      chatbotSetVoiceOutput(voiceCommand === 'on');
-      return;
+    if (wantsVoice && replyText) {
+      chatbotPrepareSpeechOutput();
+      chatbotSpeakText(replyText, replyText);
     }
 
-    chatbotState.isProcessing = true;
-    chatbotState.messages.push({ role: 'user', content: text });
-    chatbotResetInactivity();
-
-    // Stop any previous audio, reset speech request id for this turn
-    if (chatbotState.voiceOutputEnabled) {
-      chatbotStopSpeech();
+    if (!chatbotState.isWidgetOpen) {
+      chatbotUnreadCount++;
+      chatbotUpdateUnreadBadge();
     }
-    var modeAtSend = chatbotNormalizeMode(chatbotState.mode);
-    var wantsVoice = chatbotState.voiceOutputEnabled && !(window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active');
-    var speechRequestId = chatbotSpeechRequestId;
+
+    if (Array.isArray(replyActions) && replyActions.length > 0) {
+      setTimeout(function() {
+        replyActions.forEach(function(action) {
+          if (action.tool === 'navigate') {
+            CHATBOT_TOOL_HANDLERS.navigate(action.args);
+          } else {
+            chatbotRunAction(action.tool, action.args);
+          }
+        });
+      }, 400);
+    }
+  }
+
+  function chatbotProceedWithRemoteStream(text, modeAtSend, wantsVoice, speechRequestId) {
     var streamSpeechStarted = false;
 
     if (wantsVoice) {
@@ -2622,6 +2688,83 @@
         if (bubbles) bubbles.replace(fallback);
         chatbotState.messages.push({ role: 'assistant', content: fallback });
       });
+  }
+
+  function chatbotHandleSend(text) {
+    if (!text || !text.trim()) return;
+    if (chatbotState.isProcessing) return;
+    text = text.trim();
+
+    if (chatbotDOM.heroInput) chatbotDOM.heroInput.value = '';
+    if (chatbotDOM.chatInput) chatbotDOM.chatInput.value = '';
+
+    chatbotHideQuickReplies();
+    chatbotRenderBubble(chatbotDOM.heroMessages, 'user', text);
+    chatbotRenderBubble(chatbotDOM.messages, 'user', text);
+
+    var voiceCommand = chatbotDetectVoiceOutputCommand(text);
+    if (voiceCommand) {
+      chatbotSetVoiceOutput(voiceCommand === 'on');
+      return;
+    }
+
+    chatbotState.isProcessing = true;
+    chatbotState.messages.push({ role: 'user', content: text });
+    chatbotResetInactivity();
+
+    // Stop any previous audio, reset speech request id for this turn
+    if (chatbotState.voiceOutputEnabled) {
+      chatbotStopSpeech();
+    }
+    var modeAtSend = chatbotNormalizeMode(chatbotState.mode);
+    var wantsVoice = chatbotState.voiceOutputEnabled && !(window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active');
+    var speechRequestId = chatbotSpeechRequestId;
+
+    var domLinks = collectDomSiteLinks();
+    var profileLinks = extractProfileSiteLinks(LUKAS_PROFILE);
+    var knownPaths = new Set();
+    var allSiteLinks = [];
+    [].concat(profileLinks, domLinks).forEach(function(l) {
+      if (l && l.path && !knownPaths.has(l.path)) {
+        knownPaths.add(l.path);
+        allSiteLinks.push(l);
+      }
+    });
+
+    var explicitNav = hasExplicitUiActionIntent(text);
+    var matchedLink = explicitNav ? findSiteLinkIntent(text, allSiteLinks) : null;
+    var availablePaths = allSiteLinks.map(function(l) { return l.path; });
+
+    var engine = chatbotGetLukasEngine();
+    engine.respond({
+      text: text,
+      now: new Date(),
+      availablePaths: availablePaths,
+    }).then(function(localResult) {
+      if (localResult && localResult.reason === 'known') {
+        var replyText = localResult.text;
+        var replyActions = localResult.actions || [];
+
+        if (explicitNav && matchedLink && replyActions.length === 0) {
+          replyActions = [{ tool: 'navigate', args: { path: matchedLink.path, label: matchedLink.label } }];
+        }
+
+        chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId);
+        return;
+      }
+
+      if (explicitNav && matchedLink) {
+        var replyText = 'Otevírám ' + matchedLink.label + '.';
+        var replyActions = [{ tool: 'navigate', args: { path: matchedLink.path, label: matchedLink.label } }];
+        chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId);
+        return;
+      }
+
+      chatbotProceedWithRemoteStream(text, modeAtSend, wantsVoice, speechRequestId);
+    }).catch(function(err) {
+      console.warn('Local engine check error, falling back to remote stream:', err);
+      chatbotProceedWithRemoteStream(text, modeAtSend, wantsVoice, speechRequestId);
+    });
   }
 
   function chatbotBuildConversationSummary() {
