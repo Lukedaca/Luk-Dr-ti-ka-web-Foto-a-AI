@@ -66,7 +66,7 @@
     {
       "id": "services.ai_agents",
       "type": "service",
-      "content": "Vývoj AI chatbotů a hybridních agentů: Lukáš vytváří inteligentní agenty pro weby, kteří návštěvníka nejen informují, ale dokážou web přímo ovládat (otevírat sekce, filtrovat obsah, vyplňovat formuláře a komunikovat hlasem).",
+      "content": "Vývoj AI Hybridních Agentů: Lukáš vytváří inteligentní hybridní agenty pro weby, kteří návštěvníka nejen informují, ale dokážou web přímo ovládat (otevírat sekce, filtrovat obsah, vyplňovat formuláře a komunikovat hlasem).",
       "sourceUrl": "https://lukasdrsticka.cz/#hybridni-agent",
       "fetchedAt": "2026-09-05T20:00:00.000Z",
       "lastVerifiedAt": "2026-09-05T20:00:00.000Z",
@@ -74,7 +74,7 @@
       "tags": [
         "ai",
         "agent",
-        "chatbot",
+        "hybridni-agent",
         "framemind",
         "automatizace"
       ],
@@ -82,7 +82,7 @@
         "ai_agents",
         "services"
       ],
-      "contentHash": "8a41dbce5c868cddaab7114d6412bc7da9a2a7d2effd736524d73480d7b4d531"
+      "contentHash": "c940c26f4dbbb156f6f07566c6abe261f3af8d84dced45554ce9126580c0cb80"
     },
     {
       "id": "pricing.general",

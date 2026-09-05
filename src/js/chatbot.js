@@ -9,7 +9,8 @@ import {
   PendingNavigationManager,
   extractProfileSiteLinks,
 } from '../../vendor/framemind-solution/dist/index.js';
-import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
+import { createLukasEngine, LUKAS_PROFILE, snapshot } from '../config/lukas.mjs';
+import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-engine.mjs';
 
 ;(function chatbotIIFE() {
   'use strict';
@@ -20,6 +21,14 @@ import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
       lukasEngine = createLukasEngine();
     }
     return lukasEngine;
+  }
+
+  var lukasNlgGraph = null;
+  function chatbotGetLukasNlgGraph() {
+    if (!lukasNlgGraph) {
+      lukasNlgGraph = buildLukasKnowledgeGraph(snapshot);
+    }
+    return lukasNlgGraph;
   }
   var pendingNavManager = new PendingNavigationManager();
 
@@ -66,12 +75,12 @@ import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
     var isEn = chatbotLanguage() === 'en';
     return {
       welcome: isEn
-        ? 'Hi, I am Lukas AI. I can chat with you, think through your request and immediately prepare a mini output. You can write in English or Czech and you can also talk to me by voice.'
-        : 'Ahoj, jsem Lukáš AI. Umím si s tebou povídat, promyslet zadání a rovnou připravit mini výstup. Můžeš psát česky i anglicky a můžeš se mnou i mluvit hlasem.',
+        ? 'Hi, I am Lukas AI – AI Hybrid Agent. I can chat with you, think through your request and immediately prepare a mini output. You can write in English or Czech and you can also talk to me by voice.'
+        : 'Ahoj, jsem Lukáš AI – AI Hybridní Agent. Umím si s tebou povídat, promyslet zadání a rovnou připravit mini výstup. Můžeš psát česky i anglicky a můžeš se mnou i mluvit hlasem.',
       modeMeta: {
         talk: {
           label: 'Talk',
-          badge: isEn ? 'Hybrid agent' : 'Hybridní agent',
+          badge: isEn ? 'AI Hybrid Agent' : 'AI Hybridní Agent',
           helper: isEn
             ? 'Talk to me like a digital version of Lukas. English when needed, Czech by default.'
             : 'Povídej si se mnou jako s digitální verzí Lukáše. Česky defaultně, anglicky podle potřeby.',
@@ -144,8 +153,8 @@ import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
       voiceEnabledMessage: isEn ? 'Voice replies are enabled. Keep typing and I will answer aloud as well.' : 'Hlasové odpovědi jsou zapnuté. Klidně piš, budu odpovídat i nahlas.',
       voiceDisabledMessage: isEn ? 'Voice replies are disabled. I will answer only in text now.' : 'Hlasové odpovědi jsou vypnuté. Budu už jen psát.',
       voiceGeminiUnavailable: isEn ? 'Gemini TTS voice is not available right now, so I will keep replying in text.' : 'Gemini TTS hlas teď není dostupný, takže zatím odpovím textem.',
-      publicAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
-      widgetAssistantBadge: isEn ? 'Hybrid agent' : 'Hybridní agent',
+      publicAssistantBadge: isEn ? 'AI Hybrid Agent' : 'AI Hybridní Agent',
+      widgetAssistantBadge: isEn ? 'AI Hybrid Agent' : 'AI Hybridní Agent',
       defaultAssistantMessage: isEn ? 'I will think it through with you and suggest the next step.' : 'Promyslím to s tebou a navrhnu další krok.',
       tour: {
         launch: isEn ? 'Live demo' : 'Živá ukázka',
@@ -208,7 +217,7 @@ import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
     }
   };
 
-  var CHATBOT_WELCOME = 'Ahoj, jsem Lukáš AI. Umím si s tebou povídat, promyslet zadání a rovnou připravit mini výstup. Můžeš psát česky i anglicky a můžeš se mnou i mluvit hlasem.';
+  var CHATBOT_WELCOME = 'Ahoj, jsem Lukáš AI – AI Hybridní Agent. Umím si s tebou povídat, promyslet zadání a rovnou připravit mini výstup. Můžeš psát česky i anglicky a můžeš se mnou i mluvit hlasem.';
 
   function chatbotWelcomeMessage() {
     return chatbotLocale().welcome;
@@ -2683,10 +2692,14 @@ import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
           return;
         }
 
-        console.error('Chatbot stream error:', err);
-        var fallback = chatbotText('chatbot.fallback', 'Teď zrovna nemůžu odpovědět. Zkus to prosím za chvíli.');
+        console.error('Chat stream error:', err);
+        var nlgFallback = synthesizeLukasDialogue(text, chatbotGetLukasNlgGraph(), { isFallback: true });
+        var fallback = nlgFallback || chatbotText('chatbot.fallback', 'Jsem Lukáš AI – AI Hybridní Agent. K tomuto dotazu nemám v ověřeném přehledu přímou odpověď. Můžeš se podívat do portfolia, na ceník nebo mi napsat na lukas.drsticka@gmail.com.');
         if (bubbles) bubbles.replace(fallback);
         chatbotState.messages.push({ role: 'assistant', content: fallback });
+        if (wantsVoice) {
+          chatbotSpeakText(fallback, fallback);
+        }
       });
   }
 
@@ -2760,9 +2773,23 @@ import { createLukasEngine, LUKAS_PROFILE } from '../config/lukas.mjs';
         return;
       }
 
+      // 100% lokální sémantická syntéza NLG (0 Kč, bez nutnosti externího cloudu či placených API)
+      var nlgGraph = chatbotGetLukasNlgGraph();
+      var nlgAnswer = synthesizeLukasDialogue(text, nlgGraph);
+      if (nlgAnswer) {
+        chatbotDeliverLocalResult(nlgAnswer, [], modeAtSend, wantsVoice, speechRequestId);
+        return;
+      }
+
       chatbotProceedWithRemoteStream(text, modeAtSend, wantsVoice, speechRequestId);
     }).catch(function(err) {
-      console.warn('Local engine check error, falling back to remote stream:', err);
+      console.warn('Local engine check error, falling back to NLG:', err);
+      var nlgGraph = chatbotGetLukasNlgGraph();
+      var nlgAnswer = synthesizeLukasDialogue(text, nlgGraph);
+      if (nlgAnswer) {
+        chatbotDeliverLocalResult(nlgAnswer, [], modeAtSend, wantsVoice, speechRequestId);
+        return;
+      }
       chatbotProceedWithRemoteStream(text, modeAtSend, wantsVoice, speechRequestId);
     });
   }

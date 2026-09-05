@@ -6,12 +6,14 @@ import {
   createPersonalPortfolioProfile,
 } from '../../vendor/framemind-solution/dist/index.js';
 
+export { snapshot };
+
 export const LUKAS_PROFILE = createPersonalPortfolioProfile({
   id: 'lukas-drsticka-portfolio',
   name: 'Lukáš Drštička AI',
   domain: 'personal-portfolio',
   version: '1.0.0',
-  disclosure: 'Ahoj, jsem Lukáš AI. Umím si s tebou povídat, provést tě portfoliem a ovládat web: vyfiltrovat fotky, ukázat ceník, přetočit showreel i přepnout vzhled.',
+  disclosure: 'Ahoj, jsem Lukáš AI – AI Hybridní Agent. Umím si s tebou povídat, provést tě portfoliem a ovládat web: vyfiltrovat fotky, ukázat ceník, přetočit showreel i přepnout vzhled.',
   privacyNotice: 'V soukromém režimu se veškerá konverzace a navigace zpracovávají lokálně ve vašem prohlížeči.',
 });
 
@@ -116,15 +118,15 @@ export const lukasConfig = {
     {
       id: 'ai_agents',
       examples: [
-        'AI chatboty',
+        'AI hybridní agent',
         'Hybridní agent',
         'Vývoj AI řešení',
         'Automatizace',
         'Fotograf AI',
-        'Co nabízíš v oblasti AI a chatbotů?',
+        'Co nabízíš v oblasti AI hybridních agentů?',
         'Otevři AI agenty',
       ],
-      keywords: ['agent', 'agenty', 'chatbot', 'chatboty', 'semiagent', 'automatizace'],
+      keywords: ['agent', 'agenty', 'hybridni', 'semiagent', 'automatizace'],
       keywordGroups: [['hybridni', 'agent'], ['vyvoj', 'ai'], ['ai', 'reseni'], ['ai', 'agent'], ['ai', 'agenty'], ['oblasti', 'ai']],
       priority: 55,
     },
@@ -237,7 +239,7 @@ export const lukasConfig = {
     {
       intentId: 'greeting',
       sourceRequired: false,
-      template: 'Ahoj! Jsem Lukáš AI. Mohu tě provést portfoliem, vyfiltrovat fotky, ukázat ceník, showreel nebo kontakty. O čem bys chtěl vědět víc?',
+      template: 'Ahoj! Jsem Lukáš AI – AI Hybridní Agent. Mohu tě provést portfoliem, vyfiltrovat fotky, ukázat ceník, showreel nebo kontakty. O čem bys chtěl vědět víc?',
     },
     {
       intentId: 'farewell',
@@ -252,7 +254,7 @@ export const lukasConfig = {
     {
       intentId: 'capabilities',
       sourceRequired: false,
-      template: 'Jako hybridní agent umím přímo ovládat web: přejít na portfolio, vyfiltrovat jen sportovní fotky či AI projekty, pustit showreel, přepnout vzhled a otevřít kontaktní formulář.',
+      template: 'Jako AI Hybridní Agent umím přímo ovládat web: přejít na portfolio, vyfiltrovat jen sportovní fotky či AI projekty, pustit showreel, přepnout vzhled a otevřít kontaktní formulář.',
     },
     {
       intentId: 'about',
@@ -335,7 +337,7 @@ export const lukasConfig = {
     { id: 'act-theme', tool: 'toggle_theme', intentIds: ['theme_toggle'], args: { mode: 'toggle' } },
     { id: 'act-showreel', tool: 'play_showreel', intentIds: ['showreel'], args: {} },
   ],
-  unknownResponse: 'K tomuto dotazu nemám v ověřeném přehledu přímou odpověď. Můžeš se podívat do portfolia, na ceník nebo mi napsat na lukas.drsticka@gmail.com.',
+  unknownResponse: 'Jako AI Hybridní Agent k tomuto dotazu nemám v ověřeném přehledu přímou odpověď. Můžeš se podívat do portfolia, na ceník nebo mi napsat na lukas.drsticka@gmail.com.',
   staleResponse: 'Tento údaj už je po datu ověření. Aktuální informace najdeš přímo v příslušné sekci webu.',
   provider: { enabled: false },
   learningSink: new NoopLearningSink(),
