@@ -149,8 +149,49 @@ export interface ProviderAdapter {
   generate(request: ProviderRequest): Promise<ProviderResponse>;
 }
 
+export interface SafetyCheckResult {
+  isSafe: boolean;
+  reason?: 'profanity' | 'injection' | 'harassment' | 'hate' | undefined;
+  flags?: string[] | undefined;
+}
+
+export interface ExtractedLead {
+  validLead: boolean;
+  type?: 'recruitment' | 'inquiry' | 'quote' | 'general' | undefined;
+  name?: string | undefined;
+  phone?: string | undefined;
+  email?: string | undefined;
+  childYear?: number | undefined;
+  service?: string | undefined;
+  notes?: string | undefined;
+}
+
+export interface LeadRecord {
+  leadId: string;
+  timestamp: Date;
+  domain: string;
+  type: 'recruitment' | 'inquiry' | 'quote' | 'general';
+  contact: {
+    name?: string | undefined;
+    phone?: string | undefined;
+    email?: string | undefined;
+  };
+  details: {
+    childYear?: number | undefined;
+    service?: string | undefined;
+    notes?: string | undefined;
+  };
+}
+
+export interface LeadDispatchResult {
+  success: boolean;
+  leadId: string;
+  recipient?: string | undefined;
+  error?: string | undefined;
+}
+
 export interface LearningEvent {
-  kind: 'intent-correction' | 'knowledge-update' | 'local-preference';
+  kind: 'intent-correction' | 'knowledge-update' | 'local-preference' | 'conversion' | 'unmatched-topic' | 'safety-dropped';
   payload: Record<string, unknown>;
 }
 

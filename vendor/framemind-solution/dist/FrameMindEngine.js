@@ -7,6 +7,7 @@ import { PrivacyGuard } from './PrivacyGuard.js';
 import { ProviderRouter } from './ProviderRouter.js';
 import { ResponseComposer } from './ResponseComposer.js';
 import { SourceResolver } from './SourceResolver.js';
+import { SafetyShield } from './SafetyShield.js';
 function hasAnySlot(rule, slots) {
     var _a;
     if (!((_a = rule.requiredAnySlots) === null || _a === void 0 ? void 0 : _a.length))
@@ -70,6 +71,26 @@ export class FrameMindEngine {
     async respond(request) {
         var _a, _b;
         const sessionContext = this.requestContext(request.sessionId);
+        // 1. Safety Shield: block profanity, insults and prompt injections immediately
+        const safety = SafetyShield.checkSafety(request.text);
+        if (!safety.isSafe) {
+            if (this.learningSink) {
+                await this.learningSink.record({
+                    kind: 'safety-dropped',
+                    payload: { reason: safety.reason || 'toxicity' },
+                });
+            }
+            return {
+                text: 'Tento dotaz nemohu zpracovat. Komunikuji slušně a věnuji se pouze tématům tohoto webu.',
+                intent: 'safety_refusal',
+                confidence: 1.0,
+                local: true,
+                providerUsed: false,
+                actions: [],
+                context: sessionContext.snapshot(),
+                reason: 'known',
+            };
+        }
         const before = sessionContext.snapshot();
         const match = this.intentEngine.detect(request.text, before, request.now);
         const context = sessionContext.apply(match);
@@ -139,6 +160,22 @@ export class FrameMindEngine {
                     context: sessionContext.snapshot(),
                     reason: 'provider',
                 };
+            }
+        }
+        if (this.learningSink) {
+            const sanitized = SafetyShield.sanitizePii(request.text);
+            const words = sanitized
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g, ' ')
+                .split(/\s+/)
+                .filter((w) => w.length >= 3 && !['chci', 'jak', 'kde', 'kdy', 'prosim', 'nebo', 'tento', 'tuto', 'jsem'].includes(w))
+                .slice(0, 3)
+                .join('_');
+            if (words) {
+                await this.learningSink.record({
+                    kind: 'unmatched-topic',
+                    payload: { topic: words },
+                });
             }
         }
         return {

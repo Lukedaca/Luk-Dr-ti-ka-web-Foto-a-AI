@@ -19,3 +19,6 @@ export * from './FrameMindEngine.js';
 export * from './SiteNavigation.js';
 export * from './AgentProfile.js';
 export * from './profiles/index.js';
+export * from './SafetyShield.js';
+export * from './LeadStream.js';
+export * from './PrivacyLearningSink.js';

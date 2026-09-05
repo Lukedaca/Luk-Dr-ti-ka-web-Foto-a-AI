@@ -1,6 +1,6 @@
 {
   "name": "@framemind/solution",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "type": "module",
   "description": "Provider-independent local orchestration, knowledge and privacy core for FrameMind agents",
