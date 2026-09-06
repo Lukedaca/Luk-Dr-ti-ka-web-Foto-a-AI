@@ -7,7 +7,39 @@
  * 1. Vybudování znalostního grafu z ověřeného snapshotu Lukáše Drštičky.
  * 2. Sémantickou inferenci (sportovní foto, portréty, vývoj AI agentů, ceník, postup, kontakt).
  * 3. Dynamickou NLG syntézu přirozených vět pro Lukáš AI – AI Hybridního Agenta.
+ * 4. Integraci vícekolového diskurzu (Discourse Context), řešení anafory, elipsy a opravných smyček.
  */
+
+import {
+  LukasDiscourseContext,
+  createLukasDiscourseContext,
+  resolveAnaphoraAndEllipsis,
+  handleConversationalRepair,
+  checkAmbiguousClarification,
+  handleClarificationResponse,
+  generateSuggestedFollowUps,
+  ENTITY_TYPES,
+} from './lukas-discourse-context.mjs';
+
+import {
+  formatLukasSportsReply,
+  formatLukasPortraitReply,
+  formatLukasAgentReply,
+  formatLukasPricingReply,
+  formatLukasProcessReply,
+  formatLukasContactReply,
+} from './lukas-conversational-style.mjs';
+
+export {
+  LukasDiscourseContext,
+  createLukasDiscourseContext,
+  resolveAnaphoraAndEllipsis,
+  handleConversationalRepair,
+  checkAmbiguousClarification,
+  handleClarificationResponse,
+  generateSuggestedFollowUps,
+  ENTITY_TYPES,
+};
 
 export function normalize(text) {
   return String(text || '')
@@ -50,7 +82,95 @@ export function buildLukasKnowledgeGraph(snapshot = {}) {
 }
 
 /**
- * Dynamická syntéza konverzačních odpovědí a sémantické odvozování (NLG)
+ * Hlavní vícekolový dispečer pro dialog Lukáše AI.
+ * Zajišťuje sledování aktivních entit, anafory, elipsy, opravných smyček i generování doporučených dotazů.
+ */
+export function handleLukasConversationalTurn(text, graph = {}, options = {}) {
+  const context = options.discourseContext instanceof LukasDiscourseContext
+    ? options.discourseContext
+    : (options.discourseContext ? createLukasDiscourseContext(options.discourseContext) : createLukasDiscourseContext());
+
+  const makeResponse = (replyText, intentType) => {
+    context.advanceTurn(text, replyText, intentType);
+    const suggestions = generateSuggestedFollowUps(text, replyText, context, graph);
+    return {
+      handled: true,
+      text: replyText,
+      discourseContext: context,
+      suggestions,
+      intentType,
+    };
+  };
+
+  // 1. Opravné smyčky (Conversational Repair: "Ne, myslel jsem portréty", "Vlastně agenta")
+  const repair = handleConversationalRepair(text, context, graph);
+  if (repair && repair.handled) {
+    return makeResponse(repair.text, repair.intent);
+  }
+
+  // 2. Reakce na předchozí vyžádané dovyjasnění (Clarification Response)
+  const clarification = handleClarificationResponse(text, context, graph);
+  if (clarification && clarification.handled) {
+    return makeResponse(clarification.text, clarification.intent);
+  }
+
+  // 3. Řešení anafory a elipsy (zkrácené dotazy typu "A cena?", "A jak dlouho to trvá?", "A co fotbal?")
+  const anaphora = resolveAnaphoraAndEllipsis(text, context, graph);
+  if (anaphora && anaphora.handled && anaphora.directAnswer) {
+    if (anaphora.activeEntity) {
+      context.setEntity(anaphora.activeEntity.type, anaphora.activeEntity.name, anaphora.activeEntity.data);
+    }
+    return makeResponse(anaphora.directAnswer, 'anaphora_resolved');
+  }
+
+  const queryToProcess = (anaphora && anaphora.resolvedQuery && anaphora.resolvedQuery !== text)
+    ? anaphora.resolvedQuery
+    : text;
+
+  // 4. Kontrola nejednoznačného dotazu na cenu bez kontextu
+  const ambiguous = checkAmbiguousClarification(queryToProcess, context);
+  if (ambiguous && ambiguous.handled) {
+    return makeResponse(ambiguous.text, ambiguous.intent);
+  }
+
+  // 5. Dedukce přímé sémantické odpovědi z grafu
+  const directReply = synthesizeLukasDialogue(queryToProcess, graph, { isFallback: false });
+  if (directReply) {
+    const norm = normalize(queryToProcess);
+    if (/(?:sportovn|fotbal|zapas|viktork|sigma|turnaj)/.test(norm)) {
+      context.setEntity(ENTITY_TYPES.SERVICE_SPORTS, 'Sportovní fotografie', { category: 'sports' });
+    } else if (/(?:portret|atelier|exterier|rodinn|kour|festival)/.test(norm)) {
+      context.setEntity(ENTITY_TYPES.SERVICE_PORTRAITS, 'Portrétní fotografie', { category: 'portraits' });
+    } else if (/(?:vyvoj ai|hybridni agent|automatizac|framemind|umela inteligence)/.test(norm)) {
+      context.setEntity(ENTITY_TYPES.SERVICE_AI_AGENTS, 'Vývoj AI Hybridních Agentů', { category: 'ai_agents' });
+    } else if (/(?:kolik stoji|cenik|ceny|kalkulace|cena foceni|cena agenta)/.test(norm)) {
+      context.setEntity(ENTITY_TYPES.PRICING, 'Ceník a kalkulace', { category: 'pricing' });
+    } else if (/(?:jak probiha|postup spoluprace|jak pracujes|kroky realizace|harmonogram)/.test(norm)) {
+      context.setEntity(ENTITY_TYPES.PROCESS, 'Postup spolupráce', { category: 'process' });
+    } else if (/(?:kontakt|telefon|email|kde te najdu|spojeni|drsticka)/.test(norm)) {
+      context.setEntity(ENTITY_TYPES.CONTACT, 'Kontakt a spojení', { category: 'contact' });
+    }
+
+    return makeResponse(directReply, 'direct_nlg');
+  }
+
+  // 6. Konverzační fallback (pokud je vyžádán)
+  if (options.isFallback) {
+    const fallbackReply = synthesizeLukasDialogue(queryToProcess, graph, { isFallback: true });
+    return makeResponse(fallbackReply, 'fallback');
+  }
+
+  return {
+    handled: false,
+    text: '',
+    discourseContext: context,
+    suggestions: generateSuggestedFollowUps(text, '', context, graph),
+  };
+}
+
+/**
+ * Dynamická syntéza konverzačních odpovědí a sémantické odvozování (NLG).
+ * Zpětně plně kompatibilní s existujícími testy i voláními.
  */
 export function synthesizeLukasDialogue(query, graph, { isFallback = false } = {}) {
   const norm = normalize(query);

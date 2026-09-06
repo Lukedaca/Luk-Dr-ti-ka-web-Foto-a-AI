@@ -10,7 +10,12 @@ import {
   extractProfileSiteLinks,
 } from '../../vendor/framemind-solution/dist/index.js';
 import { createLukasEngine, LUKAS_PROFILE, snapshot } from '../config/lukas.mjs';
-import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-engine.mjs';
+import {
+  buildLukasKnowledgeGraph,
+  synthesizeLukasDialogue,
+  handleLukasConversationalTurn,
+  createLukasDiscourseContext,
+} from './lukas-nlg-engine.mjs';
 
 ;(function chatbotIIFE() {
   'use strict';
@@ -30,6 +35,7 @@ import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-e
     }
     return lukasNlgGraph;
   }
+  var lukasDiscourseContext = createLukasDiscourseContext();
   var pendingNavManager = new PendingNavigationManager();
 
   var CHATBOT_AGENT_FORM_URL = '/';
@@ -2577,21 +2583,23 @@ import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-e
     }
   }
 
-  function chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId) {
+  function chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId, customSuggestions) {
     var bubbles = chatbotCreateStreamingBubbles();
     if (bubbles) bubbles.replace(replyText);
 
     chatbotState.messages.push({ role: 'assistant', content: replyText });
     chatbotState.isProcessing = false;
 
-    // Update workbench + quick replies from defaults (client-side, fast)
+    // Update workbench + quick replies from defaults or dynamic suggestions
     var defaultWb = chatbotDefaultWorkbench(modeAtSend);
     defaultWb.artifactBody = replyText.slice(0, 420);
     chatbotSetMode(modeAtSend, false);
     chatbotRenderWorkbench(defaultWb);
-    var defaultReplies = chatbotModeMeta(modeAtSend).replies || [];
-    chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, defaultReplies);
-    chatbotRenderQuickReplies(chatbotDOM.quickReplies, defaultReplies);
+    var repliesToRender = (Array.isArray(customSuggestions) && customSuggestions.length > 0)
+      ? customSuggestions.map(function(s) { return { text: s, value: s }; })
+      : (chatbotModeMeta(modeAtSend).replies || []);
+    chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, repliesToRender);
+    chatbotRenderQuickReplies(chatbotDOM.quickReplies, repliesToRender);
 
     if (wantsVoice && replyText) {
       chatbotPrepareSpeechOutput();
@@ -2693,10 +2701,18 @@ import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-e
         }
 
         console.error('Chat stream error:', err);
-        var nlgFallback = synthesizeLukasDialogue(text, chatbotGetLukasNlgGraph(), { isFallback: true });
-        var fallback = nlgFallback || chatbotText('chatbot.fallback', 'Jsem Lukáš AI – AI Hybridní Agent. K tomuto dotazu nemám v ověřeném přehledu přímou odpověď. Můžeš se podívat do portfolia, na ceník nebo mi napsat na lukas.drsticka@gmail.com.');
+        var turnFallback = handleLukasConversationalTurn(text, chatbotGetLukasNlgGraph(), {
+          discourseContext: lukasDiscourseContext,
+          isFallback: true,
+        });
+        var fallback = (turnFallback && turnFallback.text) || chatbotText('chatbot.fallback', 'Jsem Lukáš AI – AI Hybridní Agent. K tomuto dotazu nemám v ověřeném přehledu přímou odpověď. Můžeš se podívat do portfolia, na ceník nebo mi napsat na lukas.drsticka@gmail.com.');
         if (bubbles) bubbles.replace(fallback);
         chatbotState.messages.push({ role: 'assistant', content: fallback });
+        if (turnFallback && turnFallback.suggestions && turnFallback.suggestions.length > 0) {
+          var fbReplies = turnFallback.suggestions.map(function(s) { return { text: s, value: s }; });
+          chatbotRenderQuickReplies(chatbotDOM.heroQuickReplies, fbReplies);
+          chatbotRenderQuickReplies(chatbotDOM.quickReplies, fbReplies);
+        }
         if (wantsVoice) {
           chatbotSpeakText(fallback, fallback);
         }
@@ -2773,11 +2789,13 @@ import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-e
         return;
       }
 
-      // 100% lokální sémantická syntéza NLG (0 Kč, bez nutnosti externího cloudu či placených API)
+      // 100% lokální sémantická syntéza NLG s vícekolovým diskurzem (0 Kč, bez nutnosti externího cloudu či placených API)
       var nlgGraph = chatbotGetLukasNlgGraph();
-      var nlgAnswer = synthesizeLukasDialogue(text, nlgGraph);
-      if (nlgAnswer) {
-        chatbotDeliverLocalResult(nlgAnswer, [], modeAtSend, wantsVoice, speechRequestId);
+      var turnResult = handleLukasConversationalTurn(text, nlgGraph, {
+        discourseContext: lukasDiscourseContext,
+      });
+      if (turnResult && turnResult.handled) {
+        chatbotDeliverLocalResult(turnResult.text, [], modeAtSend, wantsVoice, speechRequestId, turnResult.suggestions);
         return;
       }
 
@@ -2785,9 +2803,11 @@ import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-e
     }).catch(function(err) {
       console.warn('Local engine check error, falling back to NLG:', err);
       var nlgGraph = chatbotGetLukasNlgGraph();
-      var nlgAnswer = synthesizeLukasDialogue(text, nlgGraph);
-      if (nlgAnswer) {
-        chatbotDeliverLocalResult(nlgAnswer, [], modeAtSend, wantsVoice, speechRequestId);
+      var turnResult = handleLukasConversationalTurn(text, nlgGraph, {
+        discourseContext: lukasDiscourseContext,
+      });
+      if (turnResult && turnResult.handled) {
+        chatbotDeliverLocalResult(turnResult.text, [], modeAtSend, wantsVoice, speechRequestId, turnResult.suggestions);
         return;
       }
       chatbotProceedWithRemoteStream(text, modeAtSend, wantsVoice, speechRequestId);
@@ -2951,6 +2971,7 @@ import { buildLukasKnowledgeGraph, synthesizeLukasDialogue } from './lukas-nlg-e
   }
 
   function chatbotClearState() {
+    lukasDiscourseContext.clear();
     chatbotState.messages = [];
     chatbotState.notificationSent = false;
     chatbotState.isProcessing = false;
