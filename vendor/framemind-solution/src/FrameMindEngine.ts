@@ -111,9 +111,28 @@ export class FrameMindEngine {
       };
     }
 
-    // 2. Discourse repair handling
+    // 2. Discourse repair & clarification handling
     let queryText = request.text;
-    if (sessionCtx.discourse.isRepairQuery(request.text)) {
+    const pendingClarification = sessionCtx.discourse.getAwaitingClarification();
+    if (pendingClarification) {
+      const norm = queryText.toLowerCase().trim();
+      let mappedIntent: string | undefined;
+
+      if (pendingClarification.context?.intentMap) {
+        const map = pendingClarification.context.intentMap as Record<string, string>;
+        for (const [key, target] of Object.entries(map)) {
+          if (norm.includes(key.toLowerCase()) || key.toLowerCase().includes(norm)) {
+            mappedIntent = target;
+            break;
+          }
+        }
+      }
+
+      if (mappedIntent) {
+        sessionCtx.discourse.clearAwaitingClarification();
+        queryText = mappedIntent;
+      }
+    } else if (sessionCtx.discourse.isRepairQuery(request.text)) {
       const subject = sessionCtx.discourse.extractRepairSubject(request.text);
       if (subject) {
         queryText = subject;
@@ -121,7 +140,7 @@ export class FrameMindEngine {
     }
 
     const before = sessionCtx.context.snapshot();
-    const match = this.intentEngine.detect(queryText, before, request.now);
+    const match = this.intentEngine.detect(queryText, before, request.now, sessionCtx.discourse.snapshot());
     const context = sessionCtx.context.apply(match);
 
     // Match profile entity if configured
@@ -136,11 +155,35 @@ export class FrameMindEngine {
       }
     }
 
-    const suggestions = sessionCtx.discourse.resolveSuggestions(match.id, this.config.profile);
     const rule = this.config.responses.find((candidate) => candidate.intentId === match.id);
 
+    // If rule requires clarification (e.g. general pricing without active entity)
+    if (rule?.clarification && !sessionCtx.discourse.getEntity()) {
+      sessionCtx.discourse.setAwaitingClarification({
+        type: match.id,
+        question: rule.clarification.question,
+        options: rule.clarification.options,
+        context: { intentMap: rule.clarification.intentMap },
+      });
+      sessionCtx.discourse.advanceTurn(request.text, rule.clarification.question, match.id);
+      return {
+        text: rule.clarification.question,
+        intent: match.id,
+        confidence: match.confidence,
+        local: true,
+        providerUsed: false,
+        actions: [],
+        context: sessionCtx.context.snapshot(),
+        reason: 'known',
+        suggestions: rule.clarification.options,
+        discourse: sessionCtx.discourse.snapshot(),
+      };
+    }
+
+    const suggestions = sessionCtx.discourse.resolveSuggestions(match.id, this.config.profile);
+
     if (rule?.sourceRequired === false) {
-      const text = this.composer.compose(rule.template, undefined, context);
+      const text = this.composer.compose(rule.template, undefined, context, rule.cadence, request.text);
       if (text) {
         sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
@@ -163,7 +206,13 @@ export class FrameMindEngine {
       const resolved = this.sourceResolver.resolve(rule, context, request.now, missingSlot);
       if (resolved.record && resolved.freshness === 'fresh') {
         sessionCtx.context.markSource(resolved.record.id);
-        const text = this.composer.compose(missingSlot ? rule.missingTemplate : rule.template, resolved.record, context);
+        const text = this.composer.compose(
+          missingSlot ? rule.missingTemplate : rule.template,
+          resolved.record,
+          context,
+          rule.cadence,
+          request.text,
+        );
         const actions = missingSlot ? [] : this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true);
         sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
@@ -181,7 +230,13 @@ export class FrameMindEngine {
         };
       }
       if (resolved.record && resolved.freshness !== 'fresh') {
-        const text = this.composer.compose(rule.staleTemplate ?? this.config.staleResponse, resolved.record, context);
+        const text = this.composer.compose(
+          rule.staleTemplate ?? this.config.staleResponse,
+          resolved.record,
+          context,
+          rule.cadence,
+          request.text,
+        );
         sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
           text,

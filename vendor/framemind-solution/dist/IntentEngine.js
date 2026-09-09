@@ -1,9 +1,15 @@
-import { escapeRegExp, hasExplicitNavigation, monthFromText, normalizeText } from './text.js';
+import { escapeRegExp, hasExplicitNavigation, monthFromText, normalizeText, stemText } from './text.js';
 function includesTerm(text, term) {
     const normalized = normalizeText(term);
     if (!normalized)
         return false;
     return new RegExp(`(?:^|\\s|-)${escapeRegExp(normalized)}(?:$|\\s|-)`).test(text);
+}
+function includesStemmedTerm(stemmedText, term) {
+    const stemmedTerm = stemText(normalizeText(term));
+    if (!stemmedTerm)
+        return false;
+    return new RegExp(`(?:^|\\s|-)${escapeRegExp(stemmedTerm)}(?:$|\\s|-)`).test(stemmedText);
 }
 function isSafePattern(pattern) {
     if (!pattern || pattern.length > 200)
@@ -49,7 +55,7 @@ function extractSlots(normalized, now) {
         slots.navigationRequested = true;
     return slots;
 }
-function scoreIntent(definition, normalized) {
+function scoreIntent(definition, normalized, stemmed) {
     var _a, _b, _c, _d, _e;
     let evidence = 0;
     for (const example of (_a = definition.examples) !== null && _a !== void 0 ? _a : []) {
@@ -60,11 +66,16 @@ function scoreIntent(definition, normalized) {
             evidence += 60;
     }
     for (const keyword of (_b = definition.keywords) !== null && _b !== void 0 ? _b : []) {
-        if (includesTerm(normalized, keyword))
+        if (includesTerm(normalized, keyword)) {
             evidence += 18;
+        }
+        else if (includesStemmedTerm(stemmed, keyword)) {
+            evidence += 16;
+        }
     }
     for (const group of (_c = definition.keywordGroups) !== null && _c !== void 0 ? _c : []) {
-        if (group.every((keyword) => includesTerm(normalized, keyword)))
+        const allMatch = group.every((keyword) => includesTerm(normalized, keyword) || includesStemmedTerm(stemmed, keyword));
+        if (allMatch)
             evidence += 55 + group.length * 5;
     }
     for (const pattern of (_d = definition.patterns) !== null && _d !== void 0 ? _d : []) {
@@ -84,25 +95,36 @@ export class IntentEngine {
     constructor(definitions) {
         this.definitions = definitions.slice();
     }
-    detect(text, context, now = new Date()) {
-        var _a, _b;
+    detect(text, context, now = new Date(), discourseSnapshot) {
+        var _a, _b, _c;
         const normalizedText = normalizeText(text).slice(0, 2000);
+        const stemmedText = stemText(normalizedText);
         const slots = extractSlots(normalizedText, now);
+        if (discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.activeEntity) {
+            slots.activeEntityType = discourseSnapshot.activeEntity.type;
+            slots.activeEntityName = discourseSnapshot.activeEntity.name;
+        }
         let best;
         let bestScore = 0;
         let followUp = false;
         for (const definition of this.definitions) {
-            let score = scoreIntent(definition, normalizedText);
+            let score = scoreIntent(definition, normalizedText, stemmedText);
             const follows = Boolean(context.activeIntent && ((_a = definition.followUpFor) === null || _a === void 0 ? void 0 : _a.includes(context.activeIntent)));
             if (follows && (slots.childAge || slots.birthYear || slots.nextAge))
                 score += 95;
+            // Anaphora boost: if definition matches followUp for last active intent in discourse
+            if ((discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.lastIntent) && ((_b = definition.followUpFor) === null || _b === void 0 ? void 0 : _b.includes(discourseSnapshot.lastIntent))) {
+                if (/^(?:a\s+)?(?:kolik|kde|kdy|jak|proc|cena|rozpis|trener|adresa)\b/i.test(normalizedText)) {
+                    score += 65;
+                }
+            }
             if (score > bestScore) {
                 best = definition;
                 bestScore = score;
                 followUp = follows;
             }
         }
-        if (!best || bestScore < ((_b = best.minScore) !== null && _b !== void 0 ? _b : 20)) {
+        if (!best || bestScore < ((_c = best.minScore) !== null && _c !== void 0 ? _c : 20)) {
             return { id: 'unknown', confidence: 0, normalizedText, slots, isFollowUp: false };
         }
         return {

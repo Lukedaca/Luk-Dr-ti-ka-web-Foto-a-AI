@@ -72,7 +72,7 @@ export class FrameMindEngine {
         return { context, discourse };
     }
     async respond(request) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         const sessionCtx = this.requestContext(request.sessionId);
         // 1. Safety Shield: block profanity, insults and prompt injections immediately
         const safety = SafetyShield.checkSafety(request.text);
@@ -96,19 +96,37 @@ export class FrameMindEngine {
                 discourse: sessionCtx.discourse.snapshot(),
             };
         }
-        // 2. Discourse repair handling
+        // 2. Discourse repair & clarification handling
         let queryText = request.text;
-        if (sessionCtx.discourse.isRepairQuery(request.text)) {
+        const pendingClarification = sessionCtx.discourse.getAwaitingClarification();
+        if (pendingClarification) {
+            const norm = queryText.toLowerCase().trim();
+            let mappedIntent;
+            if ((_a = pendingClarification.context) === null || _a === void 0 ? void 0 : _a.intentMap) {
+                const map = pendingClarification.context.intentMap;
+                for (const [key, target] of Object.entries(map)) {
+                    if (norm.includes(key.toLowerCase()) || key.toLowerCase().includes(norm)) {
+                        mappedIntent = target;
+                        break;
+                    }
+                }
+            }
+            if (mappedIntent) {
+                sessionCtx.discourse.clearAwaitingClarification();
+                queryText = mappedIntent;
+            }
+        }
+        else if (sessionCtx.discourse.isRepairQuery(request.text)) {
             const subject = sessionCtx.discourse.extractRepairSubject(request.text);
             if (subject) {
                 queryText = subject;
             }
         }
         const before = sessionCtx.context.snapshot();
-        const match = this.intentEngine.detect(queryText, before, request.now);
+        const match = this.intentEngine.detect(queryText, before, request.now, sessionCtx.discourse.snapshot());
         const context = sessionCtx.context.apply(match);
         // Match profile entity if configured
-        if ((_a = this.config.profile) === null || _a === void 0 ? void 0 : _a.entities) {
+        if ((_b = this.config.profile) === null || _b === void 0 ? void 0 : _b.entities) {
             const norm = queryText.toLowerCase();
             const entityDef = this.config.profile.entities.find((e) => e.keywords.some((k) => norm.includes(k.toLowerCase())) ||
                 norm.includes(e.name.toLowerCase()));
@@ -116,10 +134,32 @@ export class FrameMindEngine {
                 sessionCtx.discourse.setEntity(entityDef.type, entityDef.name);
             }
         }
-        const suggestions = sessionCtx.discourse.resolveSuggestions(match.id, this.config.profile);
         const rule = this.config.responses.find((candidate) => candidate.intentId === match.id);
+        // If rule requires clarification (e.g. general pricing without active entity)
+        if ((rule === null || rule === void 0 ? void 0 : rule.clarification) && !sessionCtx.discourse.getEntity()) {
+            sessionCtx.discourse.setAwaitingClarification({
+                type: match.id,
+                question: rule.clarification.question,
+                options: rule.clarification.options,
+                context: { intentMap: rule.clarification.intentMap },
+            });
+            sessionCtx.discourse.advanceTurn(request.text, rule.clarification.question, match.id);
+            return {
+                text: rule.clarification.question,
+                intent: match.id,
+                confidence: match.confidence,
+                local: true,
+                providerUsed: false,
+                actions: [],
+                context: sessionCtx.context.snapshot(),
+                reason: 'known',
+                suggestions: rule.clarification.options,
+                discourse: sessionCtx.discourse.snapshot(),
+            };
+        }
+        const suggestions = sessionCtx.discourse.resolveSuggestions(match.id, this.config.profile);
         if ((rule === null || rule === void 0 ? void 0 : rule.sourceRequired) === false) {
-            const text = this.composer.compose(rule.template, undefined, context);
+            const text = this.composer.compose(rule.template, undefined, context, rule.cadence, request.text);
             if (text) {
                 sessionCtx.discourse.advanceTurn(request.text, text, match.id);
                 return {
@@ -141,7 +181,7 @@ export class FrameMindEngine {
             const resolved = this.sourceResolver.resolve(rule, context, request.now, missingSlot);
             if (resolved.record && resolved.freshness === 'fresh') {
                 sessionCtx.context.markSource(resolved.record.id);
-                const text = this.composer.compose(missingSlot ? rule.missingTemplate : rule.template, resolved.record, context);
+                const text = this.composer.compose(missingSlot ? rule.missingTemplate : rule.template, resolved.record, context, rule.cadence, request.text);
                 const actions = missingSlot ? [] : this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true);
                 sessionCtx.discourse.advanceTurn(request.text, text, match.id);
                 return {
@@ -159,7 +199,7 @@ export class FrameMindEngine {
                 };
             }
             if (resolved.record && resolved.freshness !== 'fresh') {
-                const text = this.composer.compose((_b = rule.staleTemplate) !== null && _b !== void 0 ? _b : this.config.staleResponse, resolved.record, context);
+                const text = this.composer.compose((_c = rule.staleTemplate) !== null && _c !== void 0 ? _c : this.config.staleResponse, resolved.record, context, rule.cadence, request.text);
                 sessionCtx.discourse.advanceTurn(request.text, text, match.id);
                 return {
                     text,
@@ -177,7 +217,7 @@ export class FrameMindEngine {
             }
         }
         if (this.config.mode === 'managed'
-            && ((_c = this.config.provider) === null || _c === void 0 ? void 0 : _c.enabled)
+            && ((_d = this.config.provider) === null || _d === void 0 ? void 0 : _d.enabled)
             && request.allowManagedProvider === true
             && typeof request.providerText === 'string') {
             const provider = await this.providerRouter.generate(request.providerText, this.config.locale, context, true, this.config.provider.allowedContextSlots, this.config.provider.maxInputChars);

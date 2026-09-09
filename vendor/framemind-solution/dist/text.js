@@ -51,4 +51,21 @@ export function monthFromText(normalized, prefix) {
 export function hasExplicitNavigation(normalized) {
     return /\b(otevr|otevri|ukaz|ukazat|prejdi|prejit|naviguj|najdi|zobraz|rozbal)\w*\b/.test(normalized);
 }
+export function stemCzechWord(word) {
+    let s = String(word || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+    if (s.length <= 3)
+        return s;
+    s = s.replace(/(?:kem|ice|ici|ich|ovem|eho|emu|ymi|emi|ovi|ami|ach|ych|im|ym|em|am|um|ou|es|as|os|ov|ku|ka|ce|ky|ek|ke|ko|e|i|u|a|o|y)$/, '');
+    return s.length >= 3 ? s : String(word || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+export function stemText(normalized) {
+    return String(normalized || '')
+        .split(/\s+/)
+        .map((word) => stemCzechWord(word))
+        .join(' ');
+}
 //# sourceMappingURL=text.js.map

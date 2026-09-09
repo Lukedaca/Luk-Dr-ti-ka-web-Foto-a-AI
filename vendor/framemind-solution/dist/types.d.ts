@@ -69,6 +69,16 @@ export interface SiteMenu {
     label: string;
     links: SiteLink[];
 }
+export interface CadenceConfig {
+    openers?: string[];
+    details?: string[];
+    hooks?: string[];
+}
+export interface ClarificationConfig {
+    question: string;
+    options: string[];
+    intentMap?: Record<string, string>;
+}
 export interface IntentResponseRule {
     intentId: string;
     /** Set to false for non-factual dialogue such as greetings or help. */
@@ -84,6 +94,8 @@ export interface IntentResponseRule {
     };
     template?: string;
     staleTemplate?: string;
+    cadence?: CadenceConfig;
+    clarification?: ClarificationConfig;
 }
 export interface ProviderRequest {
     text: string;

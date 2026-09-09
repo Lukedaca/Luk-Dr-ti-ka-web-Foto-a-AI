@@ -1,10 +1,16 @@
-import type { ContextSnapshot, IntentDefinition, IntentMatch, SlotValue } from './types.js';
-import { escapeRegExp, hasExplicitNavigation, monthFromText, normalizeText } from './text.js';
+import type { ContextSnapshot, DiscourseSnapshot, IntentDefinition, IntentMatch, SlotValue } from './types.js';
+import { escapeRegExp, hasExplicitNavigation, monthFromText, normalizeText, stemText } from './text.js';
 
 function includesTerm(text: string, term: string): boolean {
   const normalized = normalizeText(term);
   if (!normalized) return false;
   return new RegExp(`(?:^|\\s|-)${escapeRegExp(normalized)}(?:$|\\s|-)`).test(text);
+}
+
+function includesStemmedTerm(stemmedText: string, term: string): boolean {
+  const stemmedTerm = stemText(normalizeText(term));
+  if (!stemmedTerm) return false;
+  return new RegExp(`(?:^|\\s|-)${escapeRegExp(stemmedTerm)}(?:$|\\s|-)`).test(stemmedText);
 }
 
 function isSafePattern(pattern: string): boolean {
@@ -52,7 +58,7 @@ function extractSlots(normalized: string, now: Date): Record<string, SlotValue> 
   return slots;
 }
 
-function scoreIntent(definition: IntentDefinition, normalized: string): number {
+function scoreIntent(definition: IntentDefinition, normalized: string, stemmed: string): number {
   let evidence = 0;
   for (const example of definition.examples ?? []) {
     const candidate = normalizeText(example);
@@ -60,10 +66,15 @@ function scoreIntent(definition: IntentDefinition, normalized: string): number {
     else if (candidate && normalized.includes(candidate)) evidence += 60;
   }
   for (const keyword of definition.keywords ?? []) {
-    if (includesTerm(normalized, keyword)) evidence += 18;
+    if (includesTerm(normalized, keyword)) {
+      evidence += 18;
+    } else if (includesStemmedTerm(stemmed, keyword)) {
+      evidence += 16;
+    }
   }
   for (const group of definition.keywordGroups ?? []) {
-    if (group.every((keyword) => includesTerm(normalized, keyword))) evidence += 55 + group.length * 5;
+    const allMatch = group.every((keyword) => includesTerm(normalized, keyword) || includesStemmedTerm(stemmed, keyword));
+    if (allMatch) evidence += 55 + group.length * 5;
   }
   for (const pattern of definition.patterns ?? []) {
     if (!isSafePattern(pattern)) continue;
@@ -83,17 +94,37 @@ export class IntentEngine {
     this.definitions = definitions.slice();
   }
 
-  detect(text: string, context: ContextSnapshot, now = new Date()): IntentMatch {
+  detect(
+    text: string,
+    context: ContextSnapshot,
+    now = new Date(),
+    discourseSnapshot?: DiscourseSnapshot,
+  ): IntentMatch {
     const normalizedText = normalizeText(text).slice(0, 2000);
+    const stemmedText = stemText(normalizedText);
     const slots = extractSlots(normalizedText, now);
+
+    if (discourseSnapshot?.activeEntity) {
+      slots.activeEntityType = discourseSnapshot.activeEntity.type;
+      slots.activeEntityName = discourseSnapshot.activeEntity.name;
+    }
+
     let best: IntentDefinition | undefined;
     let bestScore = 0;
     let followUp = false;
 
     for (const definition of this.definitions) {
-      let score = scoreIntent(definition, normalizedText);
+      let score = scoreIntent(definition, normalizedText, stemmedText);
       const follows = Boolean(context.activeIntent && definition.followUpFor?.includes(context.activeIntent));
       if (follows && (slots.childAge || slots.birthYear || slots.nextAge)) score += 95;
+
+      // Anaphora boost: if definition matches followUp for last active intent in discourse
+      if (discourseSnapshot?.lastIntent && definition.followUpFor?.includes(discourseSnapshot.lastIntent)) {
+        if (/^(?:a\s+)?(?:kolik|kde|kdy|jak|proc|cena|rozpis|trener|adresa)\b/i.test(normalizedText)) {
+          score += 65;
+        }
+      }
+
       if (score > bestScore) {
         best = definition;
         bestScore = score;
@@ -113,3 +144,4 @@ export class IntentEngine {
     };
   }
 }
+

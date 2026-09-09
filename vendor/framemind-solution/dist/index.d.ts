@@ -25,4 +25,5 @@ export * from './PrivacyLearningSink.js';
 export * from './DiscourseContext.js';
 export * from './InPageActionDispatcher.js';
 export * from './PendingActionCoordinator.js';
+export * from './ConversationalCadence.js';
 //# sourceMappingURL=index.d.ts.map

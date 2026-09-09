@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   DiscourseContext,
   FrameMindEngine,
+  IntentEngine,
   defineAgentProfile,
   sha256Hex,
 } from '../dist/index.js';
@@ -137,4 +138,30 @@ test('FrameMindEngine attaches suggestions and updates discourse snapshot', asyn
   assert.equal(res2.discourse?.activeEntity?.name, 'Weby');
   assert.deepEqual(res2.suggestions, ['Kolik stojí web?', 'Jak dlouho trvá realizace?']);
   assert.equal(res2.discourse?.turn, 2);
+
+  // 3. Third turn: inflected query with stemmer ("o vašich webech")
+  const res3 = await engine.respond({ text: 'Rada bych vedela o tech webech' });
+  assert.equal(res3.discourse?.activeEntity?.name, 'Weby');
 });
+
+test('Czech stemming matches inflected words in IntentEngine', () => {
+  const intentEngine = new IntentEngine([
+    { id: 'pricing', keywords: ['cena', 'cenik'], priority: 10 },
+    { id: 'tickets', keywords: ['listek', 'vstupenka'], priority: 10 },
+    { id: 'webs', keywords: ['web', 'stranka'], priority: 10 },
+  ]);
+
+  const testCases = [
+    { query: 'jakou mate cenou', expectedIntent: 'pricing' },
+    { query: 'kolik stoji ty listky', expectedIntent: 'tickets' },
+    { query: 'mluvme o novem webu', expectedIntent: 'webs' },
+    { query: 'tvorba novych webu a aplikaci', expectedIntent: 'webs' },
+  ];
+
+  for (const tc of testCases) {
+    const match = intentEngine.detect(tc.query, { turn: 0, slots: {}, sourceIds: [] });
+    assert.equal(match.id, tc.expectedIntent, `Query "${tc.query}" should match ${tc.expectedIntent}, got ${match.id}`);
+  }
+});
+
+
