@@ -22,3 +22,6 @@ export * from './profiles/index.js';
 export * from './SafetyShield.js';
 export * from './LeadStream.js';
 export * from './PrivacyLearningSink.js';
+export * from './DiscourseContext.js';
+export * from './InPageActionDispatcher.js';
+export * from './PendingActionCoordinator.js';

@@ -1,4 +1,4 @@
-import type { ActionDefinition, ActionTool, IntentDefinition, IntentResponseRule, SiteLink } from './types.js';
+import type { ActionDefinition, ActionTool, IntentDefinition, IntentResponseRule, ProfileEntityDefinition, SiteLink } from './types.js';
 export type AgentDomainType = 'sports-club' | 'agency-saas' | 'personal-portfolio' | 'custom';
 export interface AgentSection {
     id: string;
@@ -30,6 +30,8 @@ export interface AgentProfile {
     actions?: ActionDefinition[];
     aliases?: Record<string, string>;
     stopWords?: string[];
+    entities?: ProfileEntityDefinition[];
+    suggestedFollowUps?: Record<string, string[]>;
 }
 export declare function defineAgentProfile(profile: AgentProfile): AgentProfile;
 export declare function extractProfileSiteLinks(profile: AgentProfile): SiteLink[];

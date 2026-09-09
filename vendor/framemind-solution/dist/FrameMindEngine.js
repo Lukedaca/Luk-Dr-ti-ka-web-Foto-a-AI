@@ -1,5 +1,6 @@
 import { ActionResolver } from './ActionResolver.js';
 import { ConversationContext } from './ConversationContext.js';
+import { DiscourseContext } from './DiscourseContext.js';
 import { IntentEngine } from './IntentEngine.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
 import { NoopLearningSink } from './NoopLearningSink.js';
@@ -19,6 +20,7 @@ export class FrameMindEngine {
         var _a, _b, _c;
         this.config = config;
         this.context = new ConversationContext();
+        this.discourse = new DiscourseContext();
         this.sessionContexts = new Map();
         this.composer = new ResponseComposer();
         this.privacyGuard = new PrivacyGuard(config.mode);
@@ -36,7 +38,7 @@ export class FrameMindEngine {
         if (!sessionId) {
             if (settings === null || settings === void 0 ? void 0 : settings.requireSessionId)
                 throw new Error('sessionId is required by session isolation policy');
-            return this.context;
+            return { context: this.context, discourse: this.discourse };
         }
         if (!/^[a-zA-Z0-9_-]{8,128}$/.test(sessionId))
             throw new Error('sessionId format is invalid');
@@ -49,7 +51,7 @@ export class FrameMindEngine {
         const existing = this.sessionContexts.get(sessionId);
         if (existing) {
             existing.touchedAt = now;
-            return existing.context;
+            return { context: existing.context, discourse: existing.discourse };
         }
         const maxSessions = Math.max(1, (_b = settings === null || settings === void 0 ? void 0 : settings.maxSessions) !== null && _b !== void 0 ? _b : 1000);
         if (this.sessionContexts.size >= maxSessions) {
@@ -65,12 +67,13 @@ export class FrameMindEngine {
                 this.sessionContexts.delete(oldestId);
         }
         const context = new ConversationContext();
-        this.sessionContexts.set(sessionId, { context, touchedAt: now });
-        return context;
+        const discourse = new DiscourseContext();
+        this.sessionContexts.set(sessionId, { context, discourse, touchedAt: now });
+        return { context, discourse };
     }
     async respond(request) {
-        var _a, _b;
-        const sessionContext = this.requestContext(request.sessionId);
+        var _a, _b, _c;
+        const sessionCtx = this.requestContext(request.sessionId);
         // 1. Safety Shield: block profanity, insults and prompt injections immediately
         const safety = SafetyShield.checkSafety(request.text);
         if (!safety.isSafe) {
@@ -87,17 +90,38 @@ export class FrameMindEngine {
                 local: true,
                 providerUsed: false,
                 actions: [],
-                context: sessionContext.snapshot(),
+                context: sessionCtx.context.snapshot(),
                 reason: 'known',
+                suggestions: [],
+                discourse: sessionCtx.discourse.snapshot(),
             };
         }
-        const before = sessionContext.snapshot();
-        const match = this.intentEngine.detect(request.text, before, request.now);
-        const context = sessionContext.apply(match);
+        // 2. Discourse repair handling
+        let queryText = request.text;
+        if (sessionCtx.discourse.isRepairQuery(request.text)) {
+            const subject = sessionCtx.discourse.extractRepairSubject(request.text);
+            if (subject) {
+                queryText = subject;
+            }
+        }
+        const before = sessionCtx.context.snapshot();
+        const match = this.intentEngine.detect(queryText, before, request.now);
+        const context = sessionCtx.context.apply(match);
+        // Match profile entity if configured
+        if ((_a = this.config.profile) === null || _a === void 0 ? void 0 : _a.entities) {
+            const norm = queryText.toLowerCase();
+            const entityDef = this.config.profile.entities.find((e) => e.keywords.some((k) => norm.includes(k.toLowerCase())) ||
+                norm.includes(e.name.toLowerCase()));
+            if (entityDef) {
+                sessionCtx.discourse.setEntity(entityDef.type, entityDef.name);
+            }
+        }
+        const suggestions = sessionCtx.discourse.resolveSuggestions(match.id, this.config.profile);
         const rule = this.config.responses.find((candidate) => candidate.intentId === match.id);
         if ((rule === null || rule === void 0 ? void 0 : rule.sourceRequired) === false) {
             const text = this.composer.compose(rule.template, undefined, context);
             if (text) {
+                sessionCtx.discourse.advanceTurn(request.text, text, match.id);
                 return {
                     text,
                     intent: match.id,
@@ -105,8 +129,10 @@ export class FrameMindEngine {
                     local: true,
                     providerUsed: false,
                     actions: this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true),
-                    context: sessionContext.snapshot(),
+                    context: sessionCtx.context.snapshot(),
                     reason: 'known',
+                    suggestions,
+                    discourse: sessionCtx.discourse.snapshot(),
                 };
             }
         }
@@ -114,9 +140,10 @@ export class FrameMindEngine {
             const missingSlot = !hasAnySlot(rule, context.slots);
             const resolved = this.sourceResolver.resolve(rule, context, request.now, missingSlot);
             if (resolved.record && resolved.freshness === 'fresh') {
-                sessionContext.markSource(resolved.record.id);
+                sessionCtx.context.markSource(resolved.record.id);
                 const text = this.composer.compose(missingSlot ? rule.missingTemplate : rule.template, resolved.record, context);
                 const actions = missingSlot ? [] : this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true);
+                sessionCtx.discourse.advanceTurn(request.text, text, match.id);
                 return {
                     text,
                     intent: match.id,
@@ -125,12 +152,15 @@ export class FrameMindEngine {
                     providerUsed: false,
                     ...(resolved.reference ? { source: resolved.reference } : {}),
                     actions,
-                    context: sessionContext.snapshot(),
+                    context: sessionCtx.context.snapshot(),
                     reason: missingSlot ? 'missing-slot' : 'known',
+                    suggestions,
+                    discourse: sessionCtx.discourse.snapshot(),
                 };
             }
             if (resolved.record && resolved.freshness !== 'fresh') {
-                const text = this.composer.compose((_a = rule.staleTemplate) !== null && _a !== void 0 ? _a : this.config.staleResponse, resolved.record, context);
+                const text = this.composer.compose((_b = rule.staleTemplate) !== null && _b !== void 0 ? _b : this.config.staleResponse, resolved.record, context);
+                sessionCtx.discourse.advanceTurn(request.text, text, match.id);
                 return {
                     text,
                     intent: match.id,
@@ -139,17 +169,20 @@ export class FrameMindEngine {
                     providerUsed: false,
                     ...(resolved.reference ? { source: resolved.reference } : {}),
                     actions: [],
-                    context: sessionContext.snapshot(),
+                    context: sessionCtx.context.snapshot(),
                     reason: 'stale',
+                    suggestions,
+                    discourse: sessionCtx.discourse.snapshot(),
                 };
             }
         }
         if (this.config.mode === 'managed'
-            && ((_b = this.config.provider) === null || _b === void 0 ? void 0 : _b.enabled)
+            && ((_c = this.config.provider) === null || _c === void 0 ? void 0 : _c.enabled)
             && request.allowManagedProvider === true
             && typeof request.providerText === 'string') {
             const provider = await this.providerRouter.generate(request.providerText, this.config.locale, context, true, this.config.provider.allowedContextSlots, this.config.provider.maxInputChars);
             if (provider === null || provider === void 0 ? void 0 : provider.text) {
+                sessionCtx.discourse.advanceTurn(request.text, provider.text, match.id);
                 return {
                     text: provider.text,
                     intent: match.id,
@@ -157,8 +190,10 @@ export class FrameMindEngine {
                     local: false,
                     providerUsed: true,
                     actions: [],
-                    context: sessionContext.snapshot(),
+                    context: sessionCtx.context.snapshot(),
                     reason: 'provider',
+                    suggestions,
+                    discourse: sessionCtx.discourse.snapshot(),
                 };
             }
         }
@@ -178,15 +213,19 @@ export class FrameMindEngine {
                 });
             }
         }
+        const unknownText = this.config.unknownResponse;
+        sessionCtx.discourse.advanceTurn(request.text, unknownText, match.id);
         return {
-            text: this.config.unknownResponse,
+            text: unknownText,
             intent: match.id,
             confidence: match.confidence,
             local: true,
             providerUsed: false,
             actions: [],
-            context: sessionContext.snapshot(),
+            context: sessionCtx.context.snapshot(),
             reason: 'unknown',
+            suggestions,
+            discourse: sessionCtx.discourse.snapshot(),
         };
     }
     reset(sessionId) {
@@ -195,6 +234,7 @@ export class FrameMindEngine {
             return;
         }
         this.context.reset();
+        this.discourse.reset();
         this.sessionContexts.clear();
     }
 }

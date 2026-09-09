@@ -1,5 +1,6 @@
 import { ActionResolver } from './ActionResolver.js';
 import { ConversationContext } from './ConversationContext.js';
+import { DiscourseContext } from './DiscourseContext.js';
 import { IntentEngine } from './IntentEngine.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
 import { NoopLearningSink } from './NoopLearningSink.js';
@@ -23,7 +24,8 @@ function hasAnySlot(rule: IntentResponseRule, slots: Record<string, unknown>): b
 
 export class FrameMindEngine {
   readonly context = new ConversationContext();
-  private readonly sessionContexts = new Map<string, { context: ConversationContext; touchedAt: number }>();
+  readonly discourse = new DiscourseContext();
+  private readonly sessionContexts = new Map<string, { context: ConversationContext; discourse: DiscourseContext; touchedAt: number }>();
   readonly privacyGuard: PrivacyGuard;
   readonly learningSink;
   private readonly intentEngine: IntentEngine;
@@ -46,11 +48,11 @@ export class FrameMindEngine {
     this.learningSink = config.learningSink ?? new NoopLearningSink();
   }
 
-  private requestContext(sessionId: string | undefined): ConversationContext {
+  private requestContext(sessionId: string | undefined): { context: ConversationContext; discourse: DiscourseContext } {
     const settings = this.config.sessions;
     if (!sessionId) {
       if (settings?.requireSessionId) throw new Error('sessionId is required by session isolation policy');
-      return this.context;
+      return { context: this.context, discourse: this.discourse };
     }
     if (!/^[a-zA-Z0-9_-]{8,128}$/.test(sessionId)) throw new Error('sessionId format is invalid');
 
@@ -62,7 +64,7 @@ export class FrameMindEngine {
     const existing = this.sessionContexts.get(sessionId);
     if (existing) {
       existing.touchedAt = now;
-      return existing.context;
+      return { context: existing.context, discourse: existing.discourse };
     }
 
     const maxSessions = Math.max(1, settings?.maxSessions ?? 1_000);
@@ -78,12 +80,13 @@ export class FrameMindEngine {
       if (oldestId) this.sessionContexts.delete(oldestId);
     }
     const context = new ConversationContext();
-    this.sessionContexts.set(sessionId, { context, touchedAt: now });
-    return context;
+    const discourse = new DiscourseContext();
+    this.sessionContexts.set(sessionId, { context, discourse, touchedAt: now });
+    return { context, discourse };
   }
 
   async respond(request: FrameMindRequest): Promise<FrameMindResponse> {
-    const sessionContext = this.requestContext(request.sessionId);
+    const sessionCtx = this.requestContext(request.sessionId);
 
     // 1. Safety Shield: block profanity, insults and prompt injections immediately
     const safety = SafetyShield.checkSafety(request.text);
@@ -101,19 +104,45 @@ export class FrameMindEngine {
         local: true,
         providerUsed: false,
         actions: [],
-        context: sessionContext.snapshot(),
+        context: sessionCtx.context.snapshot(),
         reason: 'known',
+        suggestions: [],
+        discourse: sessionCtx.discourse.snapshot(),
       };
     }
 
-    const before = sessionContext.snapshot();
-    const match = this.intentEngine.detect(request.text, before, request.now);
-    const context = sessionContext.apply(match);
+    // 2. Discourse repair handling
+    let queryText = request.text;
+    if (sessionCtx.discourse.isRepairQuery(request.text)) {
+      const subject = sessionCtx.discourse.extractRepairSubject(request.text);
+      if (subject) {
+        queryText = subject;
+      }
+    }
+
+    const before = sessionCtx.context.snapshot();
+    const match = this.intentEngine.detect(queryText, before, request.now);
+    const context = sessionCtx.context.apply(match);
+
+    // Match profile entity if configured
+    if (this.config.profile?.entities) {
+      const norm = queryText.toLowerCase();
+      const entityDef = this.config.profile.entities.find((e) =>
+        e.keywords.some((k) => norm.includes(k.toLowerCase())) ||
+        norm.includes(e.name.toLowerCase()),
+      );
+      if (entityDef) {
+        sessionCtx.discourse.setEntity(entityDef.type, entityDef.name);
+      }
+    }
+
+    const suggestions = sessionCtx.discourse.resolveSuggestions(match.id, this.config.profile);
     const rule = this.config.responses.find((candidate) => candidate.intentId === match.id);
 
     if (rule?.sourceRequired === false) {
       const text = this.composer.compose(rule.template, undefined, context);
       if (text) {
+        sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
           text,
           intent: match.id,
@@ -121,8 +150,10 @@ export class FrameMindEngine {
           local: true,
           providerUsed: false,
           actions: this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true),
-          context: sessionContext.snapshot(),
+          context: sessionCtx.context.snapshot(),
           reason: 'known',
+          suggestions,
+          discourse: sessionCtx.discourse.snapshot(),
         };
       }
     }
@@ -131,9 +162,10 @@ export class FrameMindEngine {
       const missingSlot = !hasAnySlot(rule, context.slots);
       const resolved = this.sourceResolver.resolve(rule, context, request.now, missingSlot);
       if (resolved.record && resolved.freshness === 'fresh') {
-        sessionContext.markSource(resolved.record.id);
+        sessionCtx.context.markSource(resolved.record.id);
         const text = this.composer.compose(missingSlot ? rule.missingTemplate : rule.template, resolved.record, context);
         const actions = missingSlot ? [] : this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true);
+        sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
           text,
           intent: match.id,
@@ -142,12 +174,15 @@ export class FrameMindEngine {
           providerUsed: false,
           ...(resolved.reference ? { source: resolved.reference } : {}),
           actions,
-          context: sessionContext.snapshot(),
+          context: sessionCtx.context.snapshot(),
           reason: missingSlot ? 'missing-slot' : 'known',
+          suggestions,
+          discourse: sessionCtx.discourse.snapshot(),
         };
       }
       if (resolved.record && resolved.freshness !== 'fresh') {
         const text = this.composer.compose(rule.staleTemplate ?? this.config.staleResponse, resolved.record, context);
+        sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
           text,
           intent: match.id,
@@ -156,8 +191,10 @@ export class FrameMindEngine {
           providerUsed: false,
           ...(resolved.reference ? { source: resolved.reference } : {}),
           actions: [],
-          context: sessionContext.snapshot(),
+          context: sessionCtx.context.snapshot(),
           reason: 'stale',
+          suggestions,
+          discourse: sessionCtx.discourse.snapshot(),
         };
       }
     }
@@ -177,6 +214,7 @@ export class FrameMindEngine {
         this.config.provider.maxInputChars,
       );
       if (provider?.text) {
+        sessionCtx.discourse.advanceTurn(request.text, provider.text, match.id);
         return {
           text: provider.text,
           intent: match.id,
@@ -184,8 +222,10 @@ export class FrameMindEngine {
           local: false,
           providerUsed: true,
           actions: [],
-          context: sessionContext.snapshot(),
+          context: sessionCtx.context.snapshot(),
           reason: 'provider',
+          suggestions,
+          discourse: sessionCtx.discourse.snapshot(),
         };
       }
     }
@@ -207,15 +247,19 @@ export class FrameMindEngine {
       }
     }
 
+    const unknownText = this.config.unknownResponse;
+    sessionCtx.discourse.advanceTurn(request.text, unknownText, match.id);
     return {
-      text: this.config.unknownResponse,
+      text: unknownText,
       intent: match.id,
       confidence: match.confidence,
       local: true,
       providerUsed: false,
       actions: [],
-      context: sessionContext.snapshot(),
+      context: sessionCtx.context.snapshot(),
       reason: 'unknown',
+      suggestions,
+      discourse: sessionCtx.discourse.snapshot(),
     };
   }
 
@@ -225,6 +269,7 @@ export class FrameMindEngine {
       return;
     }
     this.context.reset();
+    this.discourse.reset();
     this.sessionContexts.clear();
   }
 }

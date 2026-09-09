@@ -1,9 +1,11 @@
 import { ConversationContext } from './ConversationContext.js';
+import { DiscourseContext } from './DiscourseContext.js';
 import { PrivacyGuard } from './PrivacyGuard.js';
 import type { FrameMindConfig, FrameMindRequest, FrameMindResponse, KnowledgeSnapshot } from './types.js';
 export declare class FrameMindEngine {
     private readonly config;
     readonly context: ConversationContext;
+    readonly discourse: DiscourseContext;
     private readonly sessionContexts;
     readonly privacyGuard: PrivacyGuard;
     readonly learningSink: import("./types.js").LearningSink;

@@ -180,6 +180,34 @@ export interface FrameMindRequest {
     providerText?: string;
     sessionId?: string;
 }
+export interface DiscourseEntity {
+    type: string;
+    name: string;
+    data?: Record<string, unknown>;
+    turn: number;
+    timestamp: number;
+}
+export interface DiscourseClarification {
+    type: string;
+    question: string;
+    options: string[];
+    context?: Record<string, unknown>;
+}
+export interface DiscourseSnapshot {
+    turn: number;
+    activeEntity: DiscourseEntity | null;
+    recentEntities: DiscourseEntity[];
+    lastIntent: string | null;
+    lastQuery: string;
+    lastReply: string;
+    awaitingClarification: DiscourseClarification | null;
+}
+export interface ProfileEntityDefinition {
+    type: string;
+    name: string;
+    keywords: string[];
+    suggestedFollowUps?: string[];
+}
 export interface FrameMindResponse {
     text: string;
     intent: string;
@@ -190,6 +218,8 @@ export interface FrameMindResponse {
     actions: ResolvedAction[];
     context: ContextSnapshot;
     reason?: 'known' | 'unknown' | 'stale' | 'missing-slot' | 'provider';
+    suggestions?: string[];
+    discourse?: DiscourseSnapshot;
 }
 export interface LocalSpeechRecognitionCapability {
     available: boolean;
