@@ -11,6 +11,11 @@ export declare class SafetyShield {
      */
     static sanitizePii(text: string): string;
     /**
+     * Final local boundary for any cloud provider payload. It rejects rather than
+     * redacts: callers must deliberately generalize a non-personal fallback text.
+     */
+    static isSafeForProvider(text: string): boolean;
+    /**
      * Identifies and extracts legitimate lead information (name, phone, email, recruitment child year)
      * so it can be routed directly to the authorized recipient (Stream 1),
      * while never leaking into public model weights or memory (Stream 2).

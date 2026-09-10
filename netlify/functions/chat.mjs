@@ -24,6 +24,8 @@ import {
   updateVisitorMemory,
 } from "./_lib/visitor-memory.mjs";
 import PORTFOLIO_DATA from "../../data/portfolio.json";
+import { createLukasEngine } from "../../src/config/lukas.mjs";
+import { SafetyShield } from "../../vendor/framemind-solution/dist/index.js";
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
@@ -1766,6 +1768,26 @@ async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, wr
   if (fastPath) {
     await writeResolvedText(writer, encoder, fastPath, { mode, fastPath: true, model: "knowledge-fast-path" });
     return { fullText: fastPath, actions: [] };
+  }
+
+  const fmsFallbackEnabled = process.env.FRAMEMIND_GEMINI_FALLBACK_ENABLED === "1";
+  const latestUserMessage = getLastUserMessage(messages);
+  const localResponse = await createLukasEngine({
+    geminiApiKey: fmsFallbackEnabled ? apiKey : undefined,
+  }).respond({
+    text: latestUserMessage,
+    allowManagedProvider: fmsFallbackEnabled,
+    providerText: fmsFallbackEnabled ? latestUserMessage : undefined,
+  });
+  if (localResponse.reason !== "unknown" || !SafetyShield.isSafeForProvider(latestUserMessage)) {
+    await writeResolvedText(writer, encoder, localResponse.text, {
+      mode,
+      fastPath: true,
+      provider: localResponse.providerUsed ? "google-gemini" : "local",
+      model: localResponse.providerUsed ? "gemini-3.8-flash" : "framemind-solution",
+      actions: [],
+    });
+    return { fullText: localResponse.text, actions: [] };
   }
 
   const providerFallback = buildInquiryProviderFallback(messages);

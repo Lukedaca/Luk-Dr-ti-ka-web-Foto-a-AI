@@ -19,6 +19,9 @@ const INJECTION_PATTERNS = [
 
 const PHONE_REGEX = /(?:(?:\+|00)(?:420|421)[-\s]?)?[1-9]\d{2}[-\s]?\d{3}[-\s]?\d{3}\b|\b[1-9]\d{2}[-\s]?\d{3}[-\s]?\d{3}\b/g;
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/g;
+const PERSONAL_ID_REGEX = /\b(?:rodne\s+cislo|rc)\s*[:=]?\s*\d{6}\/?\d{3,4}\b/gi;
+const PAYMENT_CARD_REGEX = /\b(?:\d[ -]?){13,19}\b/g;
+const SECRET_LABEL_REGEX = /\b(?:api[-_ ]?key|access[-_ ]?token|auth[-_ ]?token|heslo|password|secret)\b/i;
 
 function normalizeAscii(text: string): string {
   return String(text || '')
@@ -76,6 +79,26 @@ export class SafetyShield {
       .replace(EMAIL_REGEX, '[EMAIL]')
       .replace(PHONE_REGEX, '[PHONE]')
       .replace(/\b(?:rodne\s+cislo|rc)\s*[:=]?\s*\d{6}\/?\d{3,4}\b/gi, '[PERSONAL_ID]');
+  }
+
+  /**
+   * Final local boundary for any cloud provider payload. It rejects rather than
+   * redacts: callers must deliberately generalize a non-personal fallback text.
+   */
+  static isSafeForProvider(text: string): boolean {
+    const raw = String(text || '').trim();
+    const matches = (pattern: RegExp) => {
+      pattern.lastIndex = 0;
+      const found = pattern.test(raw);
+      pattern.lastIndex = 0;
+      return found;
+    };
+    return Boolean(raw)
+      && !SECRET_LABEL_REGEX.test(raw)
+      && !matches(EMAIL_REGEX)
+      && !matches(PHONE_REGEX)
+      && !matches(PERSONAL_ID_REGEX)
+      && !matches(PAYMENT_CARD_REGEX);
   }
 
   /**

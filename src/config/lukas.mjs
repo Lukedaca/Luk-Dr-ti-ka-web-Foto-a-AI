@@ -1,6 +1,7 @@
 import snapshot from '../../knowledge/lukas.snapshot.json' with { type: 'json' };
 import {
   FrameMindEngine,
+  GeminiFlashAdapter,
   NoopLearningSink,
   VoiceCapability,
   createPersonalPortfolioProfile,
@@ -343,8 +344,21 @@ export const lukasConfig = {
   learningSink: new NoopLearningSink(),
 };
 
-export function createLukasEngine() {
-  return new FrameMindEngine(lukasConfig, snapshot);
+export function createLukasEngine(options = {}) {
+  const apiKey = typeof options.geminiApiKey === 'string' ? options.geminiApiKey.trim() : '';
+  const config = apiKey
+    ? {
+        ...lukasConfig,
+        mode: 'managed',
+        provider: {
+          enabled: true,
+          adapter: new GeminiFlashAdapter({ apiKey }),
+          allowedContextSlots: [],
+          maxInputChars: 700,
+        },
+      }
+    : lukasConfig;
+  return new FrameMindEngine(config, snapshot);
 }
 
 export function createLukasVoiceCapability() {

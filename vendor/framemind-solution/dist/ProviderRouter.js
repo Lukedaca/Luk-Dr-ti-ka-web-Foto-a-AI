@@ -1,5 +1,6 @@
 import { CircuitBreaker } from './CircuitBreaker.js';
 import { DisabledProviderAdapter } from './DisabledProviderAdapter.js';
+import { SafetyShield } from './SafetyShield.js';
 export class ProviderRouter {
     constructor(adapter, privacyGuard, circuitBreaker = new CircuitBreaker()) {
         this.privacyGuard = privacyGuard;
@@ -11,7 +12,7 @@ export class ProviderRouter {
         if (!this.adapter.enabled || !this.circuitBreaker.canAttempt())
             return null;
         const providerText = text.trim().slice(0, Math.max(1, maxInputChars));
-        if (!providerText)
+        if (!providerText || !SafetyShield.isSafeForProvider(providerText))
             return null;
         const allowed = new Set(allowedContextSlots);
         const slots = Object.fromEntries(Object.entries(context.slots).filter(([key]) => allowed.has(key)));

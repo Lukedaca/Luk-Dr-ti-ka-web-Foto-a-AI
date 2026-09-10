@@ -10,6 +10,8 @@ export * from './FreshnessPolicy.js';
 export * from './ProviderRouter.js';
 export * from './ProviderAdapter.js';
 export * from './DisabledProviderAdapter.js';
+export * from './GeminiFlashAdapter.js';
+export * from './GeminiSulafatTtsAdapter.js';
 export * from './CircuitBreaker.js';
 export * from './PrivacyGuard.js';
 export * from './VoiceCapability.js';
