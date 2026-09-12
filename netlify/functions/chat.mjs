@@ -29,8 +29,8 @@ import { SafetyShield } from "../../vendor/framemind-solution/dist/index.js";
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
-const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.5-flash";
-const GEMINI_NATIVE_MODELS = [CHAT_MODEL];
+const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.8-flash";
+const GEMINI_NATIVE_MODELS = [CHAT_MODEL, "gemini-3.7-flash"];
 const ENABLE_TOOLS = (process.env.ENABLE_TOOLS || "1") !== "0";
 const REQUIRE_TURNSTILE = !!(process.env.TURNSTILE_SECRET && process.env.TURNSTILE_SITE_KEY);
 
@@ -1380,16 +1380,25 @@ function chatMessagesToGeminiNativePayload(payload) {
       parts: [{ text: String(message.content) }],
     }));
 
+  const primaryModel = GEMINI_NATIVE_MODELS[0] || "gemini-3.8-flash";
+  const isModern = primaryModel.includes("3.8") || primaryModel.includes("3.7");
+
+  const generationConfig = {
+    maxOutputTokens: typeof payload.max_tokens === "number" ? payload.max_tokens : 2048,
+    thinkingConfig: isModern
+      ? { thinkingLevel: "low" }
+      : { thinkingBudget: typeof payload.thinking_budget === "number" ? payload.thinking_budget : 0 },
+  };
+
+  if (!isModern) {
+    if (typeof payload.temperature === "number") generationConfig.temperature = payload.temperature;
+    if (typeof payload.top_p === "number") generationConfig.topP = payload.top_p;
+  }
+
   return {
     systemInstruction: systemText ? { parts: [{ text: systemText }] } : undefined,
     contents: contents.length ? contents : [{ role: "user", parts: [{ text: "" }] }],
-    generationConfig: {
-      temperature: typeof payload.temperature === "number" ? payload.temperature : 0.3,
-      topP: typeof payload.top_p === "number" ? payload.top_p : 0.9,
-      maxOutputTokens: typeof payload.max_tokens === "number" ? payload.max_tokens : 240,
-      // thinkingBudget: 0 = bez přemýšlení (rychlý první token), -1 = dynamické (kvalita).
-      thinkingConfig: { thinkingBudget: typeof payload.thinking_budget === "number" ? payload.thinking_budget : -1 },
-    },
+    generationConfig,
   };
 }
 

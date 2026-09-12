@@ -7,7 +7,7 @@ import { SECTIONS, GALLERY_CATEGORIES, SERVICES } from "./_lib/tools.mjs";
 import { isAllowedOrigin } from "./_lib/security.mjs";
 import { checkLimit } from "./_lib/limits.mjs";
 
-const TOUR_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.5-flash";
+const TOUR_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.8-flash";
 const HIGHLIGHT_TARGETS = ["pricing", "portfolio-grid", "contact-form", "skills-grid", "showreel"];
 const THEME_MODES = ["light", "dark", "toggle"];
 const MIN_STEPS = 3;
