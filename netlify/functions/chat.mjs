@@ -1373,12 +1373,15 @@ function chatMessagesToGeminiNativePayload(payload) {
     .map((message) => message.content)
     .filter(Boolean)
     .join("\n\n");
-  const contents = messages
-    .filter((message) => message.role !== "system" && message.content)
-    .map((message) => ({
-      role: message.role === "assistant" ? "model" : "user",
-      parts: [{ text: String(message.content) }],
-    }));
+
+  const recentUserMessages = messages.filter((m) => m.role === "user" && m.content).slice(-12);
+  const userContext = recentUserMessages.length === 1
+    ? recentUserMessages[0].content
+    : recentUserMessages
+        .map((message, index) => index === recentUserMessages.length - 1
+          ? `AKTUÁLNÍ ZPRÁVA UŽIVATELE:\n${message.content}`
+          : `PŘEDCHOZÍ ZPRÁVA UŽIVATELE ${index + 1}:\n${message.content}`)
+        .join("\n\n");
 
   const primaryModel = GEMINI_NATIVE_MODELS[0] || "gemini-3.8-flash";
   const isModern = primaryModel.includes("3.8") || primaryModel.includes("3.7");
@@ -1396,9 +1399,21 @@ function chatMessagesToGeminiNativePayload(payload) {
   }
 
   return {
-    systemInstruction: systemText ? { parts: [{ text: systemText }] } : undefined,
-    contents: contents.length ? contents : [{ role: "user", parts: [{ text: "" }] }],
+    systemInstruction: systemText ? {
+      role: "system",
+      parts: [{ text: systemText }],
+    } : undefined,
+    contents: [{
+      role: "user",
+      parts: [{ text: userContext || "" }],
+    }],
     generationConfig,
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
+    ],
   };
 }
 
@@ -1518,6 +1533,28 @@ async function fetchGeminiNativeStream(payload, label) {
   const stream = new ReadableStream({
     start(controller) {
       let buffer = "";
+      const emitGeminiChunk = (chunk) => {
+        const lines = chunk.split(/\r?\n/);
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const dataStr = line.slice(5).trim();
+          if (!dataStr || dataStr === "[DONE]") continue;
+          let parsed;
+          try {
+            parsed = JSON.parse(dataStr);
+          } catch {
+            continue;
+          }
+          const parts = parsed?.candidates?.[0]?.content?.parts;
+          const text = Array.isArray(parts) ? parts.map((p) => p?.text || "").join("") : "";
+          if (text) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`),
+            );
+          }
+        }
+      };
+
       (async () => {
         try {
           while (true) {
@@ -1525,29 +1562,16 @@ async function fetchGeminiNativeStream(payload, label) {
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
 
-            let sepIndex;
-            while ((sepIndex = buffer.indexOf("\n\n")) !== -1) {
-              const event = buffer.slice(0, sepIndex);
-              buffer = buffer.slice(sepIndex + 2);
-              for (const line of event.split("\n")) {
-                if (!line.startsWith("data:")) continue;
-                const dataStr = line.slice(5).trim();
-                if (!dataStr || dataStr === "[DONE]") continue;
-                let parsed;
-                try {
-                  parsed = JSON.parse(dataStr);
-                } catch {
-                  continue;
-                }
-                const parts = parsed?.candidates?.[0]?.content?.parts;
-                const text = Array.isArray(parts) ? parts.map((p) => p?.text || "").join("") : "";
-                if (text) {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`),
-                  );
-                }
-              }
+            let match;
+            while ((match = buffer.match(/\r?\n\r?\n/))) {
+              const idx = match.index || 0;
+              const chunk = buffer.slice(0, idx);
+              buffer = buffer.slice(idx + match[0].length);
+              emitGeminiChunk(chunk);
             }
+          }
+          if (buffer.trim()) {
+            emitGeminiChunk(buffer);
           }
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
@@ -1911,48 +1935,55 @@ async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, wr
   const streamFilter = createInlineFunctionStreamFilter();
   const toolCallBuffer = [];
 
+  const emitEvent = async (event) => {
+    const lines = event.split(/\r?\n/);
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+      const dataStr = line.slice(5).trim();
+      if (!dataStr || dataStr === "[DONE]") continue;
+
+      try {
+        const chunk = JSON.parse(dataStr);
+        const delta = chunk.choices?.[0]?.delta || {};
+        const text = delta.content || "";
+        if (text) {
+          fullText += text;
+          const visibleText = streamFilter.push(text);
+          if (visibleText) {
+            await writer.write(encoder.encode(JSON.stringify({ t: visibleText }) + "\n"));
+          }
+        }
+        if (Array.isArray(delta.tool_calls)) {
+          for (const tc of delta.tool_calls) {
+            const idx = typeof tc.index === "number" ? tc.index : toolCallBuffer.length;
+            if (!toolCallBuffer[idx]) toolCallBuffer[idx] = { id: "", name: "", arguments: "" };
+            if (tc.id) toolCallBuffer[idx].id = tc.id;
+            if (tc.function?.name) toolCallBuffer[idx].name += tc.function.name;
+            if (tc.function?.arguments) toolCallBuffer[idx].arguments += tc.function.arguments;
+          }
+        }
+      } catch (err) {
+        // Ignore malformed stream fragments.
+      }
+    }
+  };
+
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      let sepIndex;
-      while ((sepIndex = buffer.indexOf("\n\n")) !== -1) {
-        const event = buffer.slice(0, sepIndex);
-        buffer = buffer.slice(sepIndex + 2);
-
-        const lines = event.split("\n");
-        for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const dataStr = line.slice(5).trim();
-          if (!dataStr || dataStr === "[DONE]") continue;
-
-          try {
-            const chunk = JSON.parse(dataStr);
-            const delta = chunk.choices?.[0]?.delta || {};
-            const text = delta.content || "";
-            if (text) {
-              fullText += text;
-              const visibleText = streamFilter.push(text);
-              if (visibleText) {
-                await writer.write(encoder.encode(JSON.stringify({ t: visibleText }) + "\n"));
-              }
-            }
-            if (Array.isArray(delta.tool_calls)) {
-              for (const tc of delta.tool_calls) {
-                const idx = typeof tc.index === "number" ? tc.index : toolCallBuffer.length;
-                if (!toolCallBuffer[idx]) toolCallBuffer[idx] = { id: "", name: "", arguments: "" };
-                if (tc.id) toolCallBuffer[idx].id = tc.id;
-                if (tc.function?.name) toolCallBuffer[idx].name += tc.function.name;
-                if (tc.function?.arguments) toolCallBuffer[idx].arguments += tc.function.arguments;
-              }
-            }
-          } catch (err) {
-            // Ignore malformed stream fragments.
-          }
-        }
+      let match;
+      while ((match = buffer.match(/\r?\n\r?\n/))) {
+        const idx = match.index || 0;
+        const event = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + match[0].length);
+        await emitEvent(event);
       }
+    }
+    if (buffer.trim()) {
+      await emitEvent(buffer);
     }
   } catch (err) {
     console.error("LLM stream read error:", err);
