@@ -92,6 +92,29 @@ function config(mode = 'strict', adapter) {
     unknownResponse: 'Tuto informaci nemohu spolehlivě potvrdit.',
     staleResponse: 'Tento údaj je po datu ověření; ověřte ho u klubu.',
     provider: { enabled: Boolean(adapter), ...(adapter ? { adapter } : {}) },
+    ...(adapter ? {
+      tenantPolicy: {
+        tenantId: 'core-test',
+        domain: 'example.invalid',
+        audience: 'general',
+        processingMode: mode,
+        dataMode: 'minimal',
+        voice: { enabled: false, mode: 'off', locales: [], consentRequired: true },
+        managedProvider: { enabled: true, provider: adapter.id, maxInputChars: 2000 },
+        retention: { transcript: false, visitorMemory: false, leads: false },
+        telemetry: { enabled: true, customerContentAllowed: false },
+      },
+      providerCompliance: [{
+        id: adapter.id,
+        allowedAudiences: ['general'],
+        supportedPurposes: ['managed-llm'],
+        allowedRegions: [],
+        retention: 'stateless test adapter',
+        training: 'not used for test',
+        verifiedAt: '2026-09-11',
+        documentationUrl: 'https://example.invalid/provider',
+      }],
+    } : {}),
   };
 }
 

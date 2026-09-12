@@ -1,6 +1,10 @@
-# FrameMind Solution 1.0.4
+# FrameMind Solution 1.2.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
+
+Version 1.2 adds a canonical fail-closed DataPolicy, provider-neutral voice contracts,
+SpeechPrivacyGuard, allowlisted telemetry, and a server-only Azure Speech adapter.
+Processing mode, retention mode, and voice mode are separate controls.
 
 Version 1.0 provides:
 

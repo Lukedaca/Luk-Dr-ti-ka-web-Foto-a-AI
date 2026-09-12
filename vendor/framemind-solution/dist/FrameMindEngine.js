@@ -1,5 +1,6 @@
 import { ActionResolver } from './ActionResolver.js';
 import { ConversationContext } from './ConversationContext.js';
+import { DataPolicy } from './DataPolicy.js';
 import { DiscourseContext } from './DiscourseContext.js';
 import { IntentEngine } from './IntentEngine.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
@@ -17,20 +18,21 @@ function hasAnySlot(rule, slots) {
 }
 export class FrameMindEngine {
     constructor(config, snapshot) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         this.config = config;
         this.context = new ConversationContext();
         this.discourse = new DiscourseContext();
         this.sessionContexts = new Map();
         this.composer = new ResponseComposer();
         this.privacyGuard = new PrivacyGuard(config.mode);
+        this.dataPolicy = new DataPolicy(config.tenantPolicy ? [config.tenantPolicy] : [], (_a = config.providerCompliance) !== null && _a !== void 0 ? _a : []);
         this.intentEngine = new IntentEngine(config.intents);
         const store = new KnowledgeStore(snapshot);
-        this.sourceResolver = new SourceResolver(store, undefined, (_a = config.sourceLabel) !== null && _a !== void 0 ? _a : 'Ověřený zdroj');
+        this.sourceResolver = new SourceResolver(store, undefined, (_b = config.sourceLabel) !== null && _b !== void 0 ? _b : 'Ověřený zdroj');
         this.actionResolver = new ActionResolver(config.actions, this.privacyGuard);
-        const adapter = ((_b = config.provider) === null || _b === void 0 ? void 0 : _b.enabled) ? config.provider.adapter : undefined;
-        this.providerRouter = new ProviderRouter(adapter, this.privacyGuard);
-        this.learningSink = (_c = config.learningSink) !== null && _c !== void 0 ? _c : new NoopLearningSink();
+        const adapter = ((_c = config.provider) === null || _c === void 0 ? void 0 : _c.enabled) ? config.provider.adapter : undefined;
+        this.providerRouter = new ProviderRouter(adapter, this.privacyGuard, undefined, this.dataPolicy, config.tenantPolicy);
+        this.learningSink = (_d = config.learningSink) !== null && _d !== void 0 ? _d : new NoopLearningSink();
     }
     requestContext(sessionId) {
         var _a, _b;

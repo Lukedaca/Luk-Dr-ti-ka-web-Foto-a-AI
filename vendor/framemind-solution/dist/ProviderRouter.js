@@ -2,13 +2,27 @@ import { CircuitBreaker } from './CircuitBreaker.js';
 import { DisabledProviderAdapter } from './DisabledProviderAdapter.js';
 import { SafetyShield } from './SafetyShield.js';
 export class ProviderRouter {
-    constructor(adapter, privacyGuard, circuitBreaker = new CircuitBreaker()) {
+    constructor(adapter, privacyGuard, circuitBreaker = new CircuitBreaker(), dataPolicy, tenantPolicy) {
         this.privacyGuard = privacyGuard;
         this.circuitBreaker = circuitBreaker;
+        this.dataPolicy = dataPolicy;
+        this.tenantPolicy = tenantPolicy;
         this.adapter = adapter !== null && adapter !== void 0 ? adapter : new DisabledProviderAdapter();
     }
     async generate(text, locale, context, explicitPermission, allowedContextSlots = [], maxInputChars = 2000) {
         this.privacyGuard.assertProviderAllowed(explicitPermission);
+        if (!this.dataPolicy || !this.tenantPolicy)
+            return null;
+        const decision = this.dataPolicy.authorizeEgress({
+            tenantId: this.tenantPolicy.tenantId,
+            audience: this.tenantPolicy.audience,
+            provider: this.adapter.id,
+            purpose: 'managed-llm',
+            dataClass: 'visitor-content',
+            processingMode: this.tenantPolicy.processingMode,
+        });
+        if (!decision.allowed)
+            return null;
         if (!this.adapter.enabled || !this.circuitBreaker.canAttempt())
             return null;
         const providerText = text.trim().slice(0, Math.max(1, maxInputChars));

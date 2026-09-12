@@ -1,5 +1,6 @@
 import { ActionResolver } from './ActionResolver.js';
 import { ConversationContext } from './ConversationContext.js';
+import { DataPolicy } from './DataPolicy.js';
 import { DiscourseContext } from './DiscourseContext.js';
 import { IntentEngine } from './IntentEngine.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
@@ -27,6 +28,7 @@ export class FrameMindEngine {
   readonly discourse = new DiscourseContext();
   private readonly sessionContexts = new Map<string, { context: ConversationContext; discourse: DiscourseContext; touchedAt: number }>();
   readonly privacyGuard: PrivacyGuard;
+  readonly dataPolicy: DataPolicy;
   readonly learningSink;
   private readonly intentEngine: IntentEngine;
   private readonly composer = new ResponseComposer();
@@ -39,12 +41,13 @@ export class FrameMindEngine {
     snapshot: KnowledgeSnapshot,
   ) {
     this.privacyGuard = new PrivacyGuard(config.mode);
+    this.dataPolicy = new DataPolicy(config.tenantPolicy ? [config.tenantPolicy] : [], config.providerCompliance ?? []);
     this.intentEngine = new IntentEngine(config.intents);
     const store = new KnowledgeStore(snapshot);
     this.sourceResolver = new SourceResolver(store, undefined, config.sourceLabel ?? 'Ověřený zdroj');
     this.actionResolver = new ActionResolver(config.actions, this.privacyGuard);
     const adapter = config.provider?.enabled ? config.provider.adapter : undefined;
-    this.providerRouter = new ProviderRouter(adapter, this.privacyGuard);
+    this.providerRouter = new ProviderRouter(adapter, this.privacyGuard, undefined, this.dataPolicy, config.tenantPolicy);
     this.learningSink = config.learningSink ?? new NoopLearningSink();
   }
 

@@ -1,4 +1,5 @@
-import type { ProviderAdapter, ProviderRequest, ProviderResponse } from './types.js';
+import type { DataPolicy } from './DataPolicy.js';
+import type { ProviderAdapter, ProviderRequest, ProviderResponse, TenantDeploymentPolicy } from './types.js';
 export type GeminiFetch = (url: string, init: {
     method: string;
     headers: Record<string, string>;
@@ -14,6 +15,8 @@ export interface GeminiFlashAdapterOptions {
     endpoint?: string;
     model?: string;
     fetcher?: GeminiFetch;
+    dataPolicy?: DataPolicy;
+    tenantPolicy?: TenantDeploymentPolicy;
 }
 /** Server-only, stateless fallback. No remote state, tools, grounding or files. */
 export declare class GeminiFlashAdapter implements ProviderAdapter {
@@ -23,6 +26,8 @@ export declare class GeminiFlashAdapter implements ProviderAdapter {
     private readonly endpoint;
     private readonly model;
     private readonly fetcher;
+    private readonly dataPolicy;
+    private readonly tenantPolicy;
     constructor(options: GeminiFlashAdapterOptions);
     generate(request: ProviderRequest): Promise<ProviderResponse>;
 }

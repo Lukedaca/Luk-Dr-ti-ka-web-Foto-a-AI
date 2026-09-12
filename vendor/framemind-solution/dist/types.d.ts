@@ -1,4 +1,65 @@
 export type FrameMindMode = 'strict' | 'managed';
+/** Retention/workflow choice. It never implicitly enables cloud processing. */
+export type DataMode = 'minimal' | 'support' | 'lead';
+export type ProcessingMode = FrameMindMode;
+export type VoiceMode = 'off' | 'local' | 'managed';
+export type AudienceProfile = 'general' | 'may-include-minors';
+export type DataClass = 'public-data' | 'visitor-content' | 'visitor-personal-data' | 'sensitive-data' | 'internal-data' | 'operational-metadata';
+export type EgressPurpose = 'managed-llm' | 'speech-to-text' | 'text-to-speech' | 'telemetry' | 'lead-delivery' | 'support-workflow' | 'visitor-memory';
+export interface ProviderComplianceProfile {
+    id: string;
+    allowedAudiences: AudienceProfile[];
+    supportedPurposes: EgressPurpose[];
+    allowedRegions: string[];
+    /** Configuration evidence, not a legal certification. */
+    retention: string;
+    training: string;
+    verifiedAt: string;
+    documentationUrl: string;
+}
+export interface TenantDeploymentPolicy {
+    tenantId: string;
+    domain: string;
+    audience: AudienceProfile;
+    processingMode: ProcessingMode;
+    dataMode: DataMode;
+    voice: {
+        enabled: boolean;
+        mode: VoiceMode;
+        provider?: string;
+        region?: string;
+        locales: string[];
+        consentRequired: boolean;
+    };
+    managedProvider?: {
+        enabled: boolean;
+        provider: string;
+        maxInputChars: number;
+    };
+    retention: {
+        transcript: boolean;
+        visitorMemory: boolean;
+        leads: boolean;
+    };
+    telemetry: {
+        enabled: boolean;
+        customerContentAllowed: false;
+    };
+}
+export interface EgressAuthorizationRequest {
+    tenantId: string;
+    audience: AudienceProfile;
+    provider: string;
+    purpose: EgressPurpose;
+    dataClass: DataClass;
+    processingMode: ProcessingMode;
+    region?: string;
+    voiceActivated?: boolean;
+}
+export interface EgressAuthorization {
+    allowed: boolean;
+    reason: string;
+}
 export type SlotValue = string | number | boolean;
 export interface IntentDefinition {
     id: string;
@@ -182,6 +243,10 @@ export interface FrameMindConfig {
     learningSink?: LearningSink;
     sessions?: SessionConfig;
     profile?: import('./AgentProfile.js').AgentProfile;
+    /** Required for any managed egress in FrameMind Solution 1.2+. */
+    tenantPolicy?: TenantDeploymentPolicy;
+    /** Capability evidence for providers used by this deployment. */
+    providerCompliance?: ProviderComplianceProfile[];
 }
 export interface FrameMindRequest {
     text: string;
@@ -259,5 +324,38 @@ export interface SpeechSynthesisVoiceLike {
     lang?: string;
     name?: string;
     localService?: boolean;
+}
+export interface SpeechToTextRequest {
+    audio: ArrayBuffer;
+    locale: string;
+    signal?: AbortSignal;
+}
+export interface SpeechToTextResponse {
+    text: string;
+    providerId: string;
+    locale: string;
+}
+export interface TextToSpeechRequest {
+    text: string;
+    locale: string;
+    voice?: string;
+    signal?: AbortSignal;
+}
+export interface TextToSpeechResponse {
+    audio: ArrayBuffer;
+    contentType: string;
+    providerId: string;
+    voice: string;
+}
+/** Provider-neutral contracts. Browser token issuance stays deployment/server code. */
+export interface SpeechToTextProvider {
+    readonly id: string;
+    readonly enabled: boolean;
+    transcribe(request: SpeechToTextRequest): Promise<SpeechToTextResponse>;
+}
+export interface TextToSpeechProvider {
+    readonly id: string;
+    readonly enabled: boolean;
+    synthesize(request: TextToSpeechRequest): Promise<TextToSpeechResponse>;
 }
 //# sourceMappingURL=types.d.ts.map

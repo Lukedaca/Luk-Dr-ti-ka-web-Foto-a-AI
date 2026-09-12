@@ -14,6 +14,9 @@ export * from './GeminiFlashAdapter.js';
 export * from './GeminiSulafatTtsAdapter.js';
 export * from './CircuitBreaker.js';
 export * from './PrivacyGuard.js';
+export * from './DataPolicy.js';
+export * from './SpeechPrivacyGuard.js';
+export * from './AzureSpeechAdapter.js';
 export * from './VoiceCapability.js';
 export * from './LearningSink.js';
 export * from './NoopLearningSink.js';
@@ -28,4 +31,3 @@ export * from './DiscourseContext.js';
 export * from './InPageActionDispatcher.js';
 export * from './PendingActionCoordinator.js';
 export * from './ConversationalCadence.js';
-

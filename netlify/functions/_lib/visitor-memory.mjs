@@ -1,6 +1,12 @@
 // Opt-in visitor memory.
 // Stores a compact, redacted summary only after explicit browser consent.
 
+import {
+  createPersonalPortfolioDataPolicy,
+  PORTFOLIO_TENANT_ID,
+  LOCAL_MEMORY_PROVIDER_ID,
+} from "./tenant-policy.mjs";
+
 const VISITOR_TTL_DAYS = 180;
 const VISITOR_KEY_PREFIX = "visitor:";
 const VISITOR_ID_RE = /^[a-zA-Z0-9_-]{8,96}$/;
@@ -71,7 +77,43 @@ async function getVisitorMemory(visitorId) {
 async function saveVisitorMemory(visitorId, memory) {
   const key = visitorKey(visitorId);
   if (!key) return null;
+
+  const policy = createPersonalPortfolioDataPolicy();
+  const auth = policy.authorizeEgress({
+    tenantId: PORTFOLIO_TENANT_ID,
+    audience: "general",
+    provider: LOCAL_MEMORY_PROVIDER_ID,
+    purpose: "visitor-memory",
+    dataClass: "visitor-content",
+    processingMode: "strict",
+  });
+
+  if (!auth.allowed) {
+    console.warn("Visitor memory save rejected by DataPolicy:", auth.reason);
+    return null;
+  }
+
   const payload = JSON.stringify(memory);
+
+  // Assert no raw PII in memory payload
+  if (
+    /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(payload) ||
+    /(?:\+?\d[\s().-]*){9,}/.test(payload)
+  ) {
+    const piiAuth = policy.authorizeEgress({
+      tenantId: PORTFOLIO_TENANT_ID,
+      audience: "general",
+      provider: LOCAL_MEMORY_PROVIDER_ID,
+      purpose: "visitor-memory",
+      dataClass: "visitor-personal-data",
+      processingMode: "strict",
+    });
+    if (!piiAuth.allowed) {
+      console.warn("Visitor memory save blocked by DataPolicy: PII detected");
+      return null;
+    }
+  }
+
   await upstashCommand(["SET", key, payload, "EX", VISITOR_TTL_DAYS * 86400]);
   return memory;
 }

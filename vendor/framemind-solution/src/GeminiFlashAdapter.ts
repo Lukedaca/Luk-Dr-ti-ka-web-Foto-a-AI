@@ -1,4 +1,6 @@
-import type { ProviderAdapter, ProviderRequest, ProviderResponse } from './types.js';
+import type { DataPolicy } from './DataPolicy.js';
+import { SafetyShield } from './SafetyShield.js';
+import type { ProviderAdapter, ProviderRequest, ProviderResponse, TenantDeploymentPolicy } from './types.js';
 
 export type GeminiFetch = (url: string, init: {
   method: string;
@@ -12,6 +14,8 @@ export interface GeminiFlashAdapterOptions {
   endpoint?: string;
   model?: string;
   fetcher?: GeminiFetch;
+  dataPolicy?: DataPolicy;
+  tenantPolicy?: TenantDeploymentPolicy;
 }
 
 function outputText(value: unknown): string | null {
@@ -36,6 +40,8 @@ export class GeminiFlashAdapter implements ProviderAdapter {
   private readonly endpoint: string;
   private readonly model: string;
   private readonly fetcher: GeminiFetch;
+  private readonly dataPolicy: DataPolicy | undefined;
+  private readonly tenantPolicy: TenantDeploymentPolicy | undefined;
 
   constructor(options: GeminiFlashAdapterOptions) {
     this.key = options.apiKey.trim();
@@ -43,10 +49,26 @@ export class GeminiFlashAdapter implements ProviderAdapter {
     this.endpoint = (options.endpoint || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/+$/, '');
     this.model = options.model || 'gemini-3.8-flash';
     this.fetcher = options.fetcher ?? ((url, init) => fetch(url, init));
+    this.dataPolicy = options.dataPolicy;
+    this.tenantPolicy = options.tenantPolicy;
   }
 
   async generate(request: ProviderRequest): Promise<ProviderResponse> {
     if (!this.enabled) throw new Error('Gemini adapter is not configured');
+    if (!SafetyShield.isSafeForProvider(request.text)) {
+      throw new Error('Gemini adapter rejected unsafe request content or PII');
+    }
+    if (this.dataPolicy && this.tenantPolicy) {
+      const decision = this.dataPolicy.authorizeEgress({
+        tenantId: this.tenantPolicy.tenantId,
+        audience: this.tenantPolicy.audience,
+        provider: this.id,
+        purpose: 'managed-llm',
+        dataClass: 'visitor-content',
+        processingMode: this.tenantPolicy.processingMode,
+      });
+      if (!decision.allowed) throw new Error('Gemini adapter egress denied: ' + decision.reason);
+    }
     const context = Object.entries(request.context.slots).map(([key, value]) => key + ': ' + value).join('\n');
     const prompt = [
       'You are a concise FrameMind fallback. Use only the supplied question and approved context. Do not request personal data, invoke tools or invent facts.',

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  AzureSpeechAdapter,
+  DataPolicy,
   FrameMindEngine,
   GeminiFlashAdapter,
   GeminiSulafatTtsAdapter,
@@ -17,6 +19,27 @@ function config(adapter) {
     unknownResponse: 'Lokální odpověď.',
     staleResponse: 'Neaktuální odpověď.',
     provider: { enabled: true, adapter, maxInputChars: 500 },
+    tenantPolicy: {
+      tenantId: 'test-tenant',
+      domain: 'example.invalid',
+      audience: 'general',
+      processingMode: 'managed',
+      dataMode: 'minimal',
+      voice: { enabled: false, mode: 'off', locales: [], consentRequired: true },
+      managedProvider: { enabled: true, provider: adapter.id, maxInputChars: 500 },
+      retention: { transcript: false, visitorMemory: false, leads: false },
+      telemetry: { enabled: true, customerContentAllowed: false },
+    },
+    providerCompliance: [{
+      id: adapter.id,
+      allowedAudiences: ['general'],
+      supportedPurposes: ['managed-llm'],
+      allowedRegions: [],
+      retention: 'stateless test adapter',
+      training: 'not used for test',
+      verifiedAt: '2026-09-11',
+      documentationUrl: 'https://example.invalid/provider',
+    }],
   };
 }
 function snapshot() {
@@ -89,4 +112,59 @@ test('Sulafat TTS is stateless and declines sensitive output', async () => {
   assert.equal(request.generation_config.speech_config[0].voice, 'Sulafat');
   assert.equal(await adapter.synthesize('Heslo klienta je tajné.'), null);
   assert.equal(calls.length, 1);
+});
+
+test('direct AzureSpeechAdapter calls are gated by policy when configured', async () => {
+  const denyPolicy = new DataPolicy([{
+    tenantId: 't1',
+    domain: 'test.invalid',
+    audience: 'general',
+    processingMode: 'strict',
+    dataMode: 'minimal',
+    voice: { enabled: false, mode: 'off', locales: ['cs-CZ'], consentRequired: true },
+    retention: { transcript: false, visitorMemory: false, leads: false },
+    telemetry: { enabled: false, customerContentAllowed: false },
+  }], [{
+    id: 'azure-speech',
+    allowedAudiences: ['general'],
+    supportedPurposes: ['speech-to-text', 'text-to-speech'],
+    allowedRegions: ['northeurope'],
+    retention: 'real-time only',
+    training: 'none',
+    verifiedAt: '2026-09-11',
+    documentationUrl: 'https://learn.microsoft.com/azure',
+  }]);
+  const adapter = new AzureSpeechAdapter({
+    apiKey: 'secret',
+    region: 'northeurope',
+    dataPolicy: denyPolicy,
+    tenantPolicy: {
+      tenantId: 't1',
+      domain: 'test.invalid',
+      audience: 'general',
+      processingMode: 'strict',
+      dataMode: 'minimal',
+      voice: { enabled: false, mode: 'off', locales: ['cs-CZ'], consentRequired: true },
+      retention: { transcript: false, visitorMemory: false, leads: false },
+      telemetry: { enabled: false, customerContentAllowed: false },
+    },
+  });
+  await assert.rejects(
+    async () => adapter.issueAuthorizationToken(),
+    /Azure Speech token egress denied: managed-voice-disabled/
+  );
+});
+
+test('direct GeminiFlashAdapter rejects unsafe content and respects policy', async () => {
+  const adapter = new GeminiFlashAdapter({
+    apiKey: 'test-key',
+  });
+  await assert.rejects(
+    async () => adapter.generate({
+      text: 'Telefon je 777 123 456 a email test@example.cz',
+      locale: 'cs-CZ',
+      context: { turn: 1, slots: {}, sourceIds: [] },
+    }),
+    /Gemini adapter rejected unsafe request content or PII/
+  );
 });

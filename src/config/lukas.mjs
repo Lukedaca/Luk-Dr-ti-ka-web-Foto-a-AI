@@ -6,6 +6,10 @@ import {
   VoiceCapability,
   createPersonalPortfolioProfile,
 } from '../../vendor/framemind-solution/dist/index.js';
+import {
+  createPersonalPortfolioTenantPolicy,
+  createPersonalPortfolioProviderRegister,
+} from '../lib/tenant-policy.mjs';
 
 export { snapshot };
 
@@ -23,6 +27,8 @@ export const lukasConfig = {
   locale: 'cs-CZ',
   sourceLabel: 'Oficiální portfolio Lukáš Drštička',
   profile: LUKAS_PROFILE,
+  tenantPolicy: createPersonalPortfolioTenantPolicy(),
+  providerCompliance: createPersonalPortfolioProviderRegister(),
   intents: [
     {
       id: 'greeting',
@@ -346,10 +352,14 @@ export const lukasConfig = {
 
 export function createLukasEngine(options = {}) {
   const apiKey = typeof options.geminiApiKey === 'string' ? options.geminiApiKey.trim() : '';
+  const tenantPolicy = options.tenantPolicy || createPersonalPortfolioTenantPolicy();
+  const providerCompliance = options.providerCompliance || createPersonalPortfolioProviderRegister();
   const config = apiKey
     ? {
         ...lukasConfig,
         mode: 'managed',
+        tenantPolicy,
+        providerCompliance,
         provider: {
           enabled: true,
           adapter: new GeminiFlashAdapter({ apiKey }),
@@ -357,7 +367,11 @@ export function createLukasEngine(options = {}) {
           maxInputChars: 700,
         },
       }
-    : lukasConfig;
+    : {
+        ...lukasConfig,
+        tenantPolicy,
+        providerCompliance,
+      };
   return new FrameMindEngine(config, snapshot);
 }
 
