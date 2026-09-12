@@ -1358,8 +1358,10 @@ function sleep(ms) {
 
 function getGeminiApiKey() {
   return String(
-    process.env.GEMINI_API_KEY ||
     process.env.GEMMA_API_KEY ||
+    process.env.Gemma_API_Key ||
+    process.env.Gemma_Key ||
+    process.env.GEMINI_API_KEY ||
     process.env.Gemini ||
     process.env.GEMINI ||
     ""
