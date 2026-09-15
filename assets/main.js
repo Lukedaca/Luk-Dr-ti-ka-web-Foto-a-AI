@@ -852,9 +852,9 @@ class EnhancedChatbot {
                         description: 'Fotograf AI (semiagent) pro rychlou postprodukci a konzistentn\u00ed styl',
                         keywords: ['fotograf ai', 'fotograf', 'ai postprodukce', 'postprodukce', 'retu\u0161']
                     },
-                    vibecoding: {
-                        description: 'Vibecoding a prototypov\u00e1n\u00ed s Claude, Gemini, ChatGPT a Codex',
-                        keywords: ['vibecoding', 'claude', 'gemini', 'chatgpt', 'codex']
+                    ai_engineering: {
+                        description: 'AI-assisted software engineering a prototypování s Claude, Gemini, ChatGPT a Codex',
+                        keywords: ['ai engineering', 'software engineering', 'claude', 'gemini', 'chatgpt', 'codex']
                     },
                     agent_coding: {
                         description: 'Agentn\u00ed k\u00f3dov\u00e1n\u00ed pro rychl\u00e9 iterace a automatizaci workflow',
@@ -886,102 +886,102 @@ class EnhancedChatbot {
             sport: ['sport', 'z\u00e1pas', 'tr\u00e9nink', 'akce'],
             postproduction: ['postprodukce', 'retu\u0161', '\u00fapravy'],
             fotograf_ai: ['fotograf ai', 'ai postprodukce', 'semiagent'],
-            ai_stack: ['chatgpt', 'codex', 'claude', 'gemini', 'vibecoding', 'agentn\u00ed'],
-            portfolio: ['portfolio', 'uk\u00e1zka', 'reference', 'pr\u00e1ce']
+            ai_stack: ['chatgpt', 'codex', 'claude', 'gemini', 'ai-assisted', 'agentní', 'orchestrace'],
+            portfolio: ['portfolio', 'ukázka', 'reference', 'práce']
         };
     }
 
     buildIntents() {
         return {
             greeting: {
-                patterns: ['ahoj', '\u010dau', 'dobr\u00fd den', 'nazdar', 'hej', 'hello', 'hi'],
+                patterns: ['ahoj', 'čau', 'dobrý den', 'nazdar', 'hej', 'hello', 'hi'],
                 responses: [
-                    'Ahoj! Jsem AI asistent Luk\u00e1\u0161e. Jak ti m\u016f\u017eu pomoct?',
-                    'Zdrav\u00edm! Co t\u011b zaj\u00edm\u00e1 - sportovn\u00ed, portr\u00e9tn\u00ed focen\u00ed nebo AI/automatizace?'
+                    'Ahoj! Jsem AI asistent Lukáše. Jak ti můžu pomoct?',
+                    'Zdravím! Co tě zajímá - sportovní, portrétní focení nebo AI/automatizace?'
                 ]
             },
             thanks: {
-                patterns: ['d\u011bkuji', 'd\u00edk', 'd\u00edky', 'thanks'],
+                patterns: ['děkuji', 'dík', 'díky', 'thanks'],
                 responses: [
-                    'R\u00e1do se stalo! Pokud chce\u0161, napi\u0161 p\u00e1r detail\u016f (term\u00edn, m\u00edsto, o\u010dek\u00e1v\u00e1n\u00ed).',
-                    'Nen\u00ed za\u010d! M\u016f\u017eeme rovnou domluvit term\u00edn nebo proj\u00edt portfolio.'
+                    'Rádo se stalo! Pokud chceš, napiš pár detailů (termín, místo, očekávání).',
+                    'Není zač! Můžeme rovnou domluvit termín nebo projít portfolio.'
                 ]
             },
             capabilities: {
-                patterns: ['co um\u00ed\u0161', 'co d\u011bl\u00e1\u0161', 'co nab\u00edz\u00ed\u0161', 'slu\u017eby', 'schopnosti', 'co zvl\u00e1d\u00e1\u0161', 'jak mi pom\u016f\u017ee\u0161'],
+                patterns: ['co umíš', 'co děláš', 'co nabízíš', 'služby', 'schopnosti', 'co zvládáš', 'jak mi pomůžeš'],
                 responses: [
-                    'Um\u00edm poradit se sportovn\u00ed i portr\u00e9tn\u00ed fotkou, postprodukc\u00ed (Fotograf AI) a AI/automatizacemi. Co je pro tebe priorita?',
-                    'Jsem tady pro info o focen\u00ed, cen\u00e1ch, term\u00ednech, dod\u00e1n\u00ed a AI slu\u017eb\u00e1ch. Na co se chce\u0161 zeptat?',
-                    'Pom\u016f\u017eu s v\u00fdb\u011brem slu\u017eby, domluvou term\u00ednu i vysv\u011btlen\u00edm, co je Fotograf AI. Co t\u011b zaj\u00edm\u00e1?'
+                    'Umím poradit se sportovní i portrétní fotkou, postprodukcí (Fotograf AI) a AI/automatizacemi. Co je pro tebe priorita?',
+                    'Jsem tady pro info o focení, cenách, termínech, dodání a AI službách. Na co se chceš zeptat?',
+                    'Pomůžu s výběrem služby, domluvou termínu i vysvětlením, co je Fotograf AI. Co tě zajímá?'
                 ]
             },
             assistant_info: {
-                patterns: ['co um\u00ed\u0161 jako asistent', 'co um\u00ed asistent', 'jak um\u00ed\u0161 pomoct', 'co je tv\u016fj \u00fa\u010del', 'kdo jsi', 'jsi chatbot', 'jsi asistent'],
+                patterns: ['co umíš jako asistent', 'co umí asistent', 'jak umíš pomoct', 'co je tvůj účel', 'kdo jsi', 'jsi chatbot', 'jsi asistent'],
                 responses: [
-                    'Jsem offline asistent na tomto webu. Um\u00edm poradit s focen\u00edm, cenami, term\u00edny, dod\u00e1n\u00edm a AI slu\u017ebami.',
-                    'Jako asistent odpov\u00edd\u00e1m na dotazy o slu\u017eb\u00e1ch, uk\u00e1zk\u00e1ch a kontaktu. M\u016f\u017eu i pomoci s domluvou term\u00ednu.',
-                    'Jsem tu, abych rychle nasm\u011broval k informac\u00edm o focen\u00ed, postprodukci a AI projektech. Co pot\u0159ebuje\u0161?'
+                    'Jsem offline asistent na tomto webu. Umím poradit s focením, cenami, termíny, dodáním a AI službami.',
+                    'Jako asistent odpovídám na dotazy o službách, ukázkách a kontaktu. Můžu i pomoci s domluvou termínu.',
+                    'Jsem tu, abych rychle nasměroval k informacím o focení, postprodukci a AI projektech. Co potřebuješ?'
                 ]
             },
             portfolio: {
-                patterns: ['portfolio', 'uk\u00e1zky', 'uk\u00e1zka', 'reference', 'pr\u00e1ce'],
+                patterns: ['portfolio', 'ukázky', 'ukázka', 'reference', 'práce'],
                 responses: [
-                    'Portfolio najde\u0161 p\u0159\u00edmo na str\u00e1nce. Chce\u0161 sportovn\u00ed nebo portr\u00e9tn\u00ed uk\u00e1zky?',
-                    'R\u00e1d po\u0161lu konkr\u00e9tn\u00ed uk\u00e1zky \u2013 napi\u0161, jestli \u0159e\u0161\u00ed\u0161 sport nebo portr\u00e9t.'
+                    'Portfolio najdeš přímo na stránce. Chceš sportovní nebo portrétní ukázky?',
+                    'Rád pošlu konkrétní ukázky – napiš, jestli řešíš sport nebo portrét.'
                 ]
             },
             price_inquiry: {
-                patterns: ['kolik', 'cena', 'cen\u00edk', 'stoj\u00ed', 'price'],
+                patterns: ['kolik', 'cena', 'ceník', 'stojí', 'price'],
                 responses: [
-                    'Ceny jsou individu\u00e1ln\u00ed podle rozsahu, term\u00ednu a lokality. Napi\u0161 stru\u010dn\u011b zad\u00e1n\u00ed a ozvu se: lukas.drsticka@gmail.com'
+                    'Ceny jsou individuální podle rozsahu, termínu a lokality. Napiš stručně zadání a ozvu se: lukas.drsticka@gmail.com'
                 ]
             },
             booking: {
-                patterns: ['term\u00edn', 'rezervace', 'rezervovat', 'domluvit', 'sch\u016fzka'],
+                patterns: ['termín', 'rezervace', 'rezervovat', 'domluvit', 'schůzka'],
                 responses: [
-                    'Jasn\u011b, napi\u0161 pros\u00edm datum, m\u00edsto a typ focen\u00ed (sport/portr\u00e9t).',
-                    'Po\u0161li term\u00edn, lokaci a o\u010dek\u00e1v\u00e1n\u00ed \u2013 p\u0159iprav\u00edm n\u00e1vrh.'
+                    'Jasně, napiš prosím datum, místo a typ focení (sport/portrét).',
+                    'Pošli termín, lokaci a očekávání – připravím návrh.'
                 ]
             },
             availability: {
-                patterns: ['dostupnost', 'voln\u00fd', 'kdy m\u016f\u017ee\u0161', 'kdy m\u00e1\u0161'],
+                patterns: ['dostupnost', 'volný', 'kdy můžeš', 'kdy máš'],
                 responses: [
-                    'Dostupnost \u0159e\u0161\u00edm individu\u00e1ln\u011b. Po\u0161li pros\u00edm term\u00edn a m\u00edsto.',
-                    'Napi\u0161, kdy a kde pot\u0159ebuje\u0161 fotit, a ozvu se s potvrzen\u00edm.'
+                    'Dostupnost řeším individuálně. Pošli prosím termín a místo.',
+                    'Napiš, kdy a kde potřebuješ fotit, a ozvu se s potvrzením.'
                 ]
             },
             delivery_time: {
-                patterns: ['dod\u00e1n\u00ed', 'term\u00edn dod\u00e1n\u00ed', 'kdy budou', 'jak dlouho'],
+                patterns: ['dodání', 'termín dodání', 'kdy budou', 'jak dlouho'],
                 responses: [
-                    'Dod\u00e1n\u00ed se li\u0161\u00ed podle rozsahu. Orienta\u010dn\u011b to up\u0159esn\u00edm po zad\u00e1n\u00ed.',
-                    'Jakmile zn\u00e1m rozsah, \u0159eknu ti p\u0159esn\u00fd term\u00edn dod\u00e1n\u00ed.'
+                    'Dodání se liší podle rozsahu. Orientačně to upřesním po zadání.',
+                    'Jakmile znám rozsah, řeknu ti přesný termín dodání.'
                 ]
             },
             contact_request: {
                 patterns: ['kontakt', 'email', 'napsat', 'oslovit'],
                 responses: [
-                    'Email: lukas.drsticka@gmail.com - klidn\u011b napi\u0161!'
+                    'Email: lukas.drsticka@gmail.com - klidně napiš!'
                 ]
             },
             postproduction: {
-                patterns: ['postprodukce', 'retu\u0161', '\u00fapravy', 'ai postprodukce'],
+                patterns: ['postprodukce', 'retuš', 'úpravy', 'ai postprodukce'],
                 responses: [
-                    'Postprodukci \u0159e\u0161\u00edm p\u0159es Fotograf AI (semiagent), tak\u017ee dod\u00e1n\u00ed je rychl\u00e9 a konzistentn\u00ed.',
-                    'Fotograf AI mi dr\u017e\u00ed styl nap\u0159\u00ed\u010d s\u00e9ri\u00ed a urychluje retu\u0161.'
+                    'Postprodukci řeším přes Fotograf AI (semiagent), takže dodání je rychlé a konzistentní.',
+                    'Fotograf AI mi drží styl napříč sérií a urychluje retuš.'
                 ]
             },
             fotograf_ai: {
                 patterns: ['fotograf ai', 'semiagent', 'ai postprodukce'],
                 responses: [
-                    'Fotograf AI je moje semiagent aplikace pro rychlou postprodukci a jednotn\u00fd look.',
-                    'Fotograf AI v\u00fdrazn\u011b zkracuje \u010das postprodukce bez ztr\u00e1ty kvality.'
+                    'Fotograf AI je moje semiagent aplikace pro rychlou postprodukci a jednotný look.',
+                    'Fotograf AI výrazně zkracuje čas postprodukce bez ztráty kvality.'
                 ]
             },
             ai_stack: {
-                patterns: ['vibecoding', 'claude', 'gemini', 'chatgpt', 'codex', 'agentn\u00ed'],
+                patterns: ['ai-assisted', 'claude', 'gemini', 'chatgpt', 'codex', 'agentní', 'orchestrace'],
                 responses: [
-                    'Tech stack: vibecoding s Claude, Gemini, ChatGPT a Codex. K tomu agentn\u00ed workflow pro automatizace.',
-                    'Pou\u017e\u00edv\u00e1m Claude/Gemini/ChatGPT/Codex a agentn\u00ed k\u00f3dov\u00e1n\u00ed pro rychl\u00e9 iterace.'
+                    'Tech stack: AI-assisted software engineering a agentní systémy (Claude, Gemini, Codex). K tomu agentní workflow pro automatizace.',
+                    'Používám Claude/Gemini/Codex a agentní orchestraci pro rychlé, spolehlivé iterace.'
                 ]
             }
         };

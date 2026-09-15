@@ -74,8 +74,8 @@ SLUZBY KTERE NABIZIS INFO:
 
 2. AI & AUTOMATIZACE:
    - Fotograf AI: autorska semiagent aplikace pro rychlou postprodukci a konzistentni styl
-   - Vibecoding a prototypovani s Claude, Gemini, ChatGPT a Codex
-   - Agentni kodovani pro rychle iterace
+   - AI-assisted software engineering a prototypovani s Claude, Gemini a Codex
+   - Agentni orchestrace a workflow pro rychle, spolehlive iterace
    - Automatizace workflow a procesu
    - Chatboty a AI asistenti na miru
 
