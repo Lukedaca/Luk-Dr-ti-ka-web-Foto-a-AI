@@ -2947,3 +2947,423 @@ body::after { display: block !important; }
 .stage-card-accent.on { opacity: 1; }
 .stage-card-accent canvas { display: block; width: 100%; height: 100%; }
 
+/* ==========================================================================
+   RAW & SILICON — PRECISION MONOLITH SUITE (Optics & Computational Systems)
+   Anti-AI-Slop · 100% Performance · Pure CSS Acceleration
+   ========================================================================== */
+
+:root {
+  --amber-optic: #f59e0b;
+  --amber-optic-hi: #fbbf24;
+  --amber-optic-deep: #d97706;
+  --amber-glow: rgba(245, 158, 11, 0.22);
+  --cyan-optic: #38bdf8;
+  --magnesium-900: #07090e;
+  --magnesium-850: #0b0f17;
+  --magnesium-800: #101522;
+  --magnesium-700: #182030;
+  --hairline-optic: rgba(255, 255, 255, 0.08);
+  --hairline-optic-hi: rgba(245, 158, 11, 0.4);
+}
+
+/* 1. Viewfinder HUD Status Strip */
+.viewfinder-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 0.55rem 1rem;
+  background: rgba(11, 15, 23, 0.85);
+  border: 1px solid var(--hairline-optic);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--silver-300);
+  margin-bottom: 1.75rem;
+  backdrop-filter: blur(10px);
+}
+
+.hud-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hud-rec-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulseSoft 1.6s ease-in-out infinite;
+}
+
+.hud-val {
+  color: var(--silver-50);
+  font-weight: 600;
+}
+
+.hud-val-amber {
+  color: var(--amber-optic);
+  font-weight: 600;
+}
+
+/* 2. Precision Concave Corners (Vyfrézované rohy) */
+.corner-concave {
+  --corner-cut: 18px;
+  position: relative;
+  background: var(--magnesium-850);
+  border: 1px solid var(--hairline-optic);
+  border-radius: 4px;
+}
+
+@supports (mask-image: radial-gradient(circle, black, transparent)) or (-webkit-mask-image: radial-gradient(circle, black, transparent)) {
+  .corner-concave-cut {
+    mask-image:
+      radial-gradient(circle var(--corner-cut) at 0 0, transparent 98%, black 100%),
+      radial-gradient(circle var(--corner-cut) at 100% 0, transparent 98%, black 100%),
+      radial-gradient(circle var(--corner-cut) at 0 100%, transparent 98%, black 100%),
+      radial-gradient(circle var(--corner-cut) at 100% 100%, transparent 98%, black 100%);
+    mask-size: 51% 51%;
+    mask-position: top left, top right, bottom left, bottom right;
+    mask-repeat: no-repeat;
+    -webkit-mask-image:
+      radial-gradient(circle var(--corner-cut) at 0 0, transparent 98%, black 100%),
+      radial-gradient(circle var(--corner-cut) at 100% 0, transparent 98%, black 100%),
+      radial-gradient(circle var(--corner-cut) at 0 100%, transparent 98%, black 100%),
+      radial-gradient(circle var(--corner-cut) at 100% 100%, transparent 98%, black 100%);
+    -webkit-mask-size: 51% 51%;
+    -webkit-mask-position: top left, top right, bottom left, bottom right;
+    -webkit-mask-repeat: no-repeat;
+  }
+}
+
+/* 3. Optické značky hledáčku (Viewfinder Reticle Marks) */
+.viewfinder-frame {
+  position: relative;
+}
+
+.viewfinder-frame::before,
+.viewfinder-frame::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  border-color: var(--amber-optic);
+  border-style: solid;
+  opacity: 0.8;
+  z-index: 10;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.viewfinder-frame::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.viewfinder-frame::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.viewfinder-frame:hover::before,
+.viewfinder-frame:hover::after {
+  opacity: 1;
+  border-color: var(--amber-optic-hi);
+}
+
+/* 4. Optická tlačítka (Náhrada generických fialových přechodů) */
+.btn-optic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 6px;
+  background: var(--amber-optic);
+  color: #07090e;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--amber-optic-hi);
+  box-shadow: 0 2px 10px var(--amber-glow);
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-optic:hover {
+  background: var(--amber-optic-hi);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+  color: #050a14;
+}
+
+.btn-optic:active {
+  transform: translateY(0);
+}
+
+.btn-optic-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--silver-100);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-optic-ghost:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--amber-optic);
+  color: var(--silver-50);
+  transform: translateY(-1px);
+}
+
+/* 5. Technický spec sheet (Dovednosti) */
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .spec-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.spec-card {
+  position: relative;
+  background: var(--magnesium-850);
+  border: 1px solid var(--hairline-optic);
+  border-radius: 8px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.25s ease, transform 0.2s ease;
+}
+
+.spec-card:hover {
+  border-color: rgba(245, 158, 11, 0.35);
+  transform: translateY(-2px);
+}
+
+.spec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--hairline-optic);
+}
+
+.spec-division {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--amber-optic);
+  font-weight: 600;
+}
+
+.spec-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--hairline-optic);
+  color: var(--silver-300);
+}
+
+.spec-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--silver-50);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.spec-desc {
+  font-size: 0.92rem;
+  color: var(--silver-200);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.spec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--silver-200);
+}
+
+.spec-bullet {
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--amber-optic);
+}
+
+.spec-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.spec-tag {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--hairline-optic);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--silver-200);
+}
+
+/* 6. Pipeline Workflow (Jak pracuji) */
+.pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .pipeline-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pipeline-card {
+  position: relative;
+  background: var(--magnesium-850);
+  border: 1px solid var(--hairline-optic);
+  border-radius: 8px;
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.pipeline-card:hover {
+  border-color: rgba(245, 158, 11, 0.35);
+  transform: translateY(-2px);
+}
+
+.pipeline-num {
+  font-family: var(--font-mono);
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(245, 158, 11, 0.35);
+  margin-bottom: 1rem;
+  letter-spacing: -0.04em;
+}
+
+.pipeline-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--silver-50);
+  margin-bottom: 0.5rem;
+}
+
+.pipeline-desc {
+  font-size: 0.88rem;
+  color: var(--silver-300);
+  line-height: 1.55;
+}
+
+/* 7. Hero Monolith & Console */
+.hero-monolith {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3.5rem;
+}
+
+.hero-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+@media (min-width: 992px) {
+  .hero-columns {
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 2.5rem;
+  }
+}
+
+.hero-profile-box {
+  background: var(--magnesium-850);
+  border: 1px solid var(--hairline-optic);
+  border-radius: 8px;
+  padding: 2.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hero-headline-title {
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--silver-50);
+  margin: 0.85rem 0 1.25rem;
+}
+
+.hero-lead-text {
+  font-size: 1.02rem;
+  color: var(--silver-200);
+  line-height: 1.65;
+  margin-bottom: 2rem;
+  max-width: 52ch;
+}
+
+/* 8. Optical Controls & Filter Pills */
+.filter-btn.active {
+  background: var(--amber-optic) !important;
+  color: #07090e !important;
+  border-color: var(--amber-optic-hi) !important;
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+.filter-btn:hover:not(.active) {
+  border-color: var(--amber-optic) !important;
+  color: var(--silver-50) !important;
+}
+
+

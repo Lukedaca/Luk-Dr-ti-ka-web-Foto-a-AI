@@ -383,12 +383,12 @@ body > * {
 
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8" aria-label="Hlavní navigace">
-                <a href="#hybridni-agent" class="nav-link hover:text-blue-400 transition">Hybridní agent</a>
-                <a href="#portfolio" class="nav-link hover:text-blue-400 transition">Portfolio</a>
-                <a href="#skills" class="nav-link hover:text-blue-400 transition">Dovednosti</a>
-                <a href="#o-mne" class="nav-link hover:text-blue-400 transition">O mně</a>
-                <a href="#spoluprace" class="nav-link hover:text-blue-400 transition">Spolupráce</a>
-                <a href="#kontakt" class="nav-link hover:text-blue-400 transition">Kontakt</a>
+                <a href="#hybridni-agent" class="nav-link hover:text-amber-400 transition">Hybridní agent</a>
+                <a href="#portfolio" class="nav-link hover:text-amber-400 transition">Portfolio</a>
+                <a href="#skills" class="nav-link hover:text-amber-400 transition">Dovednosti</a>
+                <a href="#o-mne" class="nav-link hover:text-amber-400 transition">O mně</a>
+                <a href="#spoluprace" class="nav-link hover:text-amber-400 transition">Spolupráce</a>
+                <a href="#kontakt" class="nav-link hover:text-amber-400 transition">Kontakt</a>
 
                 <div id="langToggleDesktopStatic" class="flex items-center gap-1 glass rounded-full p-1">
                     <button type="button" class="lang-switch-btn px-3 py-1.5 rounded-full text-xs font-semibold transition bg-white text-slate-900" data-lang-option="cs" aria-pressed="true">CZ</button>
@@ -414,12 +414,12 @@ body > * {
         <!-- Close button -->
         <button id="mobileMenuClose" class="absolute top-6 right-6 text-white text-4xl hover:text-gray-300 transition" aria-label="Zavřít menu">&times;</button>
         <nav class="flex flex-col items-center justify-center h-full space-y-8 text-2xl" aria-label="Mobilní navigace">
-            <a href="#hybridni-agent" class="mobile-menu-link hover:text-blue-400 transition">Hybridní agent</a>
-            <a href="#portfolio" class="mobile-menu-link hover:text-blue-400 transition">Portfolio</a>
-            <a href="#skills" class="mobile-menu-link hover:text-blue-400 transition">Dovednosti</a>
-            <a href="#o-mne" class="mobile-menu-link hover:text-blue-400 transition">O mně</a>
-            <a href="#spoluprace" class="mobile-menu-link hover:text-blue-400 transition">Spolupráce</a>
-            <a href="#kontakt" class="mobile-menu-link hover:text-blue-400 transition">Kontakt</a>
+            <a href="#hybridni-agent" class="mobile-menu-link hover:text-amber-400 transition">Hybridní agent</a>
+            <a href="#portfolio" class="mobile-menu-link hover:text-amber-400 transition">Portfolio</a>
+            <a href="#skills" class="mobile-menu-link hover:text-amber-400 transition">Dovednosti</a>
+            <a href="#o-mne" class="mobile-menu-link hover:text-amber-400 transition">O mně</a>
+            <a href="#spoluprace" class="mobile-menu-link hover:text-amber-400 transition">Spolupráce</a>
+            <a href="#kontakt" class="mobile-menu-link hover:text-amber-400 transition">Kontakt</a>
 
             <!-- Theme toggle + Language switcher (mobile) -->
             <div class="flex items-center gap-4 mt-4" style="position:relative;z-index:10">
@@ -435,28 +435,47 @@ body > * {
     </div>
 
     <main id="main" class="pt-20" tabindex="-1">
-        <!-- Hero Section — „Výstava": kinetická rytina clony jako exponát, muzejní štítek vedle -->
-        <section id="hero" class="hero-exhibit relative min-h-screen overflow-hidden">
+        <!-- Hero Section — RAW & SILICON Precision Monolith -->
+        <section id="hero" class="hero-exhibit relative overflow-hidden pt-12 pb-16">
             <div class="hero-stage" data-stage="neuro-noise" aria-hidden="true"></div>
-            <div class="hero-exhibit-inner">
-                <div class="hero-label">
-                    <h1 class="hero-h1 hero-kicker">
-                        <span data-hero-role-a>Fotograf</span> <span class="hero-amp">&amp;</span> <span data-hero-role-b>AI Developer</span>
-                    </h1>
+            <div class="container mx-auto px-6 max-w-5xl relative z-10">
+                <!-- Viewfinder HUD Status Strip -->
+                <div class="viewfinder-hud">
+                    <div class="hud-item">
+                        <span class="hud-rec-dot"></span>
+                        <span>REC <span class="hud-val">LIVE</span></span>
+                    </div>
+                    <div class="hud-item">
+                        <span>LOC: <span class="hud-val">PŘEROV · 49.4553° N, 17.4510° E</span></span>
+                    </div>
+                    <div class="hud-item">
+                        <span>OPTICS: <span class="hud-val">SPORTS &amp; PORTRAIT</span></span>
+                    </div>
+                    <div class="hud-item">
+                        <span>SYSTEM: <span class="hud-val-amber">AI AGENT v1.2.0</span></span>
+                    </div>
+                </div>
 
-                    <h2 class="hero-name">Lukáš Drštička</h2>
+                <div class="hero-label text-center max-w-3xl mx-auto">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-mono tracking-widest uppercase mb-4">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        <h1 class="hero-h1 inline">
+                            <span data-hero-role-a>Fotograf</span> <span class="hero-amp">&amp;</span> <span data-hero-role-b>AI Developer</span>
+                        </h1>
+                    </div>
 
-                    <div class="hero-cta-row text-center">
-                        <a href="#portfolio" class="hero-cta hero-cta-primary">Portfolio</a>
-                        <a href="#hybridni-agent" class="hero-cta">Hybridní agent</a>
+                    <h2 class="hero-name text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6">Lukáš Drštička</h2>
+
+                    <p class="hero-lead-text text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-8 leading-relaxed">
+                        Sportovní a portrétní fotografie zachycená s maximální dynamikou a citem pro detail. Zakázková AI řešení, hybridní agenti a automatizace procesů postavené na deterministické architektuře.
+                    </p>
+
+                    <div class="hero-cta-row flex flex-wrap justify-center gap-4 text-center">
+                        <a href="#portfolio" class="btn-optic" style="text-decoration:none;">Portfolio</a>
+                        <a href="#hybridni-agent" class="btn-optic-ghost" style="text-decoration:none;">Hybridní agent</a>
                     </div>
                 </div>
             </div>
-
-            <a href="#hybridni-agent" class="hero-scroll-cue" aria-label="Posunout na obsah">
-                <span class="hero-scroll-word">scroll</span>
-                <span class="hero-scroll-line" aria-hidden="true"></span>
-            </a>
         </section>
 
         <!-- Scroll-velocity marquee — brand texture mezi hero a agentem -->
@@ -474,20 +493,23 @@ body > * {
         </div>
 
         <!-- Hybridní agent Section -->
-        <section id="hybridni-agent" class="py-24 reveal">
+        <section id="hybridni-agent" class="py-16 reveal">
             <div class="container mx-auto px-6 section-wrap">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Hybridní agent</h2>
-                <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.</p>
+                <div class="text-center max-w-2xl mx-auto mb-10">
+                    <span class="inline-block text-xs font-mono tracking-widest uppercase text-amber-400 mb-2">AUTONOMOUS INTERFACE</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-3 gradient-text section-title">Hybridní agent</h2>
+                    <p class="text-slate-400 text-sm sm:text-base">Chatbot a hlasový agent v jednom. Píše, mluví a rovnou navrhuje další krok. Funguje v češtině i angličtině.</p>
+                </div>
 
                 <div class="max-w-4xl mx-auto">
-                    <div id="hero-chat" class="glass rounded-[2rem] p-6 md:p-8 text-left">
-                            <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between mb-6">
+                    <div id="hero-chat" class="corner-concave viewfinder-frame p-6 md:p-8 text-left border border-white/10 rounded-xl bg-slate-900/90 shadow-2xl">
+                            <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between mb-6 pb-4 border-b border-white/10">
                                 <div>
-                                    <p class="text-sm uppercase tracking-[0.35em] text-white/45">Lukáš AI · CZ / EN</p>
-                                    <h3 class="text-2xl font-bold mt-2">Piš mi nebo klikni na Mluvit hlasem</h3>
+                                    <p class="text-xs uppercase tracking-[0.35em] text-amber-400 font-mono">Lukáš AI · CZ / EN</p>
+                                    <h3 class="text-xl sm:text-2xl font-bold mt-1 text-white">Piš mi nebo klikni na Mluvit hlasem</h3>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-3">
-                                    <div id="agent-mode-badge" class="agent-status-badge">Hybridní agent</div>
+                                    <div id="agent-mode-badge" class="agent-status-badge font-mono text-xs">Hybridní agent</div>
                                     <button id="hero-tour-btn" type="button" class="agent-tour-launch" aria-label="Spustit živou ukázku">
                                         <span aria-hidden="true">▶</span>
                                         <span class="agent-tour-launch-label">Živá ukázka</span>
@@ -503,31 +525,31 @@ body > * {
                     <div class="flex flex-col sm:flex-row gap-3">
                         <label for="hero-input" class="sr-only">Vaše zpráva pro hybridního AI agenta</label>
                         <input id="hero-input" type="text" placeholder="Zeptej se česky nebo in English..."
-                               class="flex-1 min-w-0 bg-white/10 border border-white/15 rounded-xl px-5 py-3 text-base text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition" autocomplete="off" aria-label="Vaše zpráva pro hybridního AI agenta" />
+                               class="flex-1 min-w-0 bg-white/5 border border-white/15 rounded-lg px-5 py-3 text-base text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 transition font-sans" autocomplete="off" aria-label="Vaše zpráva pro hybridního AI agenta" />
                         <div class="flex gap-3 shrink-0">
                             <button id="voice-call-btn" type="button" aria-label="Mluvit hlasem s Lukáš AI"
-                                    class="glass voice-call-btn flex-1 sm:flex-none px-4 py-3 rounded-xl hover:bg-white/10 transition inline-flex items-center justify-center gap-2"
+                                    class="btn-optic-ghost flex-1 sm:flex-none px-4 py-3 rounded-lg transition inline-flex items-center justify-center gap-2"
                                     data-voice-status="idle" title="Mluvit hlasem s Lukáš AI">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 18a5 5 0 0 0 5-5V8a5 5 0 1 0-10 0v5a5 5 0 0 0 5 5Zm0 0v3m-4 0h8" />
                                 </svg>
-                                <span class="text-sm font-semibold whitespace-nowrap">Mluvit hlasem</span>
+                                <span class="text-sm font-semibold whitespace-nowrap font-mono">Mluvit hlasem</span>
                             </button>
                             <button id="hero-send" aria-label="Odeslat zprávu"
-                                    class="flex-1 sm:flex-none px-5 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-semibold hover:opacity-90 transition whitespace-nowrap">
+                                    class="btn-optic flex-1 sm:flex-none px-6 py-3 rounded-lg text-sm font-semibold transition whitespace-nowrap">
                                 Odeslat
                             </button>
                         </div>
                     </div>
 
-                    <p id="hero-chat-helper" class="mt-3 text-sm text-white/60">Klikni na <strong class="text-white/85 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-white/85 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Hybridní agent funguje v <strong class="text-white/85 font-semibold">CZ / EN</strong>.</p>
+                    <p id="hero-chat-helper" class="mt-3 text-xs sm:text-sm text-slate-400">Klikni na <strong class="text-slate-200 font-semibold">Mluvit hlasem</strong> pro voice call nebo zapni <strong class="text-slate-200 font-semibold">hlasové odpovědi</strong>, když chceš psát a slyšet odpovědi nahlas. Hybridní agent funguje v <strong class="text-slate-200 font-semibold">CZ / EN</strong>.</p>
 
                     <div id="hero-quick-replies" class="flex gap-2 flex-wrap mt-4">
-                        <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Děláš portrétní focení?">Portréty</button>
-                        <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Odpovídej mi prosím hlasem, ale já budu dál psát.">Odpovídej hlasem</button>
-                        <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Please continue in English and tell me what you do.">Speak English</button>
-                        <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Fotíš sportovní akce?">Sport</button>
-                        <button class="hero-qr glass chip px-4 py-2 rounded-full text-sm hover:bg-white/10 transition" data-value="Jak funguje Fotograf AI?">Fotograf AI</button>
+                        <button class="hero-qr glass chip px-3.5 py-1.5 rounded text-xs font-mono hover:border-amber-400 hover:text-white transition" data-value="Děláš portrétní focení?">Portréty</button>
+                        <button class="hero-qr glass chip px-3.5 py-1.5 rounded text-xs font-mono hover:border-amber-400 hover:text-white transition" data-value="Odpovídej mi prosím hlasem, ale já budu dál psát.">Odpovídej hlasem</button>
+                        <button class="hero-qr glass chip px-3.5 py-1.5 rounded text-xs font-mono hover:border-amber-400 hover:text-white transition" data-value="Please continue in English and tell me what you do.">Speak English</button>
+                        <button class="hero-qr glass chip px-3.5 py-1.5 rounded text-xs font-mono hover:border-amber-400 hover:text-white transition" data-value="Fotíš sportovní akce?">Sport</button>
+                        <button class="hero-qr glass chip px-3.5 py-1.5 rounded text-xs font-mono hover:border-amber-400 hover:text-white transition" data-value="Jak funguje Fotograf AI?">Fotograf AI</button>
                     </div>
                 </div>
             </div>
@@ -762,211 +784,201 @@ body > * {
 
 
 
-        <section id="skills" class="py-24 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent reveal">
+        <!-- Skills Section — Technical Specification -->
+        <section id="skills" class="py-20 reveal">
             <div class="container mx-auto px-6 max-w-6xl section-wrap">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Dovednosti & Technologie</h2>
-                <p class="text-center text-gray-400 mb-16 max-w-2xl mx-auto">
-                    Specializuji se na sportovní a portrétní fotografii. Postprodukci zrychluje moje AI aplikace Fotograf AI (semiagent).
-                </p>
+                <div class="text-center max-w-2xl mx-auto mb-14">
+                    <span class="inline-block text-xs font-mono tracking-widest uppercase text-amber-400 mb-2">ENGINEERING &amp; OPTICS</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-3 gradient-text section-title">Dovednosti &amp; Technologie</h2>
+                    <p class="text-slate-400 text-sm sm:text-base">
+                        Specializace na sportovní a portrétní fotografii v Přerově a okolí. Postprodukční workflow zrychluje autorský semiagent Fotograf AI.
+                    </p>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Photography Skills -->
-                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                        <div class="text-5xl mb-4">📷</div>
-                        <h3 class="text-2xl font-bold mb-6">Fotografie</h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Portrétní foto</span>
-                                    <span class="text-sm text-blue-400">95%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="95" style="width: 0%"></div>
-                                </div>
+                <div class="spec-grid mb-12">
+                    <!-- Modul 01: Fotografie -->
+                    <div class="spec-card">
+                        <div class="spec-header">
+                            <span class="spec-division">DIVIZE 01 / OPTIKA</span>
+                            <span class="spec-badge">RAW &amp; FIELD</span>
+                        </div>
+                        <h3 class="spec-title">Sportovní &amp; Portrétní Fotografie</h3>
+                        <p class="spec-desc">
+                            Dynamické zachycení zápasových momentů na ligové úrovni i charakterová portrétní tvorba v exteriéru či ateliéru.
+                        </p>
+                        <div class="spec-list">
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Akční sportovní sekvence a souboje</span>
                             </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Sportovní foto</span>
-                                    <span class="text-sm text-blue-400">92%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="92" style="width: 0%"></div>
-                                </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Klubová dokumentace a fanouškovské momenty</span>
                             </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Akční sekvence</span>
-                                    <span class="text-sm text-blue-400">88%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="88" style="width: 0%"></div>
-                                </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Portrétní a promo fotografie na míru</span>
                             </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">AI postprodukce (Fotograf AI)</span>
-                                    <span class="text-sm text-blue-400">94%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="94" style="width: 0%"></div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Expresní dodání selekce: 7–14 dní</span>
                             </div>
+                        </div>
+                        <div class="spec-tags">
+                            <span class="spec-tag">Sport</span>
+                            <span class="spec-tag">Portrét</span>
+                            <span class="spec-tag">Reportáž</span>
+                            <span class="spec-tag">Zápas</span>
+                        </div>
+                    </div>
+
+                    <!-- Modul 02: Fotograf AI -->
+                    <div class="spec-card">
+                        <div class="spec-header">
+                            <span class="spec-division">DIVIZE 02 / AUTOMATIZACE</span>
+                            <span class="spec-badge">SEMIAGENT</span>
+                        </div>
+                        <h3 class="spec-title">Fotograf AI (Semiagent)</h3>
+                        <p class="spec-desc">
+                            Autorská specializovaná aplikace pro bleskovou postprodukci. Drží konzistentní tónování napříč stovkami zápasových snímků.
+                        </p>
+                        <div class="spec-list">
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Konzistentní styl a barevný grading série</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Až 5× rychlejší retuš a finální export</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Zachování 100% dynamického rozsahu RAW</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Poloautonomní kontrola kvality každé fotky</span>
+                            </div>
+                        </div>
+                        <div class="spec-tags">
+                            <span class="spec-tag">Fotograf AI</span>
+                            <span class="spec-tag">Barevný grading</span>
+                            <span class="spec-tag">Retuš</span>
+                            <span class="spec-tag">Batch workflow</span>
+                        </div>
+                    </div>
+
+                    <!-- Modul 03: AI & Software -->
+                    <div class="spec-card">
+                        <div class="spec-header">
+                            <span class="spec-division">DIVIZE 03 / KÓD</span>
+                            <span class="spec-badge">SYSTEMS</span>
+                        </div>
+                        <h3 class="spec-title">AI-Assisted Engineering</h3>
+                        <p class="spec-desc">
+                            Vývoj moderních webových aplikací, hybridních hlasových agentů a automatizovaných integračních pipelines na míru.
+                        </p>
+                        <div class="spec-list">
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Deterministické intent jádro bez halucinací</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Orchestrace modelů Claude, Gemini a Codex</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Hlasové rozhraní (Web Speech &amp; Azure Speech)</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-bullet"></span>
+                                <span>Serverless Edge backend na Netlify</span>
+                            </div>
+                        </div>
+                        <div class="spec-tags">
+                            <span class="spec-tag">Hybridní agenti</span>
+                            <span class="spec-tag">STT / TTS</span>
+                            <span class="spec-tag">Orchestrace</span>
+                            <span class="spec-tag">Edge Functions</span>
                         </div>
                     </div>
                 </div>
 
-                    <!-- AI/Dev Skills -->
-                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                        <div class="text-5xl mb-4">🤖</div>
-                        <h3 class="text-2xl font-bold mb-6">AI & Tech</h3>
-
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">AI-assisted engineering</span>
-                                    <span class="text-sm text-blue-400">92%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="92" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">ChatGPT & Codex</span>
-                                    <span class="text-sm text-blue-400">90%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="90" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Agentní kódování</span>
-                                    <span class="text-sm text-blue-400">88%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="88" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm">Automatizace workflow</span>
-                                    <span class="text-sm text-blue-400">86%</span>
-                                </div>
-                                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-600 skill-bar" data-width="86" style="width: 0%"></div>
-                            </div>
+                <!-- Tools & Stack Rack -->
+                <div class="corner-concave p-6 md:p-8 bg-slate-900/60 border border-white/10 rounded-xl">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10">
+                        <div>
+                            <span class="text-xs font-mono uppercase tracking-widest text-amber-400">HARDWARE &amp; SOFTWARE RACK</span>
+                            <h4 class="text-xl font-bold text-white mt-1">Ověřený technologický stack</h4>
                         </div>
+                        <span class="text-xs font-mono text-slate-400">PRODUCTION VERIFIED</span>
                     </div>
-                </div>
 
-                    <!-- Tools -->
-                    <div class="glass card rounded-2xl p-8 hover:transform hover:scale-105 transition-all duration-300">
-                        <div class="text-5xl mb-4">🛠️</div>
-                        <h3 class="text-2xl font-bold mb-6">Nástroje</h3>
-
-                        <div class="flex flex-wrap gap-3">
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Adobe Lightroom</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Photoshop</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">VS Code</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Git/GitHub</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Fotograf AI (semiagent)</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">AI orchestrace</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Claude</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Gemini</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">ChatGPT</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Codex</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Agentní kódování</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Figma</span>
-                            <span class="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-full text-sm">Tailwind CSS</span>
-                        </div>
+                    <div class="flex flex-wrap gap-2.5">
+                        <span class="spec-tag font-mono">Adobe Lightroom</span>
+                        <span class="spec-tag font-mono">Adobe Photoshop</span>
+                        <span class="spec-tag font-mono">Fotograf AI (semiagent)</span>
+                        <span class="spec-tag font-mono">Sony Alpha &amp; GM Lenses</span>
+                        <span class="spec-tag font-mono">TypeScript / JavaScript</span>
+                        <span class="spec-tag font-mono">Tailwind CSS</span>
+                        <span class="spec-tag font-mono">VS Code</span>
+                        <span class="spec-tag font-mono">Git &amp; GitHub</span>
+                        <span class="spec-tag font-mono">Claude 3.7 Sonnet</span>
+                        <span class="spec-tag font-mono">Gemini 3.8 Flash</span>
+                        <span class="spec-tag font-mono">Codex</span>
+                        <span class="spec-tag font-mono">Netlify Functions &amp; Blobs</span>
+                        <span class="spec-tag font-mono">Figma</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Timeline/Process Section -->
-        <section class="py-24 bg-gradient-to-b from-transparent via-blue-900/10 to-transparent reveal">
-            <div class="container mx-auto px-6 max-w-5xl section-wrap">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Jak pracuji</h2>
-                <p class="text-center text-gray-400 mb-16">Jednoduchý proces od návrhu po realizaci</p>
+        <!-- Timeline/Process Section — Pipeline Workflow -->
+        <section class="py-20 reveal">
+            <div class="container mx-auto px-6 max-w-6xl section-wrap">
+                <div class="text-center max-w-2xl mx-auto mb-14">
+                    <span class="inline-block text-xs font-mono tracking-widest uppercase text-amber-400 mb-2">PROCESS PIPELINE</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-3 gradient-text section-title">Jak pracuji</h2>
+                    <p class="text-slate-400 text-sm sm:text-base">Čtyřfázový deterministický postup od úvodního zadání po odevzdání hotového projektu.</p>
+                </div>
 
-                <div class="relative">
-                    <!-- Vertical Line -->
-                    <div class="hidden md:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-blue-500 opacity-30"></div>
-
-                    <!-- Step 1 -->
-                    <div class="relative flex flex-col md:flex-row items-center mb-16">
-                        <div class="w-full md:w-1/2 px-4 md:pr-12 md:px-0 text-center md:text-right">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">1. Konzultace</h3>
-                                <p class="text-gray-300">Probereme vaše představy, cíle a požadavky projektu</p>
-                            </div>
-                        </div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            💬
-                        </div>
-                        <div class="hidden md:block md:w-1/2 md:pl-12"></div>
+                <div class="pipeline-grid">
+                    <div class="pipeline-card">
+                        <span class="pipeline-num">01</span>
+                        <h3 class="pipeline-title">Konzultace &amp; Zadání</h3>
+                        <p class="pipeline-desc">Vyjasníme představy, cíle a přesné parametry fotoprojektu či softwarového řešení.</p>
                     </div>
 
-                    <!-- Step 2 -->
-                    <div class="relative flex flex-col md:flex-row items-center mb-16">
-                        <div class="hidden md:block md:w-1/2 md:pr-12"></div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            📋
-                        </div>
-                        <div class="w-full md:w-1/2 px-4 md:pl-12 md:px-0 text-center md:text-left order-1 md:order-none">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">2. Plánování</h3>
-                                <p class="text-gray-300">Vytvoříme detailní plán a časový harmonogram</p>
-                            </div>
-                        </div>
+                    <div class="pipeline-card">
+                        <span class="pipeline-num">02</span>
+                        <h3 class="pipeline-title">Plán &amp; Architektura</h3>
+                        <p class="pipeline-desc">Časový harmonogram focení, lokace a technická specifikace agenta či automatizace.</p>
                     </div>
 
-                    <!-- Step 3 -->
-                    <div class="relative flex flex-col md:flex-row items-center mb-16">
-                        <div class="w-full md:w-1/2 px-4 md:pr-12 md:px-0 text-center md:text-right">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">3. Realizace</h3>
-                                <p class="text-gray-300">Fotografie, kód nebo AI řešení podle plánu</p>
-                            </div>
-                        </div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            ⚡
-                        </div>
-                        <div class="hidden md:block md:w-1/2 md:pl-12"></div>
+                    <div class="pipeline-card">
+                        <span class="pipeline-num">03</span>
+                        <h3 class="pipeline-title">Realizace &amp; Snímání</h3>
+                        <p class="pipeline-desc">Samotné fotografování s důrazem na akci a detail, nebo čistá implementace kódu.</p>
                     </div>
 
-                    <!-- Step 4 -->
-                    <div class="relative flex flex-col md:flex-row items-center">
-                        <div class="hidden md:block md:w-1/2 md:pr-12"></div>
-                        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full items-center justify-center text-xl font-bold z-10">
-                            ✨
-                        </div>
-                        <div class="w-full md:w-1/2 px-4 md:pl-12 md:px-0 text-center md:text-left order-1 md:order-none">
-                            <div class="glass card rounded-xl p-4 md:p-6 break-words">
-                                <h3 class="text-xl md:text-2xl font-bold mb-2">4. Dokončení</h3>
-                                <p class="text-gray-300">Finální úpravy a předání hotového projektu</p>
-                            </div>
-                            </div>
-                        </div>
+                    <div class="pipeline-card">
+                        <span class="pipeline-num">04</span>
+                        <h3 class="pipeline-title">Postprodukce &amp; Předání</h3>
+                        <p class="pipeline-desc">Bleskové zpracování přes Fotograf AI, finální retuš a předání hotových výstupů.</p>
                     </div>
                 </div>
+            </div>
         </section>
 
         <div class="stage-divider" data-stage="waves" data-stage-static aria-hidden="true"></div>
 
         <section id="o-mne" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-4xl section-wrap">
-                <div class="glass card rounded-3xl p-12 text-center">
-                    <h2 class="text-4xl font-bold mb-8 gradient-text section-title">O mně</h2>
-                    <p class="text-xl text-gray-300 leading-relaxed">
+                <div class="corner-concave viewfinder-frame bg-slate-900/80 border border-white/10 p-8 md:p-12 text-center">
+                    <span class="font-mono text-xs uppercase tracking-[0.28em] text-amber-400 block mb-2">Profil</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-6 text-white section-title">O mně</h2>
+                    <p class="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto">
                         Fotografuji a vyvíjím AI řešení. Baví mě propojovat kreativitu s technologií a vytvářet věci, které fungují.
                     </p>
                 </div>
@@ -976,20 +988,22 @@ body > * {
         <!-- Spolupráce Section -->
         <section id="spoluprace" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-5xl section-wrap">
-                <h2 class="text-4xl font-bold mb-4 text-center gradient-text section-title">Spolupráce</h2>
-                <p class="text-center text-gray-400 mb-12 max-w-2xl mx-auto">Spolupracuji s těmito subjekty</p>
+                <div class="text-center mb-12">
+                    <span class="font-mono text-xs uppercase tracking-[0.28em] text-amber-400 block mb-2">Partnerství</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-3 text-white section-title">Spolupráce</h2>
+                    <p class="text-center text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">Spolupracuji s těmito subjekty</p>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-xl mx-auto">
                     <!-- FC Přerov -->
-                    <a href="https://www.fcprerov.cz/" target="_blank" rel="noopener noreferrer" class="glass card rounded-3xl p-8 flex flex-col items-center text-center hover:border-blue-500/40 transition-all duration-300 group">
-                        <div class="h-24 w-24 mb-6 rounded-2xl bg-white/10 p-3 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <a href="https://www.fcprerov.cz/" target="_blank" rel="noopener noreferrer" class="corner-concave viewfinder-frame bg-slate-900/80 border border-white/10 p-8 flex flex-col items-center text-center hover:border-amber-400/50 transition-all duration-300 group">
+                        <div class="h-24 w-24 mb-6 rounded-xl bg-white/5 border border-white/10 p-3 flex items-center justify-center group-hover:scale-105 transition-transform">
                             <img src="/assets/portfolio/fc-prerov-logo.png" alt="1. FC Viktorie Přerov" width="200" height="200" class="h-full w-full object-contain">
                         </div>
-                        <h3 class="text-xl font-bold mb-2">1. FC Viktorie Přerov</h3>
-                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-300 mb-4">Klubový fotograf</span>
-                        <p class="text-gray-400 text-sm">Sportovní fotografie ze zápasů a klubových akcí. Dokumentace týmu a fanouškovských momentů.</p>
+                        <h3 class="text-xl font-bold mb-2 text-white">1. FC Viktorie Přerov</h3>
+                        <span class="inline-block px-3 py-1 rounded text-xs font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 mb-4">Klubový fotograf</span>
+                        <p class="text-slate-400 text-sm">Sportovní fotografie ze zápasů a klubových akcí. Dokumentace týmu a fanouškovských momentů.</p>
                     </a>
-
                 </div>
             </div>
         </section>
@@ -998,24 +1012,29 @@ body > * {
 
         <section id="kontakt" class="py-24 reveal">
             <div class="container mx-auto px-6 max-w-4xl section-wrap">
-                <div class="glass card rounded-3xl p-12">
-                    <h2 class="text-4xl font-bold mb-8 text-center gradient-text section-title">Kontaktní formulář</h2>
+                <div class="corner-concave viewfinder-frame bg-slate-900/80 border border-white/10 p-8 md:p-12">
+                    <div class="text-center mb-10">
+                        <span class="font-mono text-xs uppercase tracking-[0.28em] text-amber-400 block mb-2">Přímé spojení</span>
+                        <h2 class="text-3xl sm:text-4xl font-bold mb-6 text-white section-title">Kontaktní formulář</h2>
 
-                    <div class="mb-8 text-center">
-                        <a href="mailto:lukas.drsticka@gmail.com" class="text-2xl text-blue-400 hover:text-blue-300 transition">
-                            lukas.drsticka@gmail.com
-                        </a>
-                        <a href="tel:+420721624429" class="block text-2xl text-blue-400 hover:text-blue-300 transition mt-2">
-                            +420 721 624 429
-                        </a>
-                        <p class="text-gray-400 mt-4">Preferujete telefon? Zavolejte mi nebo napište e‑mail a ozvu se zpět.</p>
+                        <div class="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 font-mono">
+                            <a href="mailto:lukas.drsticka@gmail.com" class="text-lg sm:text-xl text-amber-400 hover:text-amber-300 transition flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                lukas.drsticka@gmail.com
+                            </a>
+                            <a href="tel:+420721624429" class="text-lg sm:text-xl text-amber-400 hover:text-amber-300 transition flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                +420 721 624 429
+                            </a>
+                        </div>
+                        <p class="text-slate-400 text-sm">Preferujete telefon? Zavolejte mi nebo napište e‑mail a ozvu se zpět.</p>
                     </div>
 
-                    <div class="mt-12">
-                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2 justify-center">
-                            <span>✉️</span>
+                    <div class="mt-8 pt-8 border-t border-white/10">
+                        <h3 class="text-lg font-semibold mb-6 flex items-center gap-2 justify-center text-white">
+                            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                             <span>Napište mi zprávu</span>
-                            <span class="text-sm text-blue-400">(s hybridním agentem)</span>
+                            <span class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">(s hybridním agentem)</span>
                         </h3>
                         
                         <form id="contactForm" name="contact" class="space-y-4" action="/" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
@@ -1024,20 +1043,20 @@ body > * {
                                 <label>Nevyplňujte: <input name="bot-field"></label>
                             </p>
                             <div>
-                                <label for="contactName" class="block text-sm text-gray-300 mb-2">Jméno</label>
-                                <input type="text" id="contactName" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Vaše jméno" name="name" required autocomplete="name" aria-describedby="contactNameError">
+                                <label for="contactName" class="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-2">Jméno</label>
+                                <input type="text" id="contactName" class="w-full bg-white/5 border border-white/15 rounded-lg p-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition font-sans" placeholder="Vaše jméno" name="name" required autocomplete="name" aria-describedby="contactNameError">
                                 <span id="contactNameError" class="error-message" role="alert" aria-live="assertive">Toto pole je povinné</span>
                             </div>
                             
                             <div>
-                                <label for="contactEmail" class="block text-sm text-gray-300 mb-2">Email</label>
-                                <input type="email" id="contactEmail" name="email" required autocomplete="email" class="w-full glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="vas@email.cz" aria-describedby="contactEmailError">
+                                <label for="contactEmail" class="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-2">Email</label>
+                                <input type="email" id="contactEmail" name="email" required autocomplete="email" class="w-full bg-white/5 border border-white/15 rounded-lg p-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition font-sans" placeholder="vas@email.cz" aria-describedby="contactEmailError">
                                 <span id="contactEmailError" class="error-message" role="alert" aria-live="assertive">Toto pole je povinné</span>
                             </div>
 
                             <div>
-                                <label for="contactService" class="block text-sm text-gray-300 mb-2">Typ služby</label>
-                                <select id="contactService" name="service" class="w-full glass rounded-xl p-3 bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required aria-describedby="contactServiceError">
+                                <label for="contactService" class="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-2">Typ služby</label>
+                                <select id="contactService" name="service" class="w-full bg-slate-900 border border-white/15 rounded-lg p-3 text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition font-sans" required aria-describedby="contactServiceError">
                                     <option value="fotografie">Fotografie</option>
                                     <option value="ai">AI chatbot</option>
                                     <option value="automatizace">Automatizace</option>
@@ -1047,19 +1066,19 @@ body > * {
                             </div>
 
                             <div>
-                                <label for="contactMessage" class="block text-sm text-gray-300 mb-2 flex items-center gap-2">
+                                <label for="contactMessage" class="block text-xs font-mono uppercase tracking-wider text-slate-300 mb-2 flex items-center justify-between">
                                     <span>Zpráva</span>
-                                    <span class="text-xs text-blue-400">🤖 AI vám pomůže</span>
+                                    <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>AI asistent kompozice</span>
                                 </label>
-                                <textarea id="contactMessage" class="w-full contact-textarea glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Popište svůj projekt..." name="message" required aria-describedby="contactMessageError"></textarea>
+                                <textarea id="contactMessage" class="w-full contact-textarea bg-white/5 border border-white/15 rounded-lg p-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition font-sans" placeholder="Popište svůj projekt..." name="message" required aria-describedby="contactMessageError"></textarea>
                                 <span id="contactMessageError" class="error-message" role="alert" aria-live="assertive">Toto pole je povinné</span>
                                 <div id="aiSuggestions"></div>
                             </div>
                             
-                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-3 rounded-xl hover:opacity-90 transition font-semibold">
-                                Odeslat zprávu
+                            <button type="submit" class="btn-optic w-full py-3.5 text-center justify-center font-bold tracking-wider">
+                                Odeslat zprávu &rarr;
                             </button>
-                            <p id="contactStatus" class="text-sm text-gray-400" role="status" aria-live="polite"></p>
+                            <p id="contactStatus" class="text-sm text-slate-400" role="status" aria-live="polite"></p>
                         </form>
                     </div>
                 </div>
@@ -1124,11 +1143,11 @@ body > * {
 
                     <!-- Newsletter -->
                     <div>
-                        <h4 class="font-semibold mb-3">📬 Newsletter</h4>
+                        <h4 class="font-mono text-xs uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>Newsletter</h4>
                         <form id="newsletterForm" class="flex gap-2">
                             <label for="newsletterEmail" class="sr-only">Email pro newsletter</label>
-                            <input id="newsletterEmail" type="email" name="email" placeholder="vas@email.cz" autocomplete="email" required class="flex-1 glass rounded-xl px-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-describedby="newsletterStatus">
-                            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-semibold hover:opacity-90 transition">
+                            <input id="newsletterEmail" type="email" name="email" placeholder="vas@email.cz" autocomplete="email" required class="flex-1 bg-white/5 border border-white/15 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 transition" aria-describedby="newsletterStatus">
+                            <button type="submit" class="btn-optic px-5 py-2.5 text-xs font-mono">
                                 Odebírat
                             </button>
                         </form>
@@ -1138,76 +1157,81 @@ body > * {
 
                 <!-- Links Column -->
                 <div>
-                    <h4 class="font-semibold mb-4">Odkazy</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#portfolio" class="hover:text-blue-400 transition">Portfolio</a></li>
-                        <li><a href="#skills" class="hover:text-blue-400 transition">Dovednosti</a></li>
-                        <li><a href="#o-mne" class="hover:text-blue-400 transition">O mně</a></li>
-                        <li><a href="#spoluprace" class="hover:text-blue-400 transition">Spolupráce</a></li>
-                        <li><a href="#kontakt" class="hover:text-blue-400 transition">Kontakt</a></li>
+                    <h4 class="font-mono text-xs uppercase tracking-widest text-slate-400 mb-4">Odkazy</h4>
+                    <ul class="space-y-2 text-slate-400 text-sm font-mono">
+                        <li><a href="#portfolio" class="hover:text-amber-400 transition">Portfolio</a></li>
+                        <li><a href="#skills" class="hover:text-amber-400 transition">Dovednosti</a></li>
+                        <li><a href="#o-mne" class="hover:text-amber-400 transition">O mně</a></li>
+                        <li><a href="#spoluprace" class="hover:text-amber-400 transition">Spolupráce</a></li>
+                        <li><a href="#kontakt" class="hover:text-amber-400 transition">Kontakt</a></li>
                     </ul>
                 </div>
 
                 <!-- Contact Column -->
                 <div>
-                    <h4 class="font-semibold mb-4">Kontakt</h4>
-                    <ul class="space-y-2 text-gray-400">
+                    <h4 class="font-mono text-xs uppercase tracking-widest text-slate-400 mb-4">Kontakt</h4>
+                    <ul class="space-y-2 text-slate-400 text-sm font-mono">
                         <li>
-                            <a href="mailto:lukas.drsticka@gmail.com" class="hover:text-blue-400 transition">
+                            <a href="mailto:lukas.drsticka@gmail.com" class="hover:text-amber-400 transition">
                                 lukas.drsticka@gmail.com
                             </a>
                         </li>
-                        <li>📍 Přerov, CZ</li>
+                        <li>LOC: Přerov, CZ</li>
                     </ul>
 
                     <!-- Social Links -->
                     <div class="flex gap-3 mt-4">
-                        <a href="https://www.instagram.com/lukas_drsticka_foto/" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="Instagram"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                        <a href="https://www.instagram.com/lukas_drsticka_foto/" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-amber-400/50 hover:text-amber-400 transition text-slate-300" aria-label="Instagram"><svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                                 <path fill="currentColor" d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm0 2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H7Zm5 3.5A5.5 5.5 0 1 1 6.5 12 5.5 5.5 0 0 1 12 8.5Zm0 2A3.5 3.5 0 1 0 15.5 12 3.5 3.5 0 0 0 12 10.5Zm5-3.1a1.1 1.1 0 1 1-1.1-1.1 1.1 1.1 0 0 1 1.1 1.1Z"/>
                             </svg></a>
-                        <a href="https://www.facebook.com/luke.drsticka" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="Facebook"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                        <a href="https://www.facebook.com/luke.drsticka" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-amber-400/50 hover:text-amber-400 transition text-slate-300" aria-label="Facebook"><svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                                 <path fill="currentColor" d="M13 3h4v4h-3c-1.1 0-2 .9-2 2v3h5l-1 4h-4v8h-4v-8H5v-4h3V9a6 6 0 0 1 6-6Z"/>
                             </svg></a>
-                        <a href="https://www.linkedin.com/in/luk%C3%A1%C5%A1-dr%C5%A1ti%C4%8Dka-573772110/" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="LinkedIn"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                        <a href="https://www.linkedin.com/in/luk%C3%A1%C5%A1-dr%C5%A1ti%C4%8Dka-573772110/" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-amber-400/50 hover:text-amber-400 transition text-slate-300" aria-label="LinkedIn"><svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                                 <path fill="currentColor" d="M4.98 3.5A2.5 2.5 0 1 1 2.5 6a2.5 2.5 0 0 1 2.48-2.5ZM3 9h4v12H3Zm7 0h3.8v1.7h.1a4.2 4.2 0 0 1 3.8-2.1c4.1 0 4.9 2.7 4.9 6.2V21h-4v-5.3c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21h-4Z"/>
                             </svg></a>
-                        <a href="https://github.com/Lukedaca" target="_blank" rel="noopener noreferrer" class="glass p-3 rounded-full hover:bg-white/10 transition text-xl" aria-label="GitHub"><svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                        <a href="https://github.com/Lukedaca" target="_blank" rel="noopener noreferrer" class="p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-amber-400/50 hover:text-amber-400 transition text-slate-300" aria-label="GitHub"><svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                                 <path fill="currentColor" d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.2-3.4-1.2a2.7 2.7 0 0 0-1.1-1.5c-.9-.6.1-.6.1-.6a2.1 2.1 0 0 1 1.6 1 2.1 2.1 0 0 0 2.9.8 2.1 2.1 0 0 1 .6-1.3c-2.2-.3-4.6-1.1-4.6-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.7s.8-.3 2.7 1a9.2 9.2 0 0 1 4.9 0c1.9-1.3 2.7-1 2.7-1a3.6 3.6 0 0 1 .1 2.7 3.9 3.9 0 0 1 1 2.7c0 3.9-2.4 4.7-4.6 5a2.4 2.4 0 0 1 .7 1.8V21c0 .3.2.6.7.5A10 10 0 0 0 12 2Z"/>
                             </svg></a>
-                        <a href="https://www.fcprerov.cz/" target="_blank" rel="noopener noreferrer" class="glass p-2 rounded-full hover:bg-white/10 transition" aria-label="1. FC Viktorie Přerov">
-                                <img src="/assets/portfolio/fc-prerov-logo.png" alt="FC Přerov" width="28" height="28" class="h-7 w-7 object-contain rounded-full">
+                        <a href="https://www.fcprerov.cz/" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-amber-400/50 transition flex items-center justify-center" aria-label="1. FC Viktorie Přerov">
+                                <img src="/assets/portfolio/fc-prerov-logo.png" alt="FC Přerov" width="28" height="28" class="h-5 w-5 object-contain">
                             </a>
                     </div>
                 </div>
             </div>
 
-            <div class="border-t border-white/10 pt-8 text-center">
-                <p class="text-gray-400 mb-2">© 2026 Lukáš Drštička. Všechna práva vyhrazena.</p>
-                <p class="text-gray-500 text-sm mb-3">Vytvořeno s ❤️ pomocí Claude, Gemini & Codex | Designed with modern web standards</p>
-                <p class="text-sm">
-                    <a href="/privacy.html" class="text-gray-400 hover:text-blue-400 transition">Zásady ochrany osobních údajů</a>
-                    <span class="text-gray-600 mx-2">·</span>
-                    <a href="/.well-known/security.txt" class="text-gray-400 hover:text-blue-400 transition">Security</a>
+            <div class="border-t border-white/10 pt-8 text-center text-xs text-slate-500 font-mono">
+                <p class="mb-2">© 2026 Lukáš Drštička. Všechna práva vyhrazena.</p>
+                <p class="mb-3">Optics &amp; Computational Systems Architecture | Built with modern web standards</p>
+                <p>
+                    <a href="/privacy.html" class="text-slate-400 hover:text-amber-400 transition">Zásady ochrany osobních údajů</a>
+                    <span class="text-slate-600 mx-2">·</span>
+                    <a href="/.well-known/security.txt" class="text-slate-400 hover:text-amber-400 transition">Security</a>
                 </p>
             </div>
         </div>
     </footer>
 
     <div class="fixed bottom-6 right-6 z-50">
-        <button id="chatBtn" class="relative bg-gradient-to-br from-blue-600 to-purple-600 rounded-full h-16 w-16 flex items-center justify-center shadow-2xl hover:scale-110 transition text-3xl">
-            🤖
-            <span id="unreadBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">0</span>
+        <button id="chatBtn" class="relative rounded-full h-14 w-14 flex items-center justify-center transition-all duration-200 hover:scale-105" style="background: var(--amber-optic); color: #07090e; border: 1px solid var(--amber-optic-hi); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);" aria-label="Otevřít asistenta">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <span id="unreadBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">0</span>
         </button>
         <div id="chatWindow" class="hidden absolute bottom-20 right-0 w-80 md:w-96 glass rounded-2xl shadow-2xl flex flex-col" style="height: min(550px, calc(100dvh - 200px));" role="dialog" aria-modal="true">
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex justify-between items-center rounded-t-2xl">
+            <div class="p-4 flex justify-between items-center rounded-t-2xl border-b border-white/10" style="background: rgba(11, 15, 23, 0.95);">
                 <div>
-                    <h3 class="font-bold text-lg">Lukas AI</h3>
-                    <p id="chat-mode-badge" class="text-xs uppercase tracking-[0.28em] text-white/70 mt-1">Talk</p>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <h3 class="font-bold text-sm tracking-wide uppercase text-white font-mono">Lukas AI</h3>
+                    </div>
+                    <p id="chat-mode-badge" class="text-[10px] uppercase tracking-[0.25em] text-amber-400/80 font-mono mt-0.5">Semi-Agent</p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 items-center">
                     <button id="widget-speech-toggle" class="speech-output-toggle speech-output-toggle-compact" type="button" data-speech-output="off" aria-pressed="false">Hlas vyp.</button>
-                    <button id="clearChat" class="text-xl hover:text-gray-200" title="Smazat historii" aria-label="Smazat historii">🗑️</button>
-                    <button id="closeChat" class="text-2xl hover:text-gray-200" aria-label="Zavřít chat">&times;</button>
+                    <button id="clearChat" class="text-xs font-mono px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-300 transition" title="Smazat historii" aria-label="Smazat historii">CLR</button>
+                    <button id="closeChat" class="text-lg text-slate-400 hover:text-white transition px-2" aria-label="Zavřít chat">&times;</button>
                 </div>
             </div>
             <div id="messages" class="flex-1 p-4 overflow-y-auto" aria-live="polite"></div>
@@ -1215,8 +1239,8 @@ body > * {
             <div class="p-4 border-t border-white/10">
                 <div class="flex gap-2">
                     <label for="chatInput" class="sr-only">Napsat zprávu do chatu</label>
-                    <input type="text" id="chatInput" placeholder="Napište zprávu..." class="flex-1 glass rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off" autocorrect="off" autocapitalize="sentences" enterkeyhint="send" aria-label="Napsat zprávu do chatu">
-                    <button id="sendBtn" class="bg-blue-600 px-6 py-3 rounded-xl hover:bg-blue-700 transition font-semibold" aria-label="Odeslat zprávu">↑</button>
+                    <input type="text" id="chatInput" placeholder="Napište zprávu..." class="flex-1 bg-white/5 border border-white/15 rounded-lg p-3 text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 transition font-sans" autocomplete="off" autocorrect="off" autocapitalize="sentences" enterkeyhint="send" aria-label="Napsat zprávu do chatu">
+                    <button id="sendBtn" class="btn-optic px-4 py-2 text-sm" aria-label="Odeslat zprávu">↑</button>
                 </div>
             </div>
         </div>
