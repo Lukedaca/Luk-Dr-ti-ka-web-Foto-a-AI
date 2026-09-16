@@ -1,0 +1,4 @@
+/* Hide obsolete Technology Stack panel in the Skills section. */
+#skills .p-6.md\:p-8 {
+  display: none !important;
+}
