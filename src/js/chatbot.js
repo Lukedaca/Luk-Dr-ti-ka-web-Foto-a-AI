@@ -676,30 +676,63 @@ import {
       });
   }
 
+  function chatbotDecodeAudioBuffer(audioCtx, arrayBuf, sampleRate) {
+    return new Promise(function(resolve) {
+      if (!audioCtx || !arrayBuf) {
+        resolve(null);
+        return;
+      }
+      try {
+        var copy = arrayBuf.slice(0);
+        audioCtx.decodeAudioData(copy, function(decoded) {
+          resolve(decoded);
+        }, function() {
+          try {
+            var int16 = new Int16Array(arrayBuf);
+            var float32 = chatbotInt16ToFloat32(int16);
+            var audioBuffer = audioCtx.createBuffer(1, float32.length, sampleRate || CHATBOT_TTS_SAMPLE_RATE);
+            audioBuffer.getChannelData(0).set(float32);
+            resolve(audioBuffer);
+          } catch (pcmErr) {
+            resolve(null);
+          }
+        });
+      } catch (err) {
+        try {
+          var int16 = new Int16Array(arrayBuf);
+          var float32 = chatbotInt16ToFloat32(int16);
+          var audioBuffer = audioCtx.createBuffer(1, float32.length, sampleRate || CHATBOT_TTS_SAMPLE_RATE);
+          audioBuffer.getChannelData(0).set(float32);
+          resolve(audioBuffer);
+        } catch (pcmErr2) {
+          resolve(null);
+        }
+      }
+    });
+  }
+
   function chatbotPlaySpeechAudio(base64Audio, sampleRate, requestId) {
-    // Jednorázové přehrání (legacy). Queue varianta níže.
+    // Jednorázové přehrání (podporuje Azure Speech MP3 i PCM).
     return chatbotEnsurePlaybackContext().then(function(audioCtx) {
       if (!audioCtx || requestId !== chatbotSpeechRequestId) return;
 
       var arrayBuf = chatbotBase64ToArrayBuffer(base64Audio);
-      var int16 = new Int16Array(arrayBuf);
-      var float32 = chatbotInt16ToFloat32(int16);
-      var audioBuffer = audioCtx.createBuffer(1, float32.length, sampleRate || CHATBOT_TTS_SAMPLE_RATE);
-      var source = audioCtx.createBufferSource();
+      return chatbotDecodeAudioBuffer(audioCtx, arrayBuf, sampleRate).then(function(audioBuffer) {
+        if (!audioBuffer || requestId !== chatbotSpeechRequestId) return;
+        var source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioCtx.destination);
+        source.onended = function() {
+          if (chatbotPlaybackSource === source) {
+            chatbotPlaybackSource = null;
+          }
+        };
 
-      audioBuffer.getChannelData(0).set(float32);
-      source.buffer = audioBuffer;
-      source.connect(audioCtx.destination);
-      source.onended = function() {
-        if (chatbotPlaybackSource === source) {
-          chatbotPlaybackSource = null;
+        chatbotPlaybackSource = source;
+        if (requestId === chatbotSpeechRequestId) {
+          source.start(0);
         }
-      };
-
-      chatbotPlaybackSource = source;
-      if (requestId === chatbotSpeechRequestId) {
-        source.start(0);
-      }
+      });
     });
   }
 
@@ -709,23 +742,28 @@ import {
       return new Promise(function(resolve) {
         try {
           var arrayBuf = chatbotBase64ToArrayBuffer(base64Audio);
-          var int16 = new Int16Array(arrayBuf);
-          var float32 = chatbotInt16ToFloat32(int16);
-          var audioBuffer = audioCtx.createBuffer(1, float32.length, sampleRate || CHATBOT_TTS_SAMPLE_RATE);
-          var source = audioCtx.createBufferSource();
-          audioBuffer.getChannelData(0).set(float32);
-          source.buffer = audioBuffer;
-          source.connect(audioCtx.destination);
-          source.onended = function() {
-            if (chatbotPlaybackSource === source) chatbotPlaybackSource = null;
+          chatbotDecodeAudioBuffer(audioCtx, arrayBuf, sampleRate).then(function(audioBuffer) {
+            if (!audioBuffer || requestId !== chatbotSpeechRequestId) {
+              resolve();
+              return;
+            }
+            var source = audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioCtx.destination);
+            source.onended = function() {
+              if (chatbotPlaybackSource === source) chatbotPlaybackSource = null;
+              resolve();
+            };
+            chatbotPlaybackSource = source;
+            if (requestId === chatbotSpeechRequestId) {
+              source.start(0);
+            } else {
+              resolve();
+            }
+          }).catch(function(err) {
+            console.error('Queued playback error:', err);
             resolve();
-          };
-          chatbotPlaybackSource = source;
-          if (requestId === chatbotSpeechRequestId) {
-            source.start(0);
-          } else {
-            resolve();
-          }
+          });
         } catch (err) {
           console.error('Queued playback error:', err);
           resolve();
@@ -808,14 +846,16 @@ import {
     };
   }
 
-  // Když SSE stream selže nebo vrátí skoro nic, dojde k one-shot syntéze (současný /tts).
+  // Když stream selže nebo vrátí málo dat, dojde k one-shot syntéze (/tts).
   function chatbotStreamFallbackOneShot(text, lang, requestId, ctx) {
     return chatbotRequestSpeechAudio(text, lang).then(function (data) {
       if (!data || !data.audio || requestId !== chatbotSpeechRequestId) return;
       var ab = chatbotBase64ToArrayBuffer(data.audio);
-      var int16 = new Int16Array(ab);
-      var f32 = chatbotInt16ToFloat32(int16);
-      chatbotStreamScheduleFloat32(ctx, f32, requestId);
+      return chatbotDecodeAudioBuffer(ctx, ab, data.sampleRate).then(function(audioBuffer) {
+        if (!audioBuffer || requestId !== chatbotSpeechRequestId) return;
+        var f32 = audioBuffer.getChannelData(0);
+        chatbotStreamScheduleFloat32(ctx, f32, requestId);
+      });
     }).catch(function (err) { console.warn('TTS one-shot fallback error:', err && err.message); });
   }
 

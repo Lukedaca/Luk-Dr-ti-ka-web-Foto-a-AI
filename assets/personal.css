@@ -1,0 +1,574 @@
+/* ================================================================
+   Photo Journal — personal portfolio (v4 · premium polish)
+   Lukáš Drštička · fotografie, weby, AI
+   ================================================================ */
+
+/* Font-face is already in styles.min.css — no duplicate declaration */
+
+/* ---- Tokens --------------------------------------------------- */
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body.personal-site{
+  --paper:#f5f3ef;--paper-warm:#edeae4;--ink:#1a1e1c;--muted:#72776f;
+  --rule:#d4d1cb;--accent:#2d5e44;--accent-light:#3a7a5a;
+  --text-primary:var(--ink);--text-secondary:var(--muted);
+  --bg-primary:var(--paper);--bg-secondary:var(--paper-warm);
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:Geist,system-ui,-apple-system,sans-serif;
+  line-height:1.55;letter-spacing:0;overflow-x:clip;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility
+}
+.personal-site *{box-sizing:border-box}
+.personal-site::before,.personal-site::after{display:none!important}
+.personal-site *::before,.personal-site *::after{
+  background-image:none!important;background:initial
+}
+.personal-site a{color:inherit;text-decoration:none}
+.personal-site button,.personal-site input,.personal-site select,.personal-site textarea{font:inherit}
+.personal-site button{cursor:pointer}
+.personal-site button:focus-visible,.personal-site a:focus-visible,
+.personal-site summary:focus-visible,.personal-site input:focus-visible,
+.personal-site select:focus-visible,.personal-site textarea:focus-visible{
+  outline:2px solid var(--accent);outline-offset:4px
+}
+.personal-site ::selection{background:#c5d9cb;color:#1a1e1c}
+
+/* ---- Layout --------------------------------------------------- */
+.personal-site .page-width,.personal-site .site-header{
+  width:min(1200px,calc(100% - 80px));margin-inline:auto
+}
+
+/* ---- Header --------------------------------------------------- */
+.personal-site .site-header{
+  position:sticky;top:0;display:flex;align-items:center;
+  justify-content:space-between;min-height:64px;
+  border-bottom:1px solid transparent;
+  background:rgba(245,243,239,0.88);backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  box-shadow:none;z-index:50;padding:0;
+  transition:border-color .3s,box-shadow .3s
+}
+.personal-site .site-header.is-scrolled{
+  border-bottom-color:var(--rule);
+  box-shadow:0 1px 2px rgba(26,30,28,0.03)
+}
+
+/* Logo / wordmark */
+.personal-site .wordmark{
+  display:flex;align-items:center;gap:10px;
+  font-size:16px;line-height:1.2;font-weight:650;letter-spacing:-.02em
+}
+.wordmark-logo{
+  width:28px;height:28px;display:block;flex-shrink:0
+}
+
+/* Nav */
+.desktop-nav{display:flex;gap:28px;font-size:13px;font-weight:450;letter-spacing:.01em}
+.desktop-nav a{padding:10px 0;position:relative;color:var(--muted);transition:color .15s}
+.desktop-nav a:hover{color:var(--ink)}
+.desktop-nav a::after{
+  content:'';position:absolute;bottom:6px;left:0;right:0;
+  height:1px;background:var(--accent);transform:scaleX(0);
+  transform-origin:right;transition:transform .25s ease
+}
+.desktop-nav a:hover::after{transform:scaleX(1);transform-origin:left}
+.header-tools,.language-switch{display:flex;align-items:center;gap:10px}
+.personal-site .language-switch{gap:5px;font-size:11px;letter-spacing:.02em}
+.personal-site .lang-switch-btn{
+  padding:6px 4px;background:none!important;color:var(--ink)!important;
+  border:0;border-radius:0;font-weight:400;opacity:.35;
+  transition:opacity .15s
+}
+.personal-site .lang-switch-btn[aria-pressed="true"]{
+  opacity:1;font-weight:700;text-decoration:underline;
+  text-underline-offset:4px;text-decoration-thickness:1.5px
+}
+.menu-toggle{display:none}
+
+/* ---- Mobile menu ---------------------------------------------- */
+.personal-site #mobileMenu{
+  display:none;position:fixed;inset:0;
+  background:var(--paper);color:var(--ink);z-index:10000;
+  padding:28px;visibility:hidden;opacity:0
+}
+.personal-site #mobileMenu.active{display:block;visibility:visible;opacity:1}
+#mobileMenuClose{display:block;margin-left:auto;border:0;background:none;padding:14px;font-size:18px}
+.personal-site #mobileMenu nav{
+  display:flex;flex-direction:column;justify-content:center;
+  align-items:flex-start;gap:28px;height:70vh;
+  font-size:clamp(28px,7vw,40px);font-weight:500;letter-spacing:-.02em
+}
+
+/* ================================================================
+   Hero — clean typographic statement
+   ================================================================ */
+.personal-site .personal-hero{
+  padding:0;min-height:0;height:auto;overflow:visible;background:none;
+  border-bottom:1px solid var(--rule)
+}
+.hero-topline{display:none}
+.hero-layout{
+  display:flex;flex-direction:column;justify-content:center;
+  min-height:calc(100svh - 64px);
+  padding:40px 0;
+  max-width:min(1200px,calc(100% - 80px));margin-inline:auto
+}
+.hero-photo{
+  position:absolute;width:1px;height:1px;overflow:hidden;
+  clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap
+}
+.hero-note{
+  display:flex;flex-direction:column;align-items:flex-start;
+  color:var(--ink);max-width:none;padding:0
+}
+.personal-site #page-title{
+  font-size:clamp(32px,4.5vw,56px);line-height:1.1;
+  font-weight:600;letter-spacing:-.04em;
+  margin:0 0 16px;text-wrap:balance;
+  color:var(--ink);text-transform:none;max-width:15em
+}
+.intro-copy{
+  font-size:clamp(14px,1.2vw,17px);line-height:1.65;
+  letter-spacing:0;margin:0 0 28px;
+  color:var(--muted);max-width:40em
+}
+.hero-note .muted{display:none}
+.hero-note .text-link{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 20px;background:var(--ink);
+  color:var(--paper);font-size:12px;font-weight:500;
+  letter-spacing:.02em;
+  transition:background .2s;border:0;border-bottom:none
+}
+.hero-note .text-link:hover{background:var(--accent)}
+.hero-project-link{
+  font-size:11px;margin-top:12px;
+  color:var(--muted)!important;transition:color .2s;
+  letter-spacing:.01em
+}
+.hero-project-link:hover{
+  color:var(--ink)!important;text-decoration:underline;
+  text-underline-offset:3px
+}
+
+/* ================================================================
+   Shared section styles
+   ================================================================ */
+.eyebrow{
+  font-size:10px;text-transform:uppercase;letter-spacing:.14em;
+  font-weight:600;margin:0;color:var(--muted)
+}
+.personal-site h2{
+  font-size:clamp(28px,3.6vw,48px);font-weight:550;
+  letter-spacing:-.035em;line-height:1.1;margin:0;color:inherit;
+  text-wrap:balance
+}
+.section-heading{
+  display:flex;flex-direction:column;gap:10px;margin-bottom:40px
+}
+.section-heading > p:last-child:not(.eyebrow){
+  font-size:13px;color:var(--muted);margin:0;max-width:40em;line-height:1.7
+}
+.text-link{
+  display:inline-flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--rule);padding-bottom:4px;
+  font-size:12px;font-weight:500;transition:color .15s,border-color .15s;
+  letter-spacing:.01em
+}
+.text-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.muted{font-size:13px;line-height:1.8;color:var(--muted);margin:0 0 24px}
+
+/* ================================================================
+   Portfolio / Photo section
+   ================================================================ */
+.photo-section{padding-top:48px;padding-bottom:0}
+.photo-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.photo-entry{min-width:0;display:block;overflow:hidden}
+.photo-entry img{
+  width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;display:block;
+  transition:transform .6s cubic-bezier(.16,1,.3,1)
+}
+.photo-entry:hover img{transform:scale(1.02)}
+.photo-entry-offset{margin-top:0}
+.photo-caption{
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:12px;margin-top:12px
+}
+.photo-caption h3{font-size:13px;font-weight:550;letter-spacing:-.01em;margin:0}
+.photo-caption span{font-size:10px;color:var(--muted);white-space:nowrap;letter-spacing:.02em}
+
+/* ---- Match archive -------------------------------------------- */
+.match-archive{border-top:1px solid var(--rule);margin-top:48px}
+.match-archive summary{
+  cursor:pointer;list-style:none;display:flex;
+  justify-content:space-between;align-items:center;
+  padding:16px 0;font-size:14px;font-weight:500
+}
+.match-archive summary::-webkit-details-marker{display:none}
+.archive-toggle{font-size:20px;font-weight:300;transition:transform .2s}
+.match-archive[open] .archive-toggle{transform:rotate(45deg)}
+.archive-links{display:grid;grid-template-columns:1fr 1fr;column-gap:40px}
+.archive-links a{
+  display:grid;grid-template-columns:minmax(0,1fr) auto 12px;
+  align-items:center;gap:10px;border-top:1px solid var(--rule);
+  padding:12px 0;font-size:12px;transition:color .15s
+}
+.archive-links time,.archive-links a > span:nth-child(2){
+  font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums
+}
+.archive-links a:hover{color:var(--accent)}
+
+/* ================================================================
+   Portrait section
+   ================================================================ */
+.portrait-section{padding-top:80px;padding-bottom:0}
+.portrait-series{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:20px;align-items:start
+}
+.portrait-series a{display:block;overflow:hidden}
+.portrait-series a:first-child{margin-top:32px}
+.portrait-series a:last-child{margin-top:64px}
+.portrait-series img{
+  display:block;width:100%;height:auto;aspect-ratio:3/4;
+  object-fit:cover;transition:transform .6s cubic-bezier(.16,1,.3,1)
+}
+.portrait-series a:hover img{transform:scale(1.02)}
+.portrait-series span{
+  display:block;margin-top:8px;font-size:10px;color:var(--muted);
+  letter-spacing:.02em
+}
+
+/* ================================================================
+   Projects / Web & AI
+   ================================================================ */
+.projects-section{margin-top:80px;padding:64px 0;background:var(--paper-warm)}
+.project-row{
+  display:grid;grid-template-columns:1fr 1.4fr .6fr;gap:28px;
+  align-items:baseline;border-top:1px solid var(--rule);padding:24px 0
+}
+.project-row h3{
+  font-size:20px;font-weight:550;line-height:1.3;
+  letter-spacing:-.02em;margin:0
+}
+.project-row p{
+  font-size:13px;line-height:1.75;margin:0;
+  color:var(--muted);max-width:400px
+}
+.project-row .text-link{margin-left:auto;width:fit-content}
+
+/* ---- Agent section -------------------------------------------- */
+.agent-section{
+  display:grid;grid-template-columns:1fr 1.6fr;gap:48px;
+  border-top:1px solid var(--rule);margin-top:24px;padding-top:40px
+}
+.agent-intro h2{font-size:clamp(24px,2.8vw,34px);margin:14px 0}
+.agent-intro > p:last-child{
+  font-size:12px;max-width:280px;line-height:1.75;color:var(--muted)
+}
+.personal-site #hero-chat{
+  border:1px solid var(--rule);background:var(--paper);
+  border-radius:0;padding:22px;box-shadow:none;min-width:0
+}
+.agent-panel-head{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;margin-bottom:16px
+}
+.agent-panel-head h3{font-size:14px;font-weight:600;margin:0}
+.personal-site .agent-status-badge{
+  background:transparent;color:var(--muted);border:0;padding:0;
+  font-size:9px;letter-spacing:.03em;text-transform:uppercase
+}
+.agent-compose{display:flex;border:1px solid var(--rule);min-width:0}
+.personal-site .agent-compose input{
+  min-width:0;width:100%;border:0;background:#fff;
+  color:var(--ink);padding:12px;font-size:13px;border-radius:0
+}
+.personal-site .agent-compose button{
+  background:var(--accent);color:#fff;border:0;
+  padding:0 16px;font-size:12px;font-weight:500;
+  transition:background .15s
+}
+.personal-site .agent-compose button:hover{background:var(--accent-light)}
+.agent-actions,.agent-quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.personal-site .agent-actions button,.personal-site .agent-quick button{
+  border:0;background:transparent;padding:4px 0;margin-right:6px;
+  color:var(--muted);font-size:10px;border-radius:0;box-shadow:none;
+  letter-spacing:.01em;text-transform:none;min-height:26px;
+  transition:color .15s
+}
+.personal-site .agent-actions button:hover,.personal-site .agent-quick button:hover{
+  color:var(--ink);text-decoration:underline;text-underline-offset:3px
+}
+.personal-site .agent-quick{border-top:1px solid var(--rule);padding-top:8px}
+.personal-site #hero-messages{font-size:13px}
+.personal-site .message-bot,.personal-site #hero-messages .hero-bubble-bot,
+.personal-site #hero-messages .chat-bubble-assistant{
+  background:var(--paper-warm);color:var(--ink);border:0;border-radius:6px
+}
+.personal-site .message-user,.personal-site #hero-messages .hero-bubble-user,
+.personal-site #hero-messages .chat-bubble-user{
+  background:var(--accent);color:#fff;border:0;border-radius:6px
+}
+
+/* ================================================================
+   About
+   ================================================================ */
+.about-section{
+  display:grid;grid-template-columns:auto 1fr;gap:28px;
+  padding-top:80px;padding-bottom:64px
+}
+.about-copy{
+  font-size:clamp(18px,2vw,28px);line-height:1.55;
+  letter-spacing:-.02em;max-width:720px;margin:20px 0
+}
+.inline-link{display:inline-flex;gap:8px}
+
+/* ================================================================
+   Contact
+   ================================================================ */
+.contact-section{
+  display:grid;grid-template-columns:1fr 1fr;gap:72px;
+  border-top:1px solid var(--ink);padding-top:44px;padding-bottom:72px
+}
+.contact-intro h2{margin:18px 0 28px}
+.contact-email{
+  display:block;font-size:clamp(15px,1.6vw,24px);
+  letter-spacing:-.015em;overflow-wrap:anywhere;
+  transition:color .15s
+}
+.contact-email:hover{color:var(--accent)}
+.contact-phone{display:block;margin-top:8px;font-size:16px;color:var(--muted)}
+.social-links{display:flex;flex-wrap:wrap;gap:18px;font-size:11px;margin-top:32px;letter-spacing:.02em}
+.social-links a{color:var(--muted);transition:color .15s}
+.social-links a:hover{color:var(--ink)}
+
+/* ---- Contact form --------------------------------------------- */
+#contactForm{min-width:0}
+.personal-site #contactForm label{
+  display:block;font-size:10px;margin-bottom:5px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted)
+}
+.personal-site #contactForm input:not([type="hidden"]),
+.personal-site #contactForm select,
+.personal-site #contactForm textarea{
+  display:block;border:0;border-bottom:1px solid var(--rule);
+  background:transparent;color:var(--ink);border-radius:0;
+  padding:10px 0 10px;margin-bottom:20px;width:100%;font-size:14px;
+  transition:border-color .2s
+}
+.personal-site #contactForm input:focus,.personal-site #contactForm select:focus,
+.personal-site #contactForm textarea:focus{border-bottom-color:var(--accent)}
+.personal-site #contactForm textarea{resize:vertical;min-height:96px}
+.form-pair{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.form-privacy{font-size:10px;color:var(--muted);margin:0 0 20px;letter-spacing:.01em}
+.form-privacy a{text-decoration:underline}
+.submit-button{
+  display:inline-flex;justify-content:center;align-items:center;gap:8px;
+  background:var(--ink);color:var(--paper);border:0;
+  padding:13px 26px;font-size:12px;font-weight:500;
+  letter-spacing:.02em;transition:background .2s
+}
+.submit-button:hover{background:var(--accent)}
+.personal-site .error-message{font-size:11px;color:#b83a30}
+.personal-site #contactStatus{font-size:12px;margin-top:10px}
+
+/* ================================================================
+   Footer
+   ================================================================ */
+.site-footer{
+  display:flex;align-items:center;gap:24px;
+  border-top:1px solid var(--rule);padding:22px 0 36px;
+  font-size:10px;color:var(--muted);letter-spacing:.02em;
+  background:var(--paper)!important;position:relative;z-index:1
+}
+.site-footer::before,.site-footer::after{display:none!important}
+.personal-site main::after,.personal-site main::before{display:none!important}
+.personal-site footer::after,.personal-site footer::before{display:none!important}
+.footer-name{
+  font-size:15px;font-weight:600;letter-spacing:-.03em;
+  margin-right:auto;color:var(--ink)!important
+}
+
+/* ================================================================
+   Chat widget
+   ================================================================ */
+.personal-site #chatBtn{
+  width:44px;height:44px;border:1px solid var(--rule);
+  border-radius:50%;background:var(--paper);color:var(--accent);
+  font-size:11px;font-weight:650;
+  box-shadow:0 2px 12px rgba(26,30,28,0.06);
+  transition:box-shadow .2s,transform .2s
+}
+.personal-site #chatBtn:hover{
+  transform:translateY(-1px);box-shadow:0 4px 20px rgba(26,30,28,0.1)
+}
+.personal-site #chatWindow{
+  height:min(500px,calc(100dvh - 110px));
+  max-width:calc(100vw - 32px);
+  background:var(--paper);color:var(--ink);
+  border:1px solid var(--rule);border-radius:10px;
+  box-shadow:0 12px 48px rgba(26,30,28,0.12)
+}
+.widget-heading{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border-bottom:1px solid var(--rule)
+}
+.widget-heading h3{font-size:13px;font-weight:600}
+.widget-heading > span{font-size:9px;color:var(--muted);letter-spacing:.03em}
+.widget-heading > button{margin-left:auto;font-size:20px;background:none;border:0}
+.widget-options{display:flex;gap:12px;padding:6px 16px}
+.personal-site .widget-options button{
+  border:0;background:none;color:var(--muted);font-size:10px;padding:3px 0
+}
+.widget-compose{display:flex;gap:8px;padding:12px;border-top:1px solid var(--rule)}
+.widget-compose input{
+  width:100%;min-width:0;background:#fff;color:var(--ink);
+  border:1px solid var(--rule);padding:9px 12px;font-size:13px;
+  border-radius:6px
+}
+.widget-compose button{
+  padding:0 13px;background:var(--accent);color:#fff;border:0;border-radius:6px
+}
+
+/* ---- Voice overlay -------------------------------------------- */
+.personal-site #voice-overlay{background:rgba(26,30,28,0.92);color:#f5f3ef}
+.personal-site .voice-overlay-panel{
+  background:#1a1e1c;border:1px solid #3d4440;
+  border-radius:12px;text-align:center
+}
+.personal-site #voice-orb{margin:24px auto}
+.personal-site #voice-hangup{
+  margin-top:24px;background:#c43a33;padding:12px 24px;border:0;
+  color:#fff;border-radius:8px;font-weight:500
+}
+
+/* ---- Photo dialog --------------------------------------------- */
+.personal-site #photo-dialog{
+  padding:0;border:0;background:#111;color:#fff;
+  width:min(1100px,94vw);max-width:94vw;max-height:94dvh;
+  overflow:auto;border-radius:0
+}
+#photo-dialog::backdrop{background:rgba(0,0,0,0.88)}
+#photo-dialog img{
+  display:block;margin:auto;width:auto;max-width:100%;
+  height:auto;max-height:84dvh;object-fit:contain
+}
+#photo-dialog > button{
+  position:absolute;right:12px;top:12px;
+  background:rgba(0,0,0,0.6);color:#fff;font-size:24px;
+  border:0;width:40px;height:40px;z-index:2;border-radius:50%
+}
+#photo-dialog p{padding:12px 20px;font-size:11px;margin:0}
+
+/* ---- Skip link ------------------------------------------------ */
+.personal-site .skip-link{background:var(--ink);color:#fff;z-index:10001}
+
+/* ---- Unused (keep compat) ------------------------------------- */
+.hero-portrait{display:none}
+
+/* ================================================================
+   Responsive — Tablet (≤ 1100px)
+   ================================================================ */
+@media(max-width:1100px){
+  .personal-site .page-width,.personal-site .site-header{width:calc(100% - 48px)}
+  .photo-pair{gap:16px}
+  .photo-entry-offset{margin-top:40px}
+  .photo-caption{display:block}
+  .photo-caption span{display:block;margin-top:3px}
+  .agent-section{gap:28px;grid-template-columns:1fr 1.4fr}
+  .contact-section{gap:40px}
+  .project-row{grid-template-columns:1fr 1.2fr .7fr;gap:20px}
+}
+
+/* ================================================================
+   Responsive — Mobile (≤ 760px)
+   ================================================================ */
+@media(max-width:760px){
+  .personal-site .page-width,.personal-site .site-header{width:calc(100% - 32px)}
+  .personal-site .site-header{min-height:56px}
+  .desktop-nav{display:none}
+  .menu-toggle{
+    display:block;border:0;background:none;font-size:13px;
+    padding:8px 0 8px 10px;font-weight:500
+  }
+  .wordmark-logo{width:24px;height:24px}
+
+  /* Hero mobile */
+  .hero-layout{
+    min-height:calc(100svh - 56px);
+    padding:28px 0;
+    max-width:calc(100% - 32px)
+  }
+  .hero-note{padding:0}
+  .personal-site #page-title{
+    font-size:clamp(26px,7vw,38px);letter-spacing:-.03em;
+    margin:0 0 12px;max-width:14em
+  }
+  .intro-copy{font-size:14px;margin:0 0 20px}
+  .hero-note .text-link{padding:10px 16px;font-size:11px}
+  .hero-project-link{font-size:10px;margin-top:8px}
+
+  /* Portfolio mobile */
+  .photo-section{padding-top:36px}
+  .portrait-section{padding-top:56px}
+  .section-heading{gap:8px;margin-bottom:24px}
+  .section-heading > p:last-child:not(.eyebrow){font-size:12px}
+  .personal-site h2{font-size:clamp(24px,6vw,36px)}
+  .photo-pair{grid-template-columns:1fr;gap:24px}
+  .photo-entry-offset{margin-top:0;padding-left:24px}
+  .photo-caption{display:flex}
+  .photo-caption h3{font-size:12px}
+  .photo-caption span{font-size:9px}
+  .match-archive{margin-top:32px}
+  .archive-links{grid-template-columns:1fr}
+  .archive-links a{font-size:11px;padding:12px 0;gap:6px}
+
+  /* Portraits mobile */
+  .portrait-series{grid-template-columns:1fr 1fr;gap:12px}
+  .portrait-series a:first-child{margin-top:0}
+  .portrait-series a:nth-child(2){margin-top:32px}
+  .portrait-series a:last-child{margin-top:0;width:90%}
+
+  /* Projects mobile */
+  .projects-section{margin-top:56px;padding:40px 0}
+  .project-row{grid-template-columns:1fr;gap:10px;padding:20px 0}
+  .project-row h3{font-size:18px}
+  .project-row .text-link{margin:0;width:fit-content}
+  .project-row p{font-size:12px;max-width:none}
+  .agent-section{grid-template-columns:1fr;gap:18px;padding-top:24px;margin-top:10px}
+  .agent-intro h2{font-size:24px}
+  .agent-intro > p:last-child{max-width:none}
+  .personal-site #hero-chat{padding:14px}
+  .agent-compose input{font-size:12px!important;padding:10px!important}
+  .agent-compose button{padding:0 12px!important}
+
+  /* About mobile */
+  .about-section{grid-template-columns:1fr;gap:14px;padding-top:48px;padding-bottom:40px}
+  .about-copy{font-size:19px;margin:16px 0}
+
+  /* Contact mobile */
+  .contact-section{grid-template-columns:1fr;gap:28px;padding-top:28px;padding-bottom:40px}
+  .contact-intro h2{margin:14px 0 20px}
+  .contact-email{font-size:18px}
+  .contact-phone{font-size:15px}
+  .social-links{margin-top:16px}
+  .form-pair{gap:16px}
+
+  /* Footer mobile */
+  .site-footer{
+    display:grid;grid-template-columns:1fr auto;gap:10px;
+    padding-bottom:72px
+  }
+  .footer-name{font-size:14px}
+  .personal-site .chat-widget{right:14px;bottom:14px}
+}
+
+/* ================================================================
+   Reduced motion
+   ================================================================ */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .personal-site *{animation:none!important;transition:none!important}
+  .photo-entry img,.portrait-series img{transform:none!important}
+}

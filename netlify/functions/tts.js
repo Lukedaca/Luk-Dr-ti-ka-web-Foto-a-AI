@@ -1,5 +1,9 @@
-const GEMINI_TTS_MODEL = process.env.GEMINI_TTS_MODEL || "gemini-3.1-flash-tts-preview";
-const GEMINI_TTS_VOICE = process.env.GEMINI_TTS_VOICE || "Sulafat";
+// ── Netlify Function: Microsoft Azure AI Speech TTS Endpoint ───────────────
+// Synthesizes speech using Azure Cognitive Services Speech REST API.
+// Default voice: cs-CZ-VlastaNeural (cs-CZ), en-US-JennyNeural (en-US).
+// Output format: audio-24khz-48kbitrate-mono-mp3.
+// In-memory LRU cache prevents duplicate API calls for identical phrases.
+
 const MAX_TEXT_LENGTH = 360;
 const TTS_SAMPLE_RATE = 24000;
 const TTS_CACHE_MAX = 80;
@@ -33,11 +37,47 @@ function cleanTextForSpeech(value) {
     .slice(0, MAX_TEXT_LENGTH);
 }
 
-function makeCacheKey(provider, text, lang) {
+function getAzureSpeechApiKey() {
+  return String(
+    process.env.AZURE_SPEECH_KEY ||
+    process.env.SPEECH_KEY ||
+    ""
+  ).trim();
+}
+
+function getAzureSpeechRegion() {
+  return String(
+    process.env.AZURE_SPEECH_REGION ||
+    process.env.SPEECH_REGION ||
+    "northeurope"
+  ).trim().toLowerCase();
+}
+
+function getVoiceForLocale(locale) {
+  const norm = String(locale || "cs-CZ").trim();
+  if (norm.toLowerCase().startsWith("en")) {
+    return process.env.AZURE_SPEECH_VOICE_EN || "en-US-JennyNeural";
+  }
+  return process.env.AZURE_SPEECH_VOICE_CS || "cs-CZ-VlastaNeural";
+}
+
+function escapeXml(value) {
+  return String(value || "").replace(/[<>&'"]/g, (char) => {
+    switch (char) {
+      case "<": return "&lt;";
+      case ">": return "&gt;";
+      case "&": return "&amp;";
+      case "'": return "&apos;";
+      case '"': return "&quot;";
+      default: return char;
+    }
+  });
+}
+
+function makeCacheKey(provider, text, lang, voice) {
   return [
     provider,
-    GEMINI_TTS_MODEL,
-    GEMINI_TTS_VOICE,
+    voice,
     String(lang || "cs-CZ").toLowerCase(),
     text,
   ].join("::");
@@ -59,79 +99,60 @@ function setCachedAudio(key, value) {
   }
 }
 
-function getGeminiTtsApiKey() {
-  return String(
-    process.env.GEMINI_API_KEY ||
-    process.env.GEMMA_API_KEY ||
-    process.env.Gemini ||
-    process.env.GEMINI ||
-    ""
-  ).trim();
-}
+async function generateAzureSpeechPayload(apiKey, region, text, lang) {
+  const voice = getVoiceForLocale(lang);
+  const locale = String(lang || "cs-CZ").trim();
+  const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${escapeXml(locale)}"><voice name="${escapeXml(voice)}">${escapeXml(text)}</voice></speak>`;
 
-function buildGeminiPrompt(text, lang) {
-  const isEnglish = String(lang || "").toLowerCase().startsWith("en");
-  return [
-    isEnglish
-      ? "Read exactly the text below as Lukas AI. Make the voice distinctive: warm studio partner, calm confidence, natural warmth, natural micro-pauses, no generic assistant tone, no sales pitch."
-      : "Přečti přesně text níže jako Lukas AI. Hlas má být osobitý: vřelá studiová parťačka, klidná jistota, přirozená vřelost, přirozené krátké pauzy, žádný generický asistent ani reklamní tón.",
-    text,
-  ].join("\n");
-}
-
-async function generateGeminiSpeechPayload(apiKey, text, lang) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_TTS_MODEL)}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: buildGeminiPrompt(text, lang) }] }],
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: GEMINI_TTS_VOICE },
-            },
-          },
-        },
-      }),
-    }
-  );
+  const endpoint = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Ocp-Apim-Subscription-Key": apiKey,
+      "Content-Type": "application/ssml+xml",
+      "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+      "User-Agent": "lukas-portfolio",
+    },
+    body: ssml,
+  });
 
   if (!response.ok) {
     const errText = await response.text().catch(() => "");
-    console.error("Gemini TTS error:", response.status, errText.slice(0, 500));
-    const err = new Error(`Gemini TTS failed: ${response.status}`);
+    console.error("Azure Speech TTS error:", response.status, errText.slice(0, 500));
+    const err = new Error(`Azure Speech TTS failed: ${response.status}`);
     err.upstreamStatus = response.status;
     err.upstreamBody = errText.slice(0, 300);
     throw err;
   }
 
-  const data = await response.json().catch(() => null);
-  const inlineData = data?.candidates?.[0]?.content?.parts?.find((part) => part?.inlineData?.data)?.inlineData;
-  if (!inlineData?.data) {
-    console.error("Gemini TTS empty audio:", JSON.stringify(data).slice(0, 500));
-    throw new Error("Gemini TTS returned empty audio");
+  const arrayBuffer = await response.arrayBuffer();
+  const base64Audio = Buffer.from(arrayBuffer).toString("base64");
+
+  if (!base64Audio) {
+    throw new Error("Azure Speech TTS returned empty audio");
   }
 
   return {
-    audio: inlineData.data,
-    mimeType: inlineData.mimeType || "audio/pcm;rate=24000",
+    audio: base64Audio,
+    format: "mp3",
+    mimeType: "audio/mpeg",
     sampleRate: TTS_SAMPLE_RATE,
-    lang,
-    provider: "gemini",
-    model: GEMINI_TTS_MODEL,
-    voice: GEMINI_TTS_VOICE,
+    lang: locale,
+    provider: "azure-speech",
+    voice,
+    region,
   };
 }
 
-async function generateSpeechPayload({ geminiApiKey, text, lang }) {
-  const cacheKey = makeCacheKey("gemini", text, lang);
+async function generateSpeechPayload({ apiKey, region, text, lang }) {
+  const resolvedKey = apiKey || getAzureSpeechApiKey();
+  const resolvedRegion = region || getAzureSpeechRegion();
+  const voice = getVoiceForLocale(lang);
+  const cacheKey = makeCacheKey("azure-speech", text, lang, voice);
   const cached = getCachedAudio(cacheKey);
   if (cached) return { ...cached, cached: true };
 
-  const speech = await generateGeminiSpeechPayload(geminiApiKey, text, lang);
+  const speech = await generateAzureSpeechPayload(resolvedKey, resolvedRegion, text, lang);
   setCachedAudio(cacheKey, speech);
   return speech;
 }
@@ -142,15 +163,16 @@ async function handler(event) {
   }
 
   if (event.httpMethod === "GET" || event.httpMethod === "HEAD") {
-    const geminiTtsApiKey = getGeminiTtsApiKey();
+    const apiKey = getAzureSpeechApiKey();
+    const region = getAzureSpeechRegion();
     return jsonResponse(200, {
       ok: true,
       warm: true,
-      providers: {
-        gemini: !!geminiTtsApiKey,
-      },
-      model: GEMINI_TTS_MODEL,
-      voice: GEMINI_TTS_VOICE,
+      provider: "azure-speech",
+      configured: !!apiKey,
+      region,
+      voice: getVoiceForLocale("cs-CZ"),
+      format: "audio-24khz-48kbitrate-mono-mp3",
       sampleRate: TTS_SAMPLE_RATE,
       cacheSize: audioCache.size,
     });
@@ -178,10 +200,11 @@ async function handler(event) {
     return jsonResponse(429, { error: "Příliš mnoho TTS požadavků. Zkus to za chvíli." });
   }
 
-  const geminiApiKey = getGeminiTtsApiKey();
-  if (!geminiApiKey) {
+  const apiKey = getAzureSpeechApiKey();
+  const region = getAzureSpeechRegion();
+  if (!apiKey) {
     return jsonResponse(503, {
-      error: "Gemini hlas není nastavený. Nastav GEMINI_API_KEY v Netlify Environment variables.",
+      error: "Azure Speech hlas není nastavený. Nastav AZURE_SPEECH_KEY v Netlify Environment variables.",
     });
   }
 
@@ -199,7 +222,7 @@ async function handler(event) {
   }
 
   try {
-    const speech = await generateSpeechPayload({ geminiApiKey, text, lang });
+    const speech = await generateSpeechPayload({ apiKey, region, text, lang });
     return jsonResponse(200, speech);
   } catch (err) {
     console.error("TTS function error:", err);

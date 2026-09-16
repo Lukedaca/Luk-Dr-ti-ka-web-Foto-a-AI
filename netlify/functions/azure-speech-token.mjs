@@ -1,7 +1,10 @@
-// ── Netlify Function: Voice Token Generator (Azure Speech STS) ──────────────
-// Replaced legacy Gemini Live token with Microsoft Azure AI Speech STS token.
+// ── Netlify Function: Microsoft Azure AI Speech Ephemeral STS Token Issuer ──
 // Issues short-lived authorization tokens (valid for 10 minutes) so that
-// the Azure Speech API key never reaches the client.
+// the Azure Speech API key never reaches the browser client.
+// Used by the client-side Azure Speech SDK for real-time speech-to-text.
+
+import { isAllowedOrigin } from "./_lib/security.mjs";
+import { checkLimit } from "./_lib/limits.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +25,7 @@ function jsonResponse(statusCode, body, extraHeaders) {
   };
 }
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }
@@ -33,7 +36,6 @@ exports.handler = async (event) => {
 
   const candidateOrigin =
     event.headers["origin"] || event.headers["referer"] || "";
-  const { isAllowedOrigin } = await import("./_lib/security.mjs");
   if (!isAllowedOrigin(candidateOrigin)) {
     return jsonResponse(403, { error: "forbidden" });
   }
@@ -43,11 +45,10 @@ exports.handler = async (event) => {
     event.headers["client-ip"] ||
     "unknown";
 
-  const { checkLimit } = await import("./_lib/limits.mjs");
   const rl = await checkLimit("voice", clientIp);
   if (!rl.ok) {
     return jsonResponse(429, {
-      error: "Příliš mnoho hlasových relací. Zkus to za hodinu.",
+      error: "Příliš mnoho hlasových relací. Zkus to za chvíli.",
     });
   }
 
@@ -85,13 +86,13 @@ exports.handler = async (event) => {
       const errText = await response.text().catch(() => "");
       console.error("Azure Speech STS token error:", response.status, errText);
       return jsonResponse(502, {
-        error: "Nepodařilo se získat hlasový token. Zkus to prosím za chvíli.",
+        error: "Nepodařilo se získat Azure Speech token. Zkus to prosím za chvíli.",
       });
     }
 
     const token = (await response.text()).trim();
     if (!token) {
-      return jsonResponse(502, { error: "Prázdný hlasový token." });
+      return jsonResponse(502, { error: "Prázdný token z Azure STS." });
     }
 
     return jsonResponse(200, {
@@ -102,9 +103,9 @@ exports.handler = async (event) => {
       expiresInSeconds: 600,
     });
   } catch (err) {
-    console.error("Voice token function error:", err);
+    console.error("Azure Speech token function error:", err);
     return jsonResponse(500, {
-      error: "Omlouvám se, něco se pokazilo. Zkus to prosím za chvíli.",
+      error: "Chyba při komunikaci s Azure Speech službou.",
     });
   }
 };

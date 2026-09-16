@@ -26,3 +26,4 @@ output/
 
 # Local Netlify folder
 .netlify
+.playwright-cli/

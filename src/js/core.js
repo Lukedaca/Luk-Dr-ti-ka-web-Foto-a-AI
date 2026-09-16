@@ -410,7 +410,7 @@ function initCore() {
         }, 4000);
     };
 
-    setupAgentWelcome();
+    if (!document.body.classList.contains('personal-site')) setupAgentWelcome();
 
     // Cursor spotlight, hero ambient + dot-grid spotlight reveal
     const cursorSpotlight = document.getElementById('cursorSpotlight');
