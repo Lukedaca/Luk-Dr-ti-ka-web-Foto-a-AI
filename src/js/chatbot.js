@@ -53,7 +53,7 @@ import {
   var CHATBOT_VISITOR_ID_KEY = 'lukas_ai_visitor_id';
   var CHATBOT_MEMORY_CONSENT_KEY = 'lukas_ai_memory_consent';
   var CHATBOT_MEMORY_PROMPT_KEY = 'lukas_ai_memory_prompted';
-  var CHATBOT_CAN_NATIVE_SPEAK = !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+  var CHATBOT_CAN_NATIVE_SPEAK = false;
   var CHATBOT_CAN_SERVER_TTS = !!((window.AudioContext || window.webkitAudioContext) && window.fetch);
   var CHATBOT_CAN_SPEAK = !!CHATBOT_CAN_SERVER_TTS;
   var CHATBOT_TTS_SAMPLE_RATE = 24000;
@@ -575,30 +575,7 @@ import {
   }
 
   function chatbotSpeakNativeText(text, lang, requestId, interrupt) {
-    if (!CHATBOT_CAN_NATIVE_SPEAK || !chatbotNativeSpeech || !text) return false;
-    if (requestId !== chatbotSpeechRequestId) return false;
-
-    try {
-      if (interrupt) chatbotNativeSpeech.cancel();
-      var utterance = new window.SpeechSynthesisUtterance(text);
-      utterance.lang = lang || 'cs-CZ';
-      utterance.rate = String(utterance.lang).toLowerCase().indexOf('en') === 0 ? 0.98 : 0.95;
-      utterance.pitch = String(utterance.lang).toLowerCase().indexOf('en') === 0 ? 0.94 : 0.9;
-      utterance.volume = 1;
-
-      var voice = chatbotFindNativeVoice(utterance.lang);
-      if (voice) utterance.voice = voice;
-
-      utterance.onend = function () {
-        pendingNavManager.flush();
-      };
-
-      chatbotNativeSpeech.speak(utterance);
-      return true;
-    } catch (err) {
-      console.error('Native speech synthesis error:', err);
-      return false;
-    }
+    return false;
   }
 
   function chatbotUseNativeSpeechFirst() {
