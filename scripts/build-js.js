@@ -5,12 +5,12 @@ const path = require('path');
 const srcDir = path.join(__dirname, '..', 'src', 'js');
 const distDir = path.join(__dirname, '..', 'dist', 'js');
 
-// Ensure dist directory exists
 if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
 }
 
 const modules = ['early', 'boot', 'core', 'i18n', 'turnstile', 'chatbot', 'voice', 'voice-latency-patch', 'portfolio', 'contact', 'stage', 'cinematic'];
+const disabledVisualModules = new Set(['stage', 'cinematic']);
 
 async function build() {
   console.log('Building JavaScript modules...\n');
@@ -19,13 +19,19 @@ async function build() {
     const entryPoint = path.join(srcDir, `${module}.js`);
     const outFile = path.join(distDir, `${module}.min.js`);
 
+    if (disabledVisualModules.has(module)) {
+      fs.writeFileSync(outFile, '(()=>{})();');
+      console.log(`✓ ${module}.min.js - disabled by Swiss monochrome redesign`);
+      continue;
+    }
+
     if (!fs.existsSync(entryPoint)) {
       console.warn(`Warning: ${entryPoint} not found, skipping...`);
       continue;
     }
 
     try {
-      const result = await esbuild.build({
+      await esbuild.build({
         entryPoints: [entryPoint],
         outfile: outFile,
         bundle: true,
