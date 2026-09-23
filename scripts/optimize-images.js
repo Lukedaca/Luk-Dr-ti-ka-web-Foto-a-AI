@@ -10,22 +10,22 @@ if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-const MAX_WIDTH = 1100;
-const CARD_WIDTH = 480;
-const CARD_HEIGHT = 320;
-const GALLERY_THUMB_WIDTH = 520;
-const LIGHTBOX_WIDTH = 1920;
-const JPEG_QUALITY = 82;
-const WEBP_QUALITY = 72;
-const AVIF_QUALITY = 50;
-const CARD_JPEG_QUALITY = 74;
-const CARD_WEBP_QUALITY = 56;
-const CARD_AVIF_QUALITY = 38;
-const THUMB_JPEG_QUALITY = 76;
-const THUMB_WEBP_QUALITY = 58;
-const THUMB_AVIF_QUALITY = 40;
-const LIGHTBOX_WEBP_QUALITY = 78;
-const LIGHTBOX_AVIF_QUALITY = 55;
+const MAX_WIDTH = 1400;
+const CARD_WIDTH = 760;
+const CARD_HEIGHT = 506;
+const GALLERY_THUMB_WIDTH = 1400;
+const LIGHTBOX_WIDTH = 2560;
+const JPEG_QUALITY = 90;
+const WEBP_QUALITY = 86;
+const AVIF_QUALITY = 75;
+const CARD_JPEG_QUALITY = 88;
+const CARD_WEBP_QUALITY = 82;
+const CARD_AVIF_QUALITY = 70;
+const THUMB_JPEG_QUALITY = 88;
+const THUMB_WEBP_QUALITY = 84;
+const THUMB_AVIF_QUALITY = 72;
+const LIGHTBOX_WEBP_QUALITY = 90;
+const LIGHTBOX_AVIF_QUALITY = 80;
 const BLUR_SIZE = 20;
 
 const CONCURRENCY = Math.max(2, Math.min(6, require('os').cpus().length));

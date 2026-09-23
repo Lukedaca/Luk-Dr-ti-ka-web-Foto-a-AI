@@ -10,12 +10,12 @@ body.photo-subpage::before,body.photo-subpage::after,body.legal-subpage::before,
 .photo-subpage .gallery-actions{margin-top:25px;gap:30px}
 .photo-subpage .gallery-link{min-height:40px;padding:6px 0;border-radius:0;background:none;color:#19241f;font-size:12px;border:0;border-bottom:1px solid #19241f;font-weight:500}
 .photo-subpage .gallery-link:hover{color:#28583f}
-.photo-subpage .gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 35px;margin-top:40px}
-.photo-subpage .gallery-card{border:0;border-radius:0;background:transparent;box-shadow:none;transition:none}
+.photo-subpage .gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 35px;margin-top:40px;align-items:start}
+.photo-subpage .gallery-card{border:0;border-radius:0;background:transparent;box-shadow:none;transition:none;padding:0;outline:none}
 .photo-subpage .gallery-card:hover{transform:none}
 .photo-subpage .gallery-card:focus-visible{outline:2px solid #28583f;outline-offset:6px}
-.photo-subpage .gallery-card img{aspect-ratio:3/2}
-.photo-subpage .gallery-card span{padding:10px 0 0;font-size:10px;color:#5c665f}
+.photo-subpage .gallery-card img{width:100%;height:auto;aspect-ratio:auto;object-fit:contain;display:block}
+.photo-subpage .gallery-card span{padding:10px 0 0;font-size:10px;color:#5c665f;display:block}
 .photo-subpage .lightbox{background:#101812f5}
 .legal-subpage .container{max-width:900px;padding:50px 28px 80px}
 .legal-subpage .logo{border-radius:0;background:#28583f;color:white}

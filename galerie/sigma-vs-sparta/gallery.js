@@ -8,8 +8,6 @@ const galleryImages = [
 ].map((name, index) => ({
     thumb: `/dist/images/portfolio/sigma-sparta/${name}-thumb.jpg`,
     full: `/dist/images/portfolio/sigma-sparta/${name}.jpg`,
-    fullWebp: `/dist/images/portfolio/sigma-sparta/${name}.webp`,
-    fullAvif: `/dist/images/portfolio/sigma-sparta/${name}.avif`,
     alt: `SK Sigma Olomouc vs AC Sparta Praha – fotka ${index + 1}`
 }));
 
@@ -20,8 +18,6 @@ const closeLightboxBtn = document.getElementById('closeLightbox');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
 const lightboxControls = document.getElementById('lightboxControls');
-const lightboxSourceAvif = document.getElementById('lightboxSourceAvif');
-const lightboxSourceWebp = document.getElementById('lightboxSourceWebp');
 
 let currentIndex = 0;
 
@@ -40,8 +36,6 @@ function renderGallery() {
 
 function updateLightbox() {
     const image = galleryImages[currentIndex];
-    if (lightboxSourceAvif) lightboxSourceAvif.srcset = image.fullAvif || '';
-    if (lightboxSourceWebp) lightboxSourceWebp.srcset = image.fullWebp || '';
     lightboxImg.src = image.full;
     lightboxImg.alt = `${image.alt} (${currentIndex + 1}/${galleryImages.length})`;
     lightboxPrev.classList.toggle('opacity-40', currentIndex === 0);
