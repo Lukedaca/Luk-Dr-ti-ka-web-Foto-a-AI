@@ -6,7 +6,7 @@
 /* Font-face is already in styles.min.css — no duplicate declaration */
 
 /* ---- Tokens --------------------------------------------------- */
-html{scroll-behavior:smooth;scroll-padding-top:80px}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
 body.personal-site{
   --paper:#f5f3ef;--paper-warm:#edeae4;--ink:#1a1e1c;--muted:#72776f;
   --rule:#d4d1cb;--accent:#2d5e44;--accent-light:#3a7a5a;
@@ -40,7 +40,7 @@ body.personal-site{
 
 /* ---- Header --------------------------------------------------- */
 .personal-site .site-header{
-  position:sticky;top:0;display:flex;align-items:center;
+  position:static;display:flex;align-items:center;
   justify-content:space-between;min-height:64px;
   border-bottom:1px solid transparent;
   background:rgba(245,243,239,0.88);backdrop-filter:blur(14px);
@@ -113,10 +113,7 @@ body.personal-site{
   padding:40px 0;
   max-width:min(1200px,calc(100% - 80px));margin-inline:auto
 }
-.hero-photo{
-  position:absolute;width:1px;height:1px;overflow:hidden;
-  clip:rect(0,0,0,0);clip-path:inset(50%);white-space:nowrap
-}
+.photo-entry picture,.portrait-series picture{display:block}
 .hero-note{
   display:flex;flex-direction:column;align-items:flex-start;
   color:var(--ink);max-width:none;padding:0

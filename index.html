@@ -24,7 +24,7 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="preload" href="/dist/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/dist/css/styles.min.css?v=51">
-    <link rel="stylesheet" href="/assets/personal.css?v=5">
+    <link rel="stylesheet" href="/assets/personal.css?v=6">
     <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"Person","name":"Lukáš Drštička","url":"https://lukasdrsticka-ai-and-foto.com/","email":"lukas.drsticka@gmail.com","sameAs":["https://www.instagram.com/lukas_drsticka_foto/","https://github.com/Lukedaca"]}
     </script>
@@ -70,14 +70,6 @@
         <!-- ===== HERO ===== -->
         <section id="hero" class="personal-hero" aria-labelledby="page-title">
             <div class="hero-layout">
-                <figure class="hero-photo">
-                    <picture>
-                        <source srcset="/assets/hero/hero-sigma-1400.avif 1400w, /assets/hero/hero-sigma-2400.avif 2400w" sizes="100vw" type="image/avif">
-                        <source srcset="/assets/hero/hero-sigma-1400.webp 1400w, /assets/hero/hero-sigma-2400.webp 2400w" sizes="100vw" type="image/webp">
-                        <img src="/assets/hero/hero-sigma-1400.jpg" width="2400" height="1668" alt="Fotbalový souboj u postranní čáry na stadionu Sigmy Olomouc" fetchpriority="high">
-                    </picture>
-                    <figcaption><span>© Lukáš Drštička</span></figcaption>
-                </figure>
                 <div class="hero-note">
                     <h1 id="page-title" data-en="Sports &amp; portrait photography, websites and AI agents">Sportovní a portrétní fotografie, weby a&nbsp;AI&nbsp;agenti</h1>
                     <p class="intro-copy" data-en="I photograph matches and portraits. I also build websites and AI agents under the FrameMind name. Based in Přerov.">Fotím zápasy a&nbsp;portréty. Pod názvem FrameMind tvořím weby a&nbsp;AI&nbsp;agenty. Přerov.</p>
@@ -96,11 +88,19 @@
             </div>
             <div class="photo-pair">
                 <a class="photo-entry" href="/galerie/sigma-vs-mainz/">
-                    <img src="/assets/portfolio/sigma-mainz-01.jpg" alt="Sigma Olomouc vs Mainz" width="1200" height="800" loading="lazy">
+                    <picture>
+                        <source srcset="/dist/images/portfolio/sigma-mainz-01-card.avif 480w, /dist/images/portfolio/sigma-mainz-01.avif 1100w" sizes="(max-width: 760px) 100vw, 600px" type="image/avif">
+                        <source srcset="/dist/images/portfolio/sigma-mainz-01-card.webp 480w, /dist/images/portfolio/sigma-mainz-01.webp 1100w" sizes="(max-width: 760px) 100vw, 600px" type="image/webp">
+                        <img src="/dist/images/portfolio/sigma-mainz-01.jpg" alt="Sigma Olomouc vs Mainz" width="1200" height="800" loading="lazy" decoding="async">
+                    </picture>
                     <div class="photo-caption"><h3>Sigma Olomouc × Mainz</h3><span data-en="View gallery ↗">Otevřít galerii ↗</span></div>
                 </a>
                 <a class="photo-entry photo-entry-offset" href="/galerie/prerov-vs-brodek/">
-                    <img src="/assets/portfolio/prerov-brodek/IMG_8812.JPG" alt="Přerov vs Brodek" width="1200" height="800" loading="lazy">
+                    <picture>
+                        <source srcset="/dist/images/portfolio/prerov-brodek/IMG_8812-thumb.avif 520w, /dist/images/portfolio/prerov-brodek/IMG_8812.avif 1920w" sizes="(max-width: 760px) 100vw, 600px" type="image/avif">
+                        <source srcset="/dist/images/portfolio/prerov-brodek/IMG_8812-thumb.webp 520w, /dist/images/portfolio/prerov-brodek/IMG_8812.webp 1920w" sizes="(max-width: 760px) 100vw, 600px" type="image/webp">
+                        <img src="/dist/images/portfolio/prerov-brodek/IMG_8812.jpg" alt="Přerov vs Brodek" width="1200" height="800" loading="lazy" decoding="async">
+                    </picture>
                     <div class="photo-caption"><h3>Přerov × Brodek</h3><span>14. 3. 2026 ↗</span></div>
                 </a>
             </div>
@@ -129,9 +129,9 @@
                 <h2 id="portrait-title" data-en="Portraits">Portréty</h2>
             </div>
             <div class="portrait-series">
-                <a href="/assets/portfolio/portret-1.jpg" data-photo><img src="/assets/portfolio/portret-1.jpg" alt="Portrét s kouřem" width="640" height="900" loading="lazy"><span data-en="Smoke portrait">Portrét s kouřem</span></a>
-                <a href="/assets/portfolio/portret-2.jpg" data-photo><img src="/assets/portfolio/portret-2.jpg" alt="Festival look" width="640" height="900" loading="lazy"><span>Festival look</span></a>
-                <a href="/assets/portfolio/portret-3.jpg" data-photo><img src="/assets/portfolio/portret-3.jpg" alt="Modrý kouř" width="640" height="900" loading="lazy"><span data-en="Blue smoke">Modrý kouř</span></a>
+                <a href="/dist/images/portfolio/portret-1.webp" data-photo><picture><source srcset="/dist/images/portfolio/portret-1.avif" type="image/avif"><source srcset="/dist/images/portfolio/portret-1.webp" type="image/webp"><img src="/dist/images/portfolio/portret-1.jpg" alt="Portrét s kouřem" width="640" height="900" loading="lazy" decoding="async"></picture><span data-en="Smoke portrait">Portrét s kouřem</span></a>
+                <a href="/dist/images/portfolio/portret-2.webp" data-photo><picture><source srcset="/dist/images/portfolio/portret-2.avif" type="image/avif"><source srcset="/dist/images/portfolio/portret-2.webp" type="image/webp"><img src="/dist/images/portfolio/portret-2.jpg" alt="Festival look" width="640" height="900" loading="lazy" decoding="async"></picture><span>Festival look</span></a>
+                <a href="/dist/images/portfolio/portret-3.webp" data-photo><picture><source srcset="/dist/images/portfolio/portret-3.avif" type="image/avif"><source srcset="/dist/images/portfolio/portret-3.webp" type="image/webp"><img src="/dist/images/portfolio/portret-3.jpg" alt="Modrý kouř" width="640" height="900" loading="lazy" decoding="async"></picture><span data-en="Blue smoke">Modrý kouř</span></a>
             </div>
         </section>
 
@@ -255,6 +255,6 @@
     <dialog id="photo-dialog"><button type="button" data-close-photo aria-label="Zavřít fotografii">×</button><img alt=""><p></p></dialog>
 
     <script src="/assets/personal.js?v=2" defer></script>
-    <script src="/dist/js/core.min.js?v=52" defer></script>
+    <script src="/dist/js/core.min.js?v=53" defer></script>
 </body>
 </html>

@@ -684,20 +684,6 @@ function lazyLoadModules() {
     // stage.min.js se načítá deferovaným tagem přímo v index.html — je to
     // primární vizuál, nesmí čekat na gesto/idle.
 
-    // Load portfolio module when portfolio section is visible
-    const portfolioSection = document.getElementById('portfolio');
-    if (portfolioSection) {
-        const portfolioObserver = new IntersectionObserver((entries, obs) => {
-            if (entries[0].isIntersecting) {
-                loadModule('/dist/js/portfolio.min.js?v=11', () => {
-                    console.log('Portfolio module loaded');
-                });
-                obs.disconnect();
-            }
-        }, { rootMargin: '200px' });
-        portfolioObserver.observe(portfolioSection);
-    }
-
     // Load contact module when contact section is visible
     const contactSection = document.getElementById('kontakt');
     if (contactSection) {
