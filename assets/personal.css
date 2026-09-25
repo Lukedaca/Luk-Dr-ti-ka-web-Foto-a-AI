@@ -8,7 +8,7 @@
 html{scroll-behavior:smooth;scroll-padding-top:16px;background:#06080d;color-scheme:dark}
 body.personal-site{
   --night:#06080d;--night-2:#0b0f17;--turf:#0f141d;
-  --text:#eceff4;--muted:#8a93a3;
+  --text:#eceff4;--muted:#a3acba;
   --light:#e8f1ff;
   --line:#38bdf8;--line-dim:rgba(56,189,248,.3);--line-glow:rgba(56,189,248,.45);
   --rule:rgba(236,239,244,.1);
@@ -53,27 +53,42 @@ body.personal-site{
   content:'';position:absolute;top:-130px;left:-160px;width:320px;height:220px;
   background:radial-gradient(ellipse at 50% 45%,rgba(232,241,255,.28),rgba(232,241,255,.08) 38%,transparent 70%)
 }
-/* kužel světla */
-.mast::before{
-  content:'';position:absolute;top:14px;left:-80vmax;width:160vmax;height:150vh;
-  transform-origin:50% 0;
-  background:conic-gradient(from 160deg at 50% 0,
-    transparent 0deg,rgba(232,241,255,.04) 6deg,rgba(232,241,255,.12) 13deg,
-    rgba(232,241,255,.2) 20deg,rgba(232,241,255,.12) 27deg,
-    rgba(232,241,255,.04) 34deg,transparent 40deg);
-  -webkit-mask-image:radial-gradient(ellipse 50% 100% at 50% 0,#000 15%,transparent 90%);
-          mask-image:radial-gradient(ellipse 50% 100% at 50% 0,#000 15%,transparent 90%)
+/* kužel světla — míří na střed obrazovky.
+   Úhel = atan2(vodorovná vzdálenost stožáru od středu, svislá), dosah = přepona.
+   U zdroje svítí naplno, ke středu slábne, aby text uprostřed zůstal čitelný. */
+.mast{--aim:36deg;--reach:760px}
+@supports (width:hypot(1px,1px)) and (transform:rotate(atan2(1px,1px))){
+  .mast{--aim:atan2(43vw,50vh);--reach:hypot(43vw,50vh)}
 }
-.mast-left::before{transform:rotate(-30deg)}
-.mast-right::before{transform:rotate(30deg)}
+.mast::before{
+  content:'';position:absolute;top:14px;left:-80vmax;width:160vmax;height:160vh;
+  transform-origin:50% 0;
+  background:conic-gradient(from 158deg at 50% 0,
+    transparent 0deg,rgba(232,241,255,.06) 7deg,rgba(232,241,255,.17) 15deg,
+    rgba(232,241,255,.3) 22deg,rgba(232,241,255,.17) 29deg,
+    rgba(232,241,255,.06) 37deg,transparent 44deg);
+  -webkit-mask-image:radial-gradient(circle at 50% 0,#000 0,rgba(0,0,0,.62) calc(var(--reach)*.45),rgba(0,0,0,.3) var(--reach),transparent calc(var(--reach)*1.45));
+          mask-image:radial-gradient(circle at 50% 0,#000 0,rgba(0,0,0,.62) calc(var(--reach)*.45),rgba(0,0,0,.3) var(--reach),transparent calc(var(--reach)*1.45))
+}
+.mast-left::before{transform:rotate(calc(var(--aim)*-1))}
+.mast-right::before{transform:rotate(var(--aim))}
+/* při scrollu se kužel jen lehce kývne kolem středu */
 @supports (animation-timeline: scroll()){
   @media (prefers-reduced-motion:no-preference){
     .mast-left::before{animation:sweep-left linear both;animation-timeline:scroll(root)}
     .mast-right::before{animation:sweep-right linear both;animation-timeline:scroll(root)}
   }
 }
-@keyframes sweep-left{from{transform:rotate(-38deg)}to{transform:rotate(-12deg)}}
-@keyframes sweep-right{from{transform:rotate(38deg)}to{transform:rotate(12deg)}}
+@keyframes sweep-left{
+  0%{transform:rotate(calc(var(--aim)*-1 - 6deg))}
+  50%{transform:rotate(calc(var(--aim)*-1 + 6deg))}
+  100%{transform:rotate(calc(var(--aim)*-1 - 6deg))}
+}
+@keyframes sweep-right{
+  0%{transform:rotate(calc(var(--aim) + 6deg))}
+  50%{transform:rotate(calc(var(--aim) - 6deg))}
+  100%{transform:rotate(calc(var(--aim) + 6deg))}
+}
 
 /* ---- Header (statická, odscrolluje s obsahem) ------------------ */
 .personal-site .site-header{
@@ -515,6 +530,9 @@ html[lang="en"] .personal-site .lang-en{display:block}
   .menu-toggle{display:block;border:0;background:none;color:var(--text);font-size:13px;padding:8px 0 8px 10px}
   .wordmark-logo{width:24px;height:24px}
   .mast-left{left:4vw}.mast-right{right:4vw}
+  @supports (width:hypot(1px,1px)) and (transform:rotate(atan2(1px,1px))){
+    .mast{--aim:atan2(46vw,50vh);--reach:hypot(46vw,50vh)}
+  }
 
   .personal-site .personal-hero{min-height:calc(100svh - 56px);padding:32px 0}
   .intro-copy{font-size:14px}
