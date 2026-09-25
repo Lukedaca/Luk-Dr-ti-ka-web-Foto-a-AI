@@ -125,7 +125,7 @@
             <li><strong>Hybridní AI agent (Lukáš AI)</strong> – dotazy nejdřív vyhodnocuje lokálně FrameMind Solution na serveru webu, bez předání třetí straně. Jen když lokální znalosti odpověď nemají, jde dotaz a krátká historie konverzace do Google Gemini API za účelem přípravy odpovědi a navigace po webu. Před odesláním se z textu odstraňují e-mailové adresy a telefonní čísla; zpráva s osobními nebo platebními údaji se do AI neposílá vůbec a agent odpoví lokálně. Běžná konverzace se na serveru neukládá ani nikam nepřeposílá; historie zůstává jen v úložišti vašeho prohlížeče. Právní základ: oprávněný zájem na zodpovězení vašeho dotazu, čl. 6 odst. 1 písm. f) GDPR.</li>
             <li><strong>Paměť agenta (jen se souhlasem)</strong> – pokud v chatu výslovně souhlasíte, uloží se krátký souhrn témat konverzace bez kontaktních údajů pod náhodným identifikátorem, aby agent příště navázal. Uchovává se nejvýše 180 dní; souhlas můžete kdykoli odvolat tlačítkem „Smazat profil“ v chatu, které souhrn ze serveru okamžitě smaže. Právní základ: souhlas, čl. 6 odst. 1 písm. a) GDPR.</li>
             <li><strong>Hlasové funkce</strong> – převod řeči na text a čtení odpovědí nahlas zajišťuje Microsoft Azure AI Speech v datovém centru v EU (region North Europe). Zapínají se jen na vaši žádost (tlačítkem) a nahrávka vašeho hlasu se neukládá.</li>
-            <li><strong>Technické a bezpečnostní údaje</strong> (IP adresa, user-agent) – omezení počtu požadavků a ochrana před zneužitím; bezpečnostní události se uchovávají 30 dní. Právní základ: oprávněný zájem, čl. 6 odst. 1 písm. f) GDPR.</li>
+            <li><strong>Technické a bezpečnostní údaje</strong> (IP adresa, user-agent) – omezení počtu požadavků a ochrana před zneužitím. Počítadlo požadavků drží IP adresu jen po dobu okna limitu (minuty až hodina), bezpečnostní události se uchovávají 30 dní a správce o nich dostává souhrn e-mailem. Právní základ: oprávněný zájem, čl. 6 odst. 1 písm. f) GDPR.</li>
         </ul>
         <p>
             V souladu s čl. 50 Nařízení EU 2024/1689 (EU AI Act) je návštěvník zřetelně informován, že komunikuje se systémem umělé inteligence. Na dotaz „jsi AI?“ agent vždy odpoví pravdivě a nevydává se za člověka.
@@ -142,7 +142,8 @@
             <li><strong>Netlify, Inc.</strong> – hosting webu, serverless funkce a formuláře (Netlify Forms).</li>
             <li><strong>Google LLC</strong> – Gemini API, jen pro dotazy, na které nestačí lokální zpracování (viz výše).</li>
             <li><strong>Microsoft</strong> – Azure AI Speech pro hlasové funkce.</li>
-            <li><strong>Upstash</strong> – úložiště paměti agenta, jen pokud k ní dáte souhlas.</li>
+            <li><strong>Upstash</strong> – úložiště paměti agenta (jen pokud k ní dáte souhlas) a krátkodobé počítadlo požadavků pro ochranu před zneužitím.</li>
+            <li><strong>Google (Gmail)</strong> – doručení bezpečnostních upozornění správci.</li>
             <li><strong>Cloudflare</strong> – ochrana proti botům (Turnstile), pokud je zapnutá.</li>
         </ul>
         <p>

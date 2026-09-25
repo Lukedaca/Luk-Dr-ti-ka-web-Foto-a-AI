@@ -6,6 +6,7 @@
 import { SECTIONS, GALLERY_CATEGORIES, SERVICES } from "./_lib/tools.mjs";
 import { isAllowedOrigin } from "./_lib/security.mjs";
 import { checkLimit } from "./_lib/limits.mjs";
+import { scrubPii } from "../../src/lib/chat-privacy.mjs";
 
 const TOUR_MODEL = process.env.GEMINI_CHAT_MODEL || "gemini-3.8-flash";
 const HIGHLIGHT_TARGETS = ["pricing", "portfolio-grid", "contact-form", "skills-grid", "showreel"];
@@ -227,7 +228,8 @@ export default async (req) => {
 
   const lang = body && typeof body.lang === "string" && body.lang.toLowerCase().startsWith("en") ? "en" : "cs";
   const context =
-    body && typeof body.context === "string" ? body.context.trim().slice(0, 160) : "";
+    // GDPR: kontext jde ke Gemini bez e-mailů a telefonů (audit 25. 9. 2026).
+    body && typeof body.context === "string" ? scrubPii(body.context.trim().slice(0, 160)) : "";
 
   const apiKey = getApiKey();
   if (!apiKey) {

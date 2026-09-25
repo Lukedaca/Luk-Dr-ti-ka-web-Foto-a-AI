@@ -150,3 +150,12 @@ test('neplatné hodnoty režimů spadnou na nejpřísnější výchozí', () => 
   assert.equal(tenant.processingMode, 'strict');
   assert.equal(tenant.dataMode, 'minimal');
 });
+
+test('všechny cesty ke Gemini čistí kontakty — chat i prohlídka (audit 25. 9. 2026)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const chat = readFileSync(new URL('../netlify/functions/chat.mjs', import.meta.url), 'utf8');
+  const tour = readFileSync(new URL('../netlify/functions/tour.mjs', import.meta.url), 'utf8');
+  assert.match(chat, /messages = scrubMessagesForProvider\(messages\)/);
+  assert.match(chat, /providerText: fmsFallbackEnabled \? scrubPii\(latestUserMessage\)/);
+  assert.match(tour, /scrubPii\(body\.context/);
+});
