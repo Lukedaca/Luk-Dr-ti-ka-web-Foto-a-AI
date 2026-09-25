@@ -3248,6 +3248,15 @@ import {
     closeWidget: chatbotCloseWidget,
     setMode: chatbotSetMode,
     setVoiceOutput: chatbotSetVoiceOutput,
+    // Pro hlasový hovor (voice.js): mikrofon nahrává, až agent domluví.
+    isSpeaking: function () {
+      return chatbotAudioPlaying
+        || chatbotAudioQueue.length > 0
+        || chatbotStreamSources.length > 0
+        || !!chatbotPlaybackSource
+        || !!(window.speechSynthesis && window.speechSynthesis.speaking);
+    },
+    stopSpeech: chatbotStopSpeech,
     tourStart: chatbotTourStart,
     reinit: chatbotInit
   };

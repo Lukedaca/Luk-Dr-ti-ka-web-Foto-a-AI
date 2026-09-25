@@ -15,7 +15,14 @@
         'voice.connecting': ['Připojuji...', 'Connecting...'],
         'voice.active': ['Hovor aktivní', 'Call active'],
         'voice.ending': ['Ukončuji...', 'Ending...'],
-        'voice.connectionFailed': ['Nepodařilo se navázat spojení', 'Connection failed']
+        'voice.connectionFailed': ['Nepodařilo se navázat spojení', 'Connection failed'],
+        'voice.listening': ['Poslouchám…', 'Listening…'],
+        'voice.recognizing': ['Rozpoznávám…', 'Recognizing…'],
+        'voice.thinking': ['Přemýšlím…', 'Thinking…'],
+        'voice.speaking': ['Mluvím…', 'Speaking…'],
+        'voice.unsupported': ['Tenhle prohlížeč hlasový hovor nepodporuje. Můžete psát.', 'This browser does not support voice calls. You can type instead.'],
+        'voice.fallbackText': ['Můžete psát.', 'You can type instead.'],
+        'voice.userLabel': ['Vy', 'You']
     };
     function applyLanguage(value) {
         language = value === 'en' ? 'en' : 'cs';
