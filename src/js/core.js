@@ -711,7 +711,7 @@ function loadChatbotStack() {
         const finish = () => {
             loadModule('/dist/js/chatbot.min.js?v=25', () => {
                 console.log('Chatbot module loaded');
-                loadModule('/dist/js/voice.min.js?v=12', () => {
+                loadModule('/dist/js/voice.min.js?v=13', () => {
                     console.log('Voice module loaded');
                 });
                 resolve(window.aiChat || null);

@@ -9,7 +9,6 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="canonical" href="https://lukasdrsticka-ai-and-foto.com/privacy.html">
     <link rel="stylesheet" href="/assets/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #0a0e27;
@@ -20,7 +19,7 @@
             --accent-purple: #8b5cf6;
         }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
             color: var(--text-primary);
             min-height: 100vh;
@@ -112,7 +111,7 @@
         </div>
 
         <h1 class="gradient-text">Zásady ochrany osobních údajů</h1>
-        <p class="updated">Účinnost: 12. září 2026</p>
+        <p class="updated">Účinnost: 25. září 2026</p>
 
         <h2>1. Správce osobních údajů</h2>
         <p>
@@ -122,25 +121,33 @@
 
         <h2>2. Jaké údaje zpracováváme a proč</h2>
         <ul>
-            <li><strong>Kontaktní formulář</strong> (jméno, e-mail, typ služby, zpráva) – vyřízení poptávky. Právní základ: čl. 6 odst. 1 písm. b) GDPR (jednání před uzavřením smlouvy).</li>
-            <li><strong>Newsletter</strong> (e-mail) – zasílání novinek. Právní základ: souhlas, čl. 6 odst. 1 písm. a) GDPR. Odhlásit se lze kdykoli.</li>
-            <li><strong>AI chatbot a hlasový agent (Lukáš AI)</strong> – obsah konverzace zpracovává Google Generative Language API (Google Gemini) za účelem přípravy odpovědi a navigace po webu. Před odesláním do AI probíhá automatická filtrace osobních a platebních údajů (SafetyShield). Běžná konverzace se na serveru neukládá; historie zůstává pouze v lokálním úložišti vašeho prohlížeče. V souladu s čl. 50 Nařízení EU 2024/1689 (EU AI Act) je návštěvník zřetelně informován, že komunikuje se systémem umělé inteligence.</li>
-            <li><strong>Technické údaje</strong> (IP adresa, user-agent) – rate-limiting a ochrana před zneužitím. Právní základ: oprávněný zájem, čl. 6 odst. 1 písm. f) GDPR.</li>
+            <li><strong>Kontaktní formulář a poptávka přes agenta</strong> (jméno, e-mail, případně telefon, typ služby, zpráva) – vyřízení poptávky. Formuláře zpracovává Netlify Forms. Právní základ: čl. 6 odst. 1 písm. b) GDPR (jednání před uzavřením smlouvy).</li>
+            <li><strong>Hybridní AI agent (Lukáš AI)</strong> – dotazy nejdřív vyhodnocuje lokálně FrameMind Solution na serveru webu, bez předání třetí straně. Jen když lokální znalosti odpověď nemají, jde dotaz a krátká historie konverzace do Google Gemini API za účelem přípravy odpovědi a navigace po webu. Před odesláním se z textu odstraňují e-mailové adresy a telefonní čísla; zpráva s osobními nebo platebními údaji se do AI neposílá vůbec a agent odpoví lokálně. Běžná konverzace se na serveru neukládá ani nikam nepřeposílá; historie zůstává jen v úložišti vašeho prohlížeče. Právní základ: oprávněný zájem na zodpovězení vašeho dotazu, čl. 6 odst. 1 písm. f) GDPR.</li>
+            <li><strong>Paměť agenta (jen se souhlasem)</strong> – pokud v chatu výslovně souhlasíte, uloží se krátký souhrn témat konverzace bez kontaktních údajů pod náhodným identifikátorem, aby agent příště navázal. Uchovává se nejvýše 180 dní; souhlas můžete kdykoli odvolat tlačítkem „Smazat profil“ v chatu, které souhrn ze serveru okamžitě smaže. Právní základ: souhlas, čl. 6 odst. 1 písm. a) GDPR.</li>
+            <li><strong>Hlasové funkce</strong> – převod řeči na text a čtení odpovědí nahlas zajišťuje Microsoft Azure AI Speech. Zapínají se jen na vaši žádost (tlačítkem) a nahrávka vašeho hlasu se neukládá.</li>
+            <li><strong>Technické a bezpečnostní údaje</strong> (IP adresa, user-agent) – omezení počtu požadavků a ochrana před zneužitím; bezpečnostní události se uchovávají 30 dní. Právní základ: oprávněný zájem, čl. 6 odst. 1 písm. f) GDPR.</li>
         </ul>
+        <p>
+            V souladu s čl. 50 Nařízení EU 2024/1689 (EU AI Act) je návštěvník zřetelně informován, že komunikuje se systémem umělé inteligence. Na dotaz „jsi AI?“ agent vždy odpoví pravdivě a nevydává se za člověka.
+        </p>
 
         <h2>3. Doba uchování</h2>
         <p>
             Údaje z kontaktního formuláře uchováváme po dobu nezbytnou pro vyřízení poptávky a navazující komunikaci, nejdéle 3 roky.
-            Newsletter e-mail do odvolání souhlasu. Konverzace s AI agentem nejsou na serveru trvale ukládány.
+            Konverzace s AI agentem se na serveru neukládají. Souhrn v paměti agenta (jen se souhlasem) nejdéle 180 dní, bezpečnostní události 30 dní.
         </p>
 
         <h2>4. Příjemci údajů</h2>
         <ul>
-            <li><strong>Netlify, Inc.</strong> – hosting webu a serverless funkce.</li>
-            <li><strong>Formspree</strong> – doručení e-mailů z kontaktního a newsletter formuláře.</li>
-            <li><strong>Google LLC</strong> – Generative Language API (Google Gemini) pro AI chatbota a hlasového agenta.</li>
-            <li><strong>Cloudflare</strong> – ochrana proti botům (Turnstile).</li>
+            <li><strong>Netlify, Inc.</strong> – hosting webu, serverless funkce a formuláře (Netlify Forms).</li>
+            <li><strong>Google LLC</strong> – Gemini API, jen pro dotazy, na které nestačí lokální zpracování (viz výše).</li>
+            <li><strong>Microsoft</strong> – Azure AI Speech pro hlasové funkce.</li>
+            <li><strong>Upstash</strong> – úložiště paměti agenta, jen pokud k ní dáte souhlas.</li>
+            <li><strong>Cloudflare</strong> – ochrana proti botům (Turnstile), pokud je zapnutá.</li>
         </ul>
+        <p>
+            Někteří z těchto poskytovatelů mají sídlo v USA; předání se řídí jejich smluvními podmínkami pro zpracování osobních údajů. Přepisy konverzací se žádné třetí straně nepředávají.
+        </p>
 
         <h2>5. Vaše práva</h2>
         <p>
@@ -151,8 +158,8 @@
 
         <h2>6. Cookies a lokální úložiště</h2>
         <p>
-            Web používá <strong>localStorage</strong> pro uložení preferencí (jazyk, téma, historie chatu).
-            Nepoužíváme analytické ani marketingové cookies třetích stran.
+            Web používá <strong>localStorage</strong> pro uložení preferencí (jazyk, historie chatu, volba hlasu, souhlas s pamětí agenta).
+            Nepoužíváme analytické ani marketingové cookies třetích stran a nenačítáme písma ani skripty z cizích serverů pro sledování.
         </p>
 
         <h2>7. Bezpečnost</h2>

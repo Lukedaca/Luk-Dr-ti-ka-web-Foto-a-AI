@@ -9,7 +9,6 @@
   // ── Constants ───────────────────────────────────────────────────────────
   var VOICE_TOKEN_URL = '/.netlify/functions/voice-token';
   var VOICE_WS_BASE = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
-  var VOICE_FORMSPREE_URL = 'https://formspree.io/f/movlrlzj';
   var VOICE_MAX_DURATION_MS = 5 * 60 * 1000; // 5 minutes
   var VOICE_TIMER_INTERVAL_MS = 1000;
   var VOICE_SAMPLE_RATE_IN = 16000;
@@ -526,9 +525,7 @@
     voicePlaybackQueue = [];
     voiceIsPlaying = false;
 
-    // Send transcript via Formspree
-    voiceSendTranscript();
-
+    // Přepis hovoru se nikam neodesílá (GDPR) — zůstává jen v historii chatu v prohlížeči.
     // Inject into chat history
     voiceInjectToChatHistory();
 
@@ -537,42 +534,6 @@
       voiceHideOverlay();
       voiceSetStatus('idle');
     }, 500);
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // FORMSPREE TRANSCRIPT
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  function voiceSendTranscript() {
-    if (voiceState.transcript.length === 0) return;
-
-    var duration = voiceState.elapsed;
-    var minutes = Math.floor(duration / 60);
-    var seconds = duration % 60;
-    var replicCount = voiceState.transcript.length;
-
-    var transcriptText = voiceState.transcript.map(function(t) {
-      var label = t.role === 'user' ? 'Uživatel' : 'Hybridní agent';
-      return label + ': ' + t.text;
-    }).join('\n\n');
-
-    var body =
-      'Doba hovoru: ' + minutes + 'm ' + seconds + 's\n' +
-      'Pocet replik: ' + replicCount + '\n' +
-      'Cas: ' + new Date().toLocaleString('cs-CZ') + '\n\n' +
-      'Prepis:\n' + transcriptText;
-
-    var formData = new FormData();
-    formData.append('_subject', 'Hlasovy hovor s AI (' + minutes + 'm ' + seconds + 's, ' + replicCount + ' replik)');
-    formData.append('message', body);
-
-    fetch(VOICE_FORMSPREE_URL, {
-      method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
-    }).catch(function() {
-      // Silent fail — non-critical
-    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

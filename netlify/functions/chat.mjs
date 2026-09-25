@@ -26,6 +26,14 @@ import {
 import PORTFOLIO_DATA from "../../data/portfolio.json";
 import { createLukasEngine } from "../../src/config/lukas.mjs";
 import { SafetyShield } from "../../vendor/framemind-solution/dist/index.js";
+import { isGeminiFallbackConfigured } from "../../src/lib/tenant-policy.mjs";
+import { isAiDisclosureQuestion, buildAiDisclosureReply } from "../../src/lib/ai-disclosure.mjs";
+import {
+  scrubPii,
+  scrubMessagesForProvider,
+  isPromptLeakRequest,
+  SAFE_PROMPT_LEAK_REPLY,
+} from "../../src/lib/chat-privacy.mjs";
 
 const DEFAULT_MODE = "talk";
 const MAX_MSG_LENGTH = 700;
@@ -1304,6 +1312,20 @@ async function writeFinalMessage(writer, encoder, text, meta) {
   await writer.write(encoder.encode(JSON.stringify({ m: meta }) + "\n"));
 }
 
+// Fixní odpověď serveru ve stejném NDJSON formátu jako stream (klient nic nemění).
+function fixedTextResponse(text, mode, model) {
+  const body = JSON.stringify({ t: text }) + "\n"
+    + JSON.stringify({ m: { mode, fastPath: true, provider: "local", model, action: null, done: true } }) + "\n";
+  return new Response(body, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+    },
+  });
+}
+
 async function writeResolvedText(writer, encoder, text, meta) {
   const { cleanText, action } = extractActionTag(text);
   await writer.write(encoder.encode(JSON.stringify({ t: cleanText }) + "\n"));
@@ -1805,27 +1827,37 @@ async function streamLLMResponse({ apiKey, mode, messages, memoryContext, ip, wr
     return { fullText: fastPath, actions: [] };
   }
 
-  const fmsFallbackEnabled = process.env.FRAMEMIND_GEMINI_FALLBACK_ENABLED === "1";
+  // FrameMind Solution: lokální deterministický engine s řízeným Gemini fallbackem
+  // (stejně jako Viktorka). Gemini uvnitř FMS je fail-closed — pustí se jen
+  // s kompletním souhlasovým profilem v env (isGeminiFallbackConfigured).
+  const fmsFallbackEnabled = Boolean(apiKey) && isGeminiFallbackConfigured();
   const latestUserMessage = getLastUserMessage(messages);
   const localResponse = await createLukasEngine({
     geminiApiKey: fmsFallbackEnabled ? apiKey : undefined,
   }).respond({
     text: latestUserMessage,
     allowManagedProvider: fmsFallbackEnabled,
-    providerText: fmsFallbackEnabled ? latestUserMessage : undefined,
+    providerText: fmsFallbackEnabled ? scrubPii(latestUserMessage) : undefined,
   });
-  if (localResponse.reason !== "unknown" || !SafetyShield.isSafeForProvider(latestUserMessage)) {
+  // Lokální odpověď, když ji FMS zná, když dotaz neprošel SafetyShieldem (osobní či
+  // platební údaje nejdou ke Gemini), nebo když API klíč chybí (preview, výpadek).
+  if (localResponse.reason !== "unknown" || !apiKey || !SafetyShield.isSafeForProvider(latestUserMessage)) {
     await writeResolvedText(writer, encoder, localResponse.text, {
       mode,
       fastPath: true,
       provider: localResponse.providerUsed ? "google-gemini" : "local",
-      model: localResponse.providerUsed ? "gemini-3.8-flash" : "framemind-solution",
+      model: localResponse.providerUsed ? CHAT_MODEL : "framemind-solution",
       actions: [],
     });
     return { fullText: localResponse.text, actions: [] };
   }
 
   const providerFallback = buildInquiryProviderFallback(messages);
+
+  // Hranice k poskytovateli: z celé historie (i dřívějších zpráv) pryč e-maily a telefony.
+  // Parametr se přepisuje záměrně — všechna další volání Gemini níž (repair, visual
+  // action) tak dostanou už očištěné zprávy.
+  messages = scrubMessagesForProvider(messages);
 
   const config = getModeConfig(mode);
   const inquiryRequest = isInquiryRequest(normalizedLastUser);
@@ -2152,10 +2184,8 @@ export default async (req) => {
   }
   const ip = security.ip || getClientIp(req);
 
+  // Chybějící klíč už není chyba: FrameMind Solution odpoví lokálně (jako Viktorka).
   const apiKey = getGeminiApiKey();
-  if (!apiKey) {
-    return jsonResponse(500, { error: "GEMINI_API_KEY není nastavený v Netlify Environment variables." });
-  }
 
   const chatLimit = await checkChatLimit(ip);
   if (!chatLimit.ok) {
@@ -2198,6 +2228,19 @@ export default async (req) => {
     role: m.role,
     content: sanitizeInput(m.content, MAX_MSG_LENGTH),
   }));
+
+  const latestUserText = getLastUserMessage(messages);
+
+  // 1. Transparentnost (EU AI Act čl. 50/1) běží před vším ostatním, deterministicky.
+  if (isAiDisclosureQuestion(latestUserText)) {
+    const earlier = messages.slice(0, -1).filter((m) => m.role === "user");
+    return fixedTextResponse(buildAiDisclosureReply(latestUserText, earlier), mode, "ai-disclosure");
+  }
+
+  // 2. Interní instrukce neřeší model — fixní odpověď, ze které nemá co uniknout.
+  if (isPromptLeakRequest(latestUserText)) {
+    return fixedTextResponse(SAFE_PROMPT_LEAK_REPLY, mode, "prompt-leak-guard");
+  }
 
   const visitorId = normalizeVisitorId(body.visitor_id);
   const memoryConsent = body.memory_consent === true;

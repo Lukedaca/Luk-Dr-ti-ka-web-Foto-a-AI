@@ -16,13 +16,29 @@ export function runtimeEnv(name) {
   return undefined;
 }
 
+function enumValue(value, allowed, fallback) {
+  return value && allowed.includes(value) ? value : fallback;
+}
+
+// Gemini fallback uvnitř FrameMind Solution je fail-closed (stejně jako Viktorka):
+// zapne se jen s kompletním, zdokumentovaným souhlasovým profilem v env. Chybí-li
+// cokoli z toho, FMS nikdy nepošle text poskytovateli a odpovídá lokálně.
+export function isGeminiFallbackConfigured(readEnv = runtimeEnv) {
+  return parseFlag(readEnv('FRAMEMIND_MANAGED_LLM_ENABLED'))
+    && readEnv('FRAMEMIND_MANAGED_LLM_PROVIDER') === 'gemini'
+    && parseFlag(readEnv('FRAMEMIND_GEMINI_FALLBACK_ENABLED'))
+    && parseFlag(readEnv('FRAMEMIND_GEMINI_COMPLIANCE_VERIFIED'))
+    && /^\d{4}-\d{2}-\d{2}/.test(String(readEnv('FRAMEMIND_GEMINI_VERIFIED_AT') || ''))
+    && /^https:\/\//.test(String(readEnv('FRAMEMIND_GEMINI_DOCUMENTATION_URL') || ''));
+}
+
 export function createPersonalPortfolioTenantPolicy(readEnv = runtimeEnv) {
-  const dataMode = readEnv('LUKAS_DATA_MODE') || 'minimal';
-  const processingMode = readEnv('LUKAS_PROCESSING_MODE') || 'strict';
-  const voiceProvider = readEnv('LUKAS_VOICE_PROVIDER') || 'local';
+  const dataMode = enumValue(readEnv('LUKAS_DATA_MODE'), ['minimal', 'support', 'lead'], 'minimal');
+  const processingMode = enumValue(readEnv('LUKAS_PROCESSING_MODE'), ['strict', 'managed'], 'strict');
+  const voiceProvider = enumValue(readEnv('LUKAS_VOICE_PROVIDER'), ['off', 'local', 'azure'], 'local');
   const managedAzure = parseFlag(readEnv('LUKAS_VOICE_ENABLED')) && voiceProvider === 'azure';
   const region = String(readEnv('AZURE_SPEECH_REGION') || '').trim().toLowerCase();
-  const geminiFallback = parseFlag(readEnv('GEMINI_FALLBACK_ENABLED'));
+  const geminiFallback = isGeminiFallbackConfigured(readEnv);
 
   return {
     tenantId: readEnv('LUKAS_TENANT_ID') || PORTFOLIO_TENANT_ID,
@@ -75,23 +91,25 @@ export function createPersonalPortfolioProviderRegister(readEnv = runtimeEnv) {
       allowedAudiences: ['general', 'may-include-minors'],
       supportedPurposes: ['speech-to-text', 'text-to-speech'],
       allowedRegions: [region],
-      retention: 'Stateless Azure Speech session',
-      training: 'never trained',
+      retention: 'Real-time Speech processing; see provider documentation and deployment profile.',
+      training: 'Must be verified in the provider register before each production release.',
       verifiedAt: '2026-09-11',
-      documentationUrl: 'https://learn.microsoft.com/en-us/azure/ai-services/speech-service/',
+      documentationUrl: 'https://learn.microsoft.com/en-us/azure/ai-services/speech-service/regions?tabs=geographies',
     });
   }
 
-  if (parseFlag(readEnv('GEMINI_FALLBACK_ENABLED'))) {
+  // Tvrzení o retenci/trénování se tu nepíší natvrdo — datum ověření a odkaz na
+  // dokumentaci musí dodat nasazení (env), jinak se Gemini do registru vůbec nedostane.
+  if (isGeminiFallbackConfigured(readEnv)) {
     providers.push({
       id: GEMINI_PROVIDER_ID,
-      allowedAudiences: ['general', 'may-include-minors'],
+      allowedAudiences: ['general'],
       supportedPurposes: ['managed-llm'],
       allowedRegions: [],
-      retention: 'Stateless API call; no training on customer content',
-      training: 'never trained',
-      verifiedAt: '2026-09-11',
-      documentationUrl: 'https://ai.google.dev/terms',
+      retention: 'Deployment-specific; documented approval is required before use.',
+      training: 'Deployment-specific; documented approval is required before use.',
+      verifiedAt: String(readEnv('FRAMEMIND_GEMINI_VERIFIED_AT')),
+      documentationUrl: String(readEnv('FRAMEMIND_GEMINI_DOCUMENTATION_URL')),
     });
   }
 
