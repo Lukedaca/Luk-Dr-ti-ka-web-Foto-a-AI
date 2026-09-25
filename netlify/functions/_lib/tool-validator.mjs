@@ -94,8 +94,17 @@ function validateToolArgs(toolName, args) {
   const tool = TOOLS.find((t) => t.function.name === toolName);
   const schema = tool.function.parameters || {};
   const errors = validateValue(args || {}, schema, toolName);
+  // Gemini vidí kontakty jen jako značku „[e-mail]" (GDPR, audit 25. 9. 2026). Kdyby ji
+  // vložil do akce, poptávka by odešla bez adresy. Povinný e-mail → akce neplatná;
+  // volitelný (předvyplnění formuláře) → jen se vynechá.
+  if (args && typeof args.email === "string" && !EMAIL_FORMAT.test(args.email.trim())) {
+    if ((schema.required || []).includes("email")) errors.push(`${toolName}.email: not a real e-mail address`);
+    else delete args.email;
+  }
   return { ok: errors.length === 0, errors };
 }
+
+const EMAIL_FORMAT = /^[^\s@\[\]]+@[^\s@\[\]]+\.[a-z]{2,}$/i;
 
 function detectForbiddenPromise(text) {
   if (typeof text !== "string") return { detected: false };

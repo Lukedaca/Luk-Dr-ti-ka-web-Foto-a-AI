@@ -159,3 +159,14 @@ test('všechny cesty ke Gemini čistí kontakty — chat i prohlídka (audit 25.
   assert.match(chat, /providerText: fmsFallbackEnabled \? scrubPii\(latestUserMessage\)/);
   assert.match(tour, /scrubPii\(body\.context/);
 });
+
+test('akce od modelu s maskovaným e-mailem se neodešle (audit 25. 9. 2026)', async () => {
+  const { sanitizeToolCalls } = await import('../netlify/functions/_lib/tool-validator.mjs');
+  const bad = sanitizeToolCalls([{ name: 'send_inquiry', args: { name: 'Jan', email: '[e-mail]', message: 'Poptávka focení' } }]);
+  assert.equal(bad.actions.length, 0);
+  const ok = sanitizeToolCalls([{ name: 'send_inquiry', args: { name: 'Jan', email: 'jan@example.cz', message: 'Poptávka focení' } }]);
+  assert.equal(ok.actions.length, 1);
+  const prefill = sanitizeToolCalls([{ name: 'prefill_contact_form', args: { message: 'Text', email: '[e-mail]' } }]);
+  assert.equal(prefill.actions.length, 1);
+  assert.equal(prefill.actions[0].args.email, undefined);
+});
