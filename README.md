@@ -53,7 +53,7 @@ Konfigurace je v [netlify.toml](./netlify.toml).
 
 ## Agent „Lukas AI" (stav 6. 10. 2026)
 
-- Lokalni jadro **FrameMind Solution 1.3.0** ve `vendor/framemind-solution` (prosta kopie, ne subtree; postup v README jadra). Bezi v prohlizeci (`src/js/chatbot.js`, konfigurace `src/config/lukas.mjs`); serverova funkce `netlify/functions/chat.mjs` z jadra pouziva `SafetyShield`.
+- Lokalni jadro **FrameMind Solution 1.3.0** ve `vendor/framemind-solution` (prosta kopie, ne subtree; postup v README jadra). Bezi v prohlizeci (`src/js/chatbot.js`) i na serveru (`netlify/functions/chat.mjs` vytvari engine pres `createLukasEngine`); konfigurace je v `src/config/lukas.mjs`. Na Gemini jde dotaz jen kdyz ho jadro nezna, je nastaveny klic a projde `SafetyShield.isSafeForProvider`.
 - Nove funkce jadra 1.3.0 (facets, slotDependencies, listConjunction, upsertRecords) jsou opt-in a osobni web je nezapina.
 - Co jadro nezna, odpovi Google Gemini: `gemini-3.8-flash`, zalozni `gemini-3.7-flash` (env `GEMINI_CHAT_MODEL` v produkci nenastavena). Prohlidka (`tour.mjs`) take `gemini-3.8-flash`.
 - Hlas: Microsoft Azure Speech `northeurope`, jen na zadost navstevnika.
