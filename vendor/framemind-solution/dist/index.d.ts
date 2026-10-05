@@ -5,6 +5,7 @@ export * from './KnowledgeStore.js';
 export * from './ConversationContext.js';
 export * from './ActionResolver.js';
 export * from './ResponseComposer.js';
+export * from './ResponseFacets.js';
 export * from './SourceResolver.js';
 export * from './FreshnessPolicy.js';
 export * from './ProviderRouter.js';

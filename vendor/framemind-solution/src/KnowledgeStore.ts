@@ -91,18 +91,24 @@ export function validateKnowledgeSnapshot(snapshot: KnowledgeSnapshot): string[]
   const ids = new Set<string>();
   for (const [index, record] of (snapshot?.records ?? []).entries()) {
     const at = `records[${index}]`;
-    if (!record.id) errors.push(`${at}.id is required`);
-    else if (ids.has(record.id)) errors.push(`${at}.id is duplicate`);
-    else ids.add(record.id);
-    if (!record.type) errors.push(`${at}.type is required`);
-    if (!record.content?.trim()) errors.push(`${at}.content is required`);
-    if (!validUrl(record.sourceUrl)) errors.push(`${at}.sourceUrl must be https`);
-    if (!/^[a-f0-9]{64}$/.test(record.contentHash)) errors.push(`${at}.contentHash must be sha256`);
-    else if (sha256Hex(record.content) !== record.contentHash) errors.push(`${at}.contentHash does not match content`);
-    if (!record.fetchedAt || Number.isNaN(Date.parse(record.fetchedAt))) errors.push(`${at}.fetchedAt is invalid`);
-    if (!record.lastVerifiedAt || Number.isNaN(Date.parse(record.lastVerifiedAt))) errors.push(`${at}.lastVerifiedAt is invalid`);
-    if (record.expiresAt && Number.isNaN(Date.parse(record.expiresAt))) errors.push(`${at}.expiresAt is invalid`);
+    if (record.id && ids.has(record.id)) errors.push(`${at}.id is duplicate`);
+    else if (record.id) ids.add(record.id);
+    errors.push(...recordErrors(record, at));
   }
+  return errors;
+}
+
+function recordErrors(record: KnowledgeRecord, at: string): string[] {
+  const errors: string[] = [];
+  if (!record.id) errors.push(`${at}.id is required`);
+  if (!record.type) errors.push(`${at}.type is required`);
+  if (!record.content?.trim()) errors.push(`${at}.content is required`);
+  if (!validUrl(record.sourceUrl)) errors.push(`${at}.sourceUrl must be https`);
+  if (!/^[a-f0-9]{64}$/.test(record.contentHash)) errors.push(`${at}.contentHash must be sha256`);
+  else if (sha256Hex(record.content) !== record.contentHash) errors.push(`${at}.contentHash does not match content`);
+  if (!record.fetchedAt || Number.isNaN(Date.parse(record.fetchedAt))) errors.push(`${at}.fetchedAt is invalid`);
+  if (!record.lastVerifiedAt || Number.isNaN(Date.parse(record.lastVerifiedAt))) errors.push(`${at}.lastVerifiedAt is invalid`);
+  if (record.expiresAt && Number.isNaN(Date.parse(record.expiresAt))) errors.push(`${at}.expiresAt is invalid`);
   return errors;
 }
 
@@ -118,6 +124,19 @@ export class KnowledgeStore {
       ...(record.data ? { data: { ...record.data } } : {}),
     }));
     for (const record of this.records) this.byId.set(record.id, record);
+  }
+
+  /** Validates each record like a snapshot record, then adds it or replaces the one with its id. */
+  upsert(records: KnowledgeRecord[]): void {
+    const errors = records.flatMap((record, index) => recordErrors(record, `records[${index}]`));
+    if (errors.length) throw new Error(`Invalid knowledge records: ${errors.join('; ')}`);
+    for (const record of records) {
+      const copy = { ...record, ...(record.data ? { data: { ...record.data } } : {}) };
+      const index = this.records.findIndex((existing) => existing.id === copy.id);
+      if (index >= 0) this.records[index] = copy;
+      else this.records.push(copy);
+      this.byId.set(copy.id, copy);
+    }
   }
 
   get(id: string): KnowledgeRecord | undefined {

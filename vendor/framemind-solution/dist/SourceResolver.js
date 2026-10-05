@@ -1,4 +1,9 @@
 import { FreshnessPolicy } from './FreshnessPolicy.js';
+export function selectorsOf(rule) {
+    if (!rule.selectBy)
+        return [];
+    return Array.isArray(rule.selectBy) ? rule.selectBy : [rule.selectBy];
+}
 export class SourceResolver {
     constructor(store, freshnessPolicy = new FreshnessPolicy(), sourceLabel = 'Ověřený zdroj') {
         this.store = store;
@@ -9,12 +14,15 @@ export class SourceResolver {
         let record;
         if (useMissingRecord && rule.missingRecordId)
             record = this.store.get(rule.missingRecordId);
-        else if (rule.recordId)
-            record = this.store.get(rule.recordId);
-        else if (rule.selectBy) {
-            const value = context.slots[rule.selectBy.slot];
-            if (value !== undefined)
-                record = this.store.findByData(rule.selectBy.dataField, value, rule.selectBy.recordType);
+        else {
+            // First selector whose slot the context holds decides; without such a slot the rule's
+            // recordId is the default. A present slot without a matching record is not replaced
+            // by the default — that would answer a different product than the visitor asked about.
+            const selector = selectorsOf(rule).find((item) => context.slots[item.slot] !== undefined);
+            if (selector)
+                record = this.store.findByData(selector.dataField, context.slots[selector.slot], selector.recordType);
+            else if (rule.recordId)
+                record = this.store.get(rule.recordId);
         }
         if (!record)
             return { freshness: 'missing' };

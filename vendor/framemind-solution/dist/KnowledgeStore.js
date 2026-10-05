@@ -77,7 +77,7 @@ export function sha256Hex(value) {
     return hash.map((part) => part.toString(16).padStart(8, '0')).join('');
 }
 export function validateKnowledgeSnapshot(snapshot) {
-    var _a, _b;
+    var _a;
     const errors = [];
     if ((snapshot === null || snapshot === void 0 ? void 0 : snapshot.schemaVersion) !== 1)
         errors.push('schemaVersion must be 1');
@@ -88,29 +88,35 @@ export function validateKnowledgeSnapshot(snapshot) {
     const ids = new Set();
     for (const [index, record] of ((_a = snapshot === null || snapshot === void 0 ? void 0 : snapshot.records) !== null && _a !== void 0 ? _a : []).entries()) {
         const at = `records[${index}]`;
-        if (!record.id)
-            errors.push(`${at}.id is required`);
-        else if (ids.has(record.id))
+        if (record.id && ids.has(record.id))
             errors.push(`${at}.id is duplicate`);
-        else
+        else if (record.id)
             ids.add(record.id);
-        if (!record.type)
-            errors.push(`${at}.type is required`);
-        if (!((_b = record.content) === null || _b === void 0 ? void 0 : _b.trim()))
-            errors.push(`${at}.content is required`);
-        if (!validUrl(record.sourceUrl))
-            errors.push(`${at}.sourceUrl must be https`);
-        if (!/^[a-f0-9]{64}$/.test(record.contentHash))
-            errors.push(`${at}.contentHash must be sha256`);
-        else if (sha256Hex(record.content) !== record.contentHash)
-            errors.push(`${at}.contentHash does not match content`);
-        if (!record.fetchedAt || Number.isNaN(Date.parse(record.fetchedAt)))
-            errors.push(`${at}.fetchedAt is invalid`);
-        if (!record.lastVerifiedAt || Number.isNaN(Date.parse(record.lastVerifiedAt)))
-            errors.push(`${at}.lastVerifiedAt is invalid`);
-        if (record.expiresAt && Number.isNaN(Date.parse(record.expiresAt)))
-            errors.push(`${at}.expiresAt is invalid`);
+        errors.push(...recordErrors(record, at));
     }
+    return errors;
+}
+function recordErrors(record, at) {
+    var _a;
+    const errors = [];
+    if (!record.id)
+        errors.push(`${at}.id is required`);
+    if (!record.type)
+        errors.push(`${at}.type is required`);
+    if (!((_a = record.content) === null || _a === void 0 ? void 0 : _a.trim()))
+        errors.push(`${at}.content is required`);
+    if (!validUrl(record.sourceUrl))
+        errors.push(`${at}.sourceUrl must be https`);
+    if (!/^[a-f0-9]{64}$/.test(record.contentHash))
+        errors.push(`${at}.contentHash must be sha256`);
+    else if (sha256Hex(record.content) !== record.contentHash)
+        errors.push(`${at}.contentHash does not match content`);
+    if (!record.fetchedAt || Number.isNaN(Date.parse(record.fetchedAt)))
+        errors.push(`${at}.fetchedAt is invalid`);
+    if (!record.lastVerifiedAt || Number.isNaN(Date.parse(record.lastVerifiedAt)))
+        errors.push(`${at}.lastVerifiedAt is invalid`);
+    if (record.expiresAt && Number.isNaN(Date.parse(record.expiresAt)))
+        errors.push(`${at}.expiresAt is invalid`);
     return errors;
 }
 export class KnowledgeStore {
@@ -125,6 +131,21 @@ export class KnowledgeStore {
         }));
         for (const record of this.records)
             this.byId.set(record.id, record);
+    }
+    /** Validates each record like a snapshot record, then adds it or replaces the one with its id. */
+    upsert(records) {
+        const errors = records.flatMap((record, index) => recordErrors(record, `records[${index}]`));
+        if (errors.length)
+            throw new Error(`Invalid knowledge records: ${errors.join('; ')}`);
+        for (const record of records) {
+            const copy = { ...record, ...(record.data ? { data: { ...record.data } } : {}) };
+            const index = this.records.findIndex((existing) => existing.id === copy.id);
+            if (index >= 0)
+                this.records[index] = copy;
+            else
+                this.records.push(copy);
+            this.byId.set(copy.id, copy);
+        }
     }
     get(id) {
         return this.byId.get(id);

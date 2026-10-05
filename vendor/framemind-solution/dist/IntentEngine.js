@@ -22,14 +22,56 @@ function isSafePattern(pattern) {
         return false;
     return true;
 }
+// Czech age words (normalized, no diacritics): cardinal ("je mu osm") and the stem of the
+// adjective ("osmiletý" → "osmilet"). Only read in an age context, never as a bare number.
+const AGE_WORDS = {
+    ctyri: 4, pet: 5, sest: 6, sedm: 7, osm: 8, devet: 9, deset: 10, jedenact: 11, dvanact: 12,
+    trinact: 13, ctrnact: 14, patnact: 15, sestnact: 16, sedmnact: 17, osmnact: 18, devatenact: 19,
+};
+const AGE_ADJECTIVE_STEMS = {
+    ctyr: 4, peti: 5, sesti: 6, sedmi: 7, osmi: 8, deviti: 9, deseti: 10, jedenacti: 11, dvanacti: 12,
+    trinacti: 13, ctrnacti: 14, patnacti: 15, sestnacti: 16, sedmnacti: 17, osmnacti: 18, devatenacti: 19,
+};
+const AGE_WORD_ALTERNATION = Object.keys(AGE_WORDS).join('|');
+const AGE_WORD_RE = new RegExp(`\\b(?:ma|je mu|je ji|je|jsou mu)\\s+(${AGE_WORD_ALTERNATION})\\b|\\b(${AGE_WORD_ALTERNATION})\\s+let\\b`);
+const AGE_ADJECTIVE_RE = new RegExp(`\\b(${Object.keys(AGE_ADJECTIVE_STEMS).join('|')})let[a-z]*\\b`);
+function extractAge(normalized) {
+    var _a, _b, _c;
+    const digits = (_a = normalized.match(/\b(?:ma|je mu|je ji|je)\s+(\d{1,2})\b/)) !== null && _a !== void 0 ? _a : normalized.match(/\b(\d{1,2})\s+let\b/);
+    if (digits === null || digits === void 0 ? void 0 : digits[1])
+        return Number(digits[1]);
+    const word = normalized.match(AGE_WORD_RE);
+    const cardinal = (_b = word === null || word === void 0 ? void 0 : word[1]) !== null && _b !== void 0 ? _b : word === null || word === void 0 ? void 0 : word[2];
+    if (cardinal)
+        return AGE_WORDS[cardinal];
+    const adjective = (_c = normalized.match(AGE_ADJECTIVE_RE)) === null || _c === void 0 ? void 0 : _c[1];
+    return adjective ? AGE_ADJECTIVE_STEMS[adjective] : undefined;
+}
+function extractPatternSlots(normalized, patterns) {
+    var _a;
+    const slots = {};
+    for (const item of patterns) {
+        if (!(item === null || item === void 0 ? void 0 : item.slot) || typeof item.value !== 'string' || !isSafePattern(item.pattern))
+            continue;
+        try {
+            const match = normalized.match(new RegExp(item.pattern));
+            if (match)
+                slots[item.slot] = item.value.replace(/\$1/g, (_a = match[1]) !== null && _a !== void 0 ? _a : '');
+        }
+        catch {
+            // Invalid tenant patterns must not break local answers.
+        }
+    }
+    return slots;
+}
 function extractSlots(normalized, now) {
     const slots = {};
     const yearMatch = normalized.match(/\b(20\d{2})\b/);
     if (yearMatch === null || yearMatch === void 0 ? void 0 : yearMatch[1])
         slots.birthYear = Number(yearMatch[1]);
-    const ageMatch = normalized.match(/\b(?:ma|je mu|je ji|je)\s+(\d{1,2})\b/);
-    if (ageMatch === null || ageMatch === void 0 ? void 0 : ageMatch[1])
-        slots.childAge = Number(ageMatch[1]);
+    const age = extractAge(normalized);
+    if (age !== undefined)
+        slots.childAge = age;
     const nextAgeMatch = normalized.match(/\bv\s+[a-z]+\s+(\d{1,2})\b/);
     if (nextAgeMatch === null || nextAgeMatch === void 0 ? void 0 : nextAgeMatch[1])
         slots.nextAge = Number(nextAgeMatch[1]);
@@ -92,14 +134,15 @@ function scoreIntent(definition, normalized, stemmed) {
     return evidence > 0 ? evidence + ((_e = definition.priority) !== null && _e !== void 0 ? _e : 0) : 0;
 }
 export class IntentEngine {
-    constructor(definitions) {
+    constructor(definitions, slotPatterns = []) {
         this.definitions = definitions.slice();
+        this.slotPatterns = slotPatterns.slice();
     }
     detect(text, context, now = new Date(), discourseSnapshot) {
         var _a, _b, _c;
         const normalizedText = normalizeText(text).slice(0, 2000);
         const stemmedText = stemText(normalizedText);
-        const slots = extractSlots(normalizedText, now);
+        const slots = { ...extractSlots(normalizedText, now), ...extractPatternSlots(normalizedText, this.slotPatterns) };
         if (discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.activeEntity) {
             slots.activeEntityType = discourseSnapshot.activeEntity.type;
             slots.activeEntityName = discourseSnapshot.activeEntity.name;
@@ -108,12 +151,15 @@ export class IntentEngine {
         let bestScore = 0;
         let followUp = false;
         for (const definition of this.definitions) {
-            let score = scoreIntent(definition, normalizedText, stemmedText);
+            const lexical = scoreIntent(definition, normalizedText, stemmedText);
+            let score = lexical;
             const follows = Boolean(context.activeIntent && ((_a = definition.followUpFor) === null || _a === void 0 ? void 0 : _a.includes(context.activeIntent)));
             if (follows && (slots.childAge || slots.birthYear || slots.nextAge))
                 score += 95;
-            // Anaphora boost: if definition matches followUp for last active intent in discourse
-            if ((discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.lastIntent) && ((_b = definition.followUpFor) === null || _b === void 0 ? void 0 : _b.includes(discourseSnapshot.lastIntent))) {
+            // Anaphora boost only breaks ties between intents the message itself supports.
+            // Without own lexical evidence it hijacked unrelated questions ("Kdy je trénink?"
+            // after a recruitment question) — those belong to unknown, i.e. the managed model.
+            if (lexical > 0 && (discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.lastIntent) && ((_b = definition.followUpFor) === null || _b === void 0 ? void 0 : _b.includes(discourseSnapshot.lastIntent))) {
                 if (/^(?:a\s+)?(?:kolik|kde|kdy|jak|proc|cena|rozpis|trener|adresa)\b/i.test(normalizedText)) {
                     score += 65;
                 }

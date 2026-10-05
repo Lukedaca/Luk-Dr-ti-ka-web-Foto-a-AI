@@ -1,5 +1,7 @@
 export class ConversationContext {
-    constructor() {
+    /** Slot → slots that belong to its value (child → childAge); see FrameMindConfig.slotDependencies. */
+    constructor(dependencies = {}) {
+        this.dependencies = dependencies;
         this.turn = 0;
         this.slots = {};
         this.sourceIds = new Set();
@@ -21,7 +23,17 @@ export class ConversationContext {
             // Navigation permission is valid only for the current request. Persisting it
             // would allow a later, unrelated turn to trigger an action.
             const { navigationRequested: _ephemeral, ...persistentSlots } = match.slots;
-            this.slots = { ...this.slots, ...persistentSlots };
+            const kept = { ...this.slots };
+            for (const [slot, dependents] of Object.entries(this.dependencies)) {
+                const next = persistentSlots[slot];
+                if (next === undefined || kept[slot] === undefined || kept[slot] === next)
+                    continue;
+                for (const dependent of dependents) {
+                    if (persistentSlots[dependent] === undefined)
+                        delete kept[dependent];
+                }
+            }
+            this.slots = { ...kept, ...persistentSlots };
         }
         return this.snapshot();
     }

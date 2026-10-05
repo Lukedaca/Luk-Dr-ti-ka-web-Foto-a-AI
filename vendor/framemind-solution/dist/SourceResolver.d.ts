@@ -1,6 +1,7 @@
 import { FreshnessPolicy, type FreshnessResult } from './FreshnessPolicy.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
-import type { ContextSnapshot, IntentResponseRule, KnowledgeRecord, SourceReference } from './types.js';
+import type { ContextSnapshot, IntentResponseRule, KnowledgeRecord, SelectBy, SourceReference } from './types.js';
+export declare function selectorsOf(rule: IntentResponseRule): SelectBy[];
 export interface ResolvedSource {
     record?: KnowledgeRecord;
     freshness: FreshnessResult | 'missing';

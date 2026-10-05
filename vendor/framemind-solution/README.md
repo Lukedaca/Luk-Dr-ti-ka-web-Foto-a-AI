@@ -1,10 +1,41 @@
-# FrameMind Solution 1.2.0
+# FrameMind Solution 1.3.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
 
 Version 1.2 adds a canonical fail-closed DataPolicy, provider-neutral voice contracts,
 SpeechPrivacyGuard, allowlisted telemetry, and a server-only Azure Speech adapter.
 Processing mode, retention mode, and voice mode are separate controls.
+
+Version 1.2.1 answers locally only on the message's own lexical evidence: the follow-up
+bonus no longer lets the previous topic capture an unrelated question, which now goes to
+`unknown` (and to the managed model when enabled). Rules may add `ageRangeTemplate` to
+answer an age without a birth year with both grounded candidate records.
+
+Version 1.2.2 adds `history` to `FrameMindRequest`: stateless hosts (serverless handlers
+that create the engine per request) pass prior user turns and a fresh dialogue context is
+rebuilt from them, so a follow-up such as "A kdy trénujou?" keeps the age said earlier.
+Unsafe turns are skipped; a live session context is never overwritten.
+
+Version 1.2.3 reads a child's age written as a word ("je mu osm", "sedm let", "osmiletý")
+in an age context only, adds tenant `slotPatterns` (e.g. a club category typed as "u9" →
+`category: "U-9"`, linear-time regex subset only) and lets a rule's `selectBy` be an array
+tried in order (the first entry drives `ageRangeTemplate`).
+
+Version 1.2.4 lets one rule combine a default `recordId` with `selectBy`: a slot present
+in the context picks its record (e.g. "A kolik to stojí?" after automation → the automation
+price), otherwise the default record answers. A present slot without a matching record is
+never replaced by the default.
+
+Version 1.3.0 adds four opt-in features; a configuration without them behaves as 1.2.4:
+- `facets` on a response rule: exactly one matching facet (keywords as whole words, also
+  stemmed) replaces the rule's template, so "Kde je školička?" gets only the place. A short
+  message without its own intent ("A kde?", max 5 words) is answered by a facet of the
+  previous intent's rule. The response carries `facet`.
+- `slotDependencies` in the config: when a slot changes value, dependent slots are cleared
+  unless the same message sets them (`{ child: ['childAge', 'birthYear'] }`).
+- `listConjunction` in the config: array data render as "pondělí a čtvrtek".
+- `engine.upsertRecords(records)`: adds or replaces validated records in a running engine
+  (live data that arrive after start).
 
 Version 1.0 provides:
 

@@ -6,6 +6,8 @@ export declare class KnowledgeStore {
     private readonly byId;
     private readonly records;
     constructor(snapshot: KnowledgeSnapshot);
+    /** Validates each record like a snapshot record, then adds it or replaces the one with its id. */
+    upsert(records: KnowledgeRecord[]): void;
     get(id: string): KnowledgeRecord | undefined;
     findByData(field: string, value: SlotValue, type?: string): KnowledgeRecord | undefined;
     forIntent(intentId: string): KnowledgeRecord[];

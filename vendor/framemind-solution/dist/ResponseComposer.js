@@ -7,7 +7,7 @@ function valueAt(path, values) {
     }, values);
 }
 export class ResponseComposer {
-    compose(template, record, context, cadence, seed = '') {
+    compose(template, record, context, cadence, seed = '', listConjunction) {
         var _a, _b, _c, _d;
         const base = (template === null || template === void 0 ? void 0 : template.trim()) || (record === null || record === void 0 ? void 0 : record.content.trim()) || '';
         const values = {
@@ -17,7 +17,15 @@ export class ResponseComposer {
         };
         const interpolated = base.replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g, (_whole, path) => {
             const value = valueAt(path, values);
-            return value === undefined || value === null ? '' : String(value);
+            if (value === undefined || value === null)
+                return '';
+            if (Array.isArray(value) && listConjunction) {
+                const items = value.map(String);
+                return items.length < 2
+                    ? items.join('')
+                    : `${items.slice(0, -1).join(', ')} ${listConjunction} ${items[items.length - 1]}`;
+            }
+            return String(value);
         }).replace(/\s+/g, ' ').trim();
         if (!cadence) {
             return interpolated;

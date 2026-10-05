@@ -178,6 +178,31 @@ export interface ClarificationConfig {
   intentMap?: Record<string, string>;
 }
 
+/** Part of an answer chosen by what the visitor asks about ("kdy", "kde", "co s sebou"). */
+export interface ResponseFacet {
+  id: string;
+  /** Plain terms, matched as whole words on normalized text, also after Czech stemming. */
+  keywords: string[];
+  template: string;
+}
+
+export interface SelectBy {
+  slot: string;
+  dataField: string;
+  recordType?: string;
+}
+
+/**
+ * Tenant-defined slot extraction, e.g. a club category typed as "u9" → slot category "U-9".
+ * `pattern` runs on normalized text (lowercase, no diacritics) and must use the linear-time
+ * subset (no *, +, {}, lookarounds, backreferences); `value` may reference $1.
+ */
+export interface SlotPattern {
+  slot: string;
+  pattern: string;
+  value: string;
+}
+
 export interface IntentResponseRule {
   intentId: string;
   /** Set to false for non-factual dialogue such as greetings or help. */
@@ -185,16 +210,29 @@ export interface IntentResponseRule {
   recordId?: string;
   requiredAnySlots?: string[];
   missingTemplate?: string;
+  /**
+   * Used instead of missingTemplate when the visitor gave an age (slot childAge) but no
+   * birth year. The age maps to two birth years ({{yearA}} = had birthday this year,
+   * {{yearB}} = not yet); both records are resolved via selectBy and exposed as {{a.*}}
+   * and {{b.*}}. Falls back to missingTemplate unless both records are fresh.
+   */
+  ageRangeTemplate?: string;
   missingRecordId?: string;
-  selectBy?: {
-    slot: string;
-    dataField: string;
-    recordType?: string;
-  };
+  /**
+   * Record selection by slot value. An array is tried in order and the first slot the
+   * context holds wins; the first entry also drives `ageRangeTemplate` (birth-year slot).
+   */
+  selectBy?: SelectBy | SelectBy[];
   template?: string;
   staleTemplate?: string;
   cadence?: CadenceConfig;
   clarification?: ClarificationConfig;
+  /**
+   * Opt-in. Exactly one matching facet replaces `template`; none or several keep `template`.
+   * A short message without its own intent ("A kde?") that matches a facet of the previous
+   * intent's rule is answered by that facet.
+   */
+  facets?: ResponseFacet[];
 }
 
 export interface ProviderRequest {
@@ -284,6 +322,8 @@ export interface FrameMindConfig {
   mode: FrameMindMode;
   locale: string;
   intents: IntentDefinition[];
+  /** Tenant slot extraction on top of the built-in age/year slots. */
+  slotPatterns?: SlotPattern[];
   responses: IntentResponseRule[];
   actions: ActionDefinition[];
   unknownResponse: string;
@@ -297,6 +337,14 @@ export interface FrameMindConfig {
   tenantPolicy?: TenantDeploymentPolicy;
   /** Capability evidence for providers used by this deployment. */
   providerCompliance?: ProviderComplianceProfile[];
+  /**
+   * Opt-in. When a slot changes value, dependent slots are cleared unless the same message
+   * sets them, e.g. { child: ['childAge', 'birthYear'] } — one child's age must not carry
+   * over to another child.
+   */
+  slotDependencies?: Record<string, string[]>;
+  /** Opt-in. Array data render as a natural list ("pondělí a čtvrtek") instead of "a,b". */
+  listConjunction?: string;
 }
 
 export interface FrameMindRequest {
@@ -307,6 +355,8 @@ export interface FrameMindRequest {
   /** Deliberately prepared/redacted text sent to a managed provider. Raw text is never substituted. */
   providerText?: string;
   sessionId?: string;
+  /** Prior user turns (oldest first) for stateless hosts; rebuilds a fresh dialogue context. */
+  history?: string[];
 }
 
 export interface DiscourseEntity {
@@ -351,6 +401,8 @@ export interface FrameMindResponse {
   actions: ResolvedAction[];
   context: ContextSnapshot;
   reason?: 'known' | 'unknown' | 'stale' | 'missing-slot' | 'provider';
+  /** Id of the response facet that answered, when one did. */
+  facet?: string;
   suggestions?: string[];
   discourse?: DiscourseSnapshot;
 }
