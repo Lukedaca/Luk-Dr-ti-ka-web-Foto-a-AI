@@ -51,16 +51,17 @@ Projekt je pripraveny pro Netlify z GitHub repozitare.
 
 Konfigurace je v [netlify.toml](./netlify.toml).
 
+## Agent „Lukas AI" (stav 6. 10. 2026)
+
+- Lokalni jadro **FrameMind Solution 1.3.0** ve `vendor/framemind-solution` (prosta kopie, ne subtree; postup v README jadra). Bezi v prohlizeci (`src/js/chatbot.js`, konfigurace `src/config/lukas.mjs`); serverova funkce `netlify/functions/chat.mjs` z jadra pouziva `SafetyShield`.
+- Nove funkce jadra 1.3.0 (facets, slotDependencies, listConjunction, upsertRecords) jsou opt-in a osobni web je nezapina.
+- Co jadro nezna, odpovi Google Gemini: `gemini-3.8-flash`, zalozni `gemini-3.7-flash` (env `GEMINI_CHAT_MODEL` v produkci nenastavena). Prohlidka (`tour.mjs`) take `gemini-3.8-flash`.
+- Hlas: Microsoft Azure Speech `northeurope`, jen na zadost navstevnika.
+- Kompletni seznam poskytovatelu a dat: `docs/compliance/PROCESSOR_REGISTER.md`.
+
 ## AI a voice konfigurace
 
-Pro produkcni provoz je potreba doplnit vlastni environment variables v Netlify.
-
-Minimalne zkontroluj:
-
-- klice pro Google / Gemini endpointy pouzivane v `netlify/functions`
-- pripadne dalsi tajne hodnoty podle aktualni implementace backend funkcí
-
-API klice se do repozitare neukladaji.
+Environment variables se nastavuji jen v Netlify (nikdy do repozitare). Nazvy, ktere kod cte, najdes prikazem `grep -rhoE "process\.env\.[A-Z_]+" netlify/functions | sort -u` — hodnoty z dashboardu nevypisuj.
 
 ## Jazykove verze
 
@@ -75,13 +76,20 @@ Web umi:
 /?lang=en
 ```
 
+## Testy
+
+```bash
+npm test   # testy webu (tests/*.test.mjs) + testy vendorizovaneho jadra
+```
+
 ## Doporuceny release postup
 
 ```bash
+npm test
 npm run build
-git add .
-git commit -m "feat: finalize bilingual website"
+git add <zmenene soubory>
+git commit -m "..."
 git push
 ```
 
-Po pushi do branche napojene na Netlify se spusti novy deploy automaticky.
+Netlify site `lukasdrsticka` je napojeny na GitHub (`main`), push spusti deploy automaticky a build (`npm run build`) bezi na Netlify — `dist/js` se necommituje.
