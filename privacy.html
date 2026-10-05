@@ -111,7 +111,7 @@
         </div>
 
         <h1 class="gradient-text">Zásady ochrany osobních údajů</h1>
-        <p class="updated">Účinnost: 25. září 2026</p>
+        <p class="updated">Účinnost: 6. října 2026</p>
 
         <h2>1. Správce osobních údajů</h2>
         <p>
@@ -122,7 +122,7 @@
         <h2>2. Jaké údaje zpracováváme a proč</h2>
         <ul>
             <li><strong>Kontaktní formulář a poptávka přes agenta</strong> (jméno, e-mail, případně telefon, typ služby, zpráva) – vyřízení poptávky. Formuláře zpracovává Netlify Forms. Právní základ: čl. 6 odst. 1 písm. b) GDPR (jednání před uzavřením smlouvy).</li>
-            <li><strong>Hybridní AI agent (Lukáš AI)</strong> – dotazy nejdřív vyhodnocuje lokálně FrameMind Solution na serveru webu, bez předání třetí straně. Jen když lokální znalosti odpověď nemají, jde dotaz a krátká historie konverzace do Google Gemini API za účelem přípravy odpovědi a navigace po webu. Před odesláním se z textu odstraňují e-mailové adresy a telefonní čísla; zpráva s osobními nebo platebními údaji se do AI neposílá vůbec a agent odpoví lokálně. Běžná konverzace se na serveru neukládá ani nikam nepřeposílá; historie zůstává jen v úložišti vašeho prohlížeče. Právní základ: oprávněný zájem na zodpovězení vašeho dotazu, čl. 6 odst. 1 písm. f) GDPR.</li>
+            <li><strong>Hybridní AI agent (Lukáš AI)</strong> – dotazy nejdřív vyhodnocuje FrameMind Solution přímo ve stránce ve vašem prohlížeči (dotaz, na který tam najde odpověď, se na server neodesílá) a pak na serveru webu, bez předání třetí straně. Jen když lokální znalosti odpověď nemají, jde dotaz a krátká historie konverzace do Google Gemini API za účelem přípravy odpovědi a navigace po webu. Před odesláním se z textu odstraňují e-mailové adresy a telefonní čísla; zpráva, ve které filtr pozná e-mail, telefon, rodné číslo s popiskem nebo číslo platební karty, se do AI neposílá vůbec a agent odpoví lokálně. Jiné osobní údaje (například jméno) filtr zachytit nemusí — do chatu je proto nepište. Běžná konverzace se na serveru neukládá ani nikam nepřeposílá; historie zůstává jen v otevřené stránce. Právní základ: oprávněný zájem na zodpovězení vašeho dotazu, čl. 6 odst. 1 písm. f) GDPR.</li>
             <li><strong>Paměť agenta (jen se souhlasem)</strong> – pokud v chatu výslovně souhlasíte, uloží se krátký souhrn témat konverzace bez kontaktních údajů pod náhodným identifikátorem, aby agent příště navázal. Uchovává se nejvýše 180 dní; souhlas můžete kdykoli odvolat tlačítkem „Smazat profil“ v chatu, které souhrn ze serveru okamžitě smaže. Právní základ: souhlas, čl. 6 odst. 1 písm. a) GDPR.</li>
             <li><strong>Hlasové funkce</strong> – převod řeči na text a čtení odpovědí nahlas zajišťuje Microsoft Azure AI Speech v datovém centru v EU (region North Europe). Zapínají se jen na vaši žádost (tlačítkem) a nahrávka vašeho hlasu se neukládá.</li>
             <li><strong>Technické a bezpečnostní údaje</strong> (IP adresa, user-agent) – omezení počtu požadavků a ochrana před zneužitím. Počítadlo požadavků drží IP adresu jen po dobu okna limitu (minuty až hodina), bezpečnostní události se uchovávají 30 dní a správce o nich dostává souhrn e-mailem. Právní základ: oprávněný zájem, čl. 6 odst. 1 písm. f) GDPR.</li>
@@ -159,7 +159,7 @@
 
         <h2>6. Cookies a lokální úložiště</h2>
         <p>
-            Web používá <strong>localStorage</strong> pro uložení preferencí (jazyk, historie chatu, volba hlasu, souhlas s pamětí agenta).
+            Web používá <strong>localStorage</strong> pro uložení preferencí (jazyk, motiv, volba hlasu, rozhodnutí o paměti agenta) a při souhlasu s pamětí agenta náhodného identifikátoru; <strong>sessionStorage</strong> drží náhodné ID relace do zavření okna. Historie chatu se do úložiště prohlížeče neukládá — zůstává jen v otevřené stránce a obnovením stránky zmizí.
             Nepoužíváme analytické ani marketingové cookies třetích stran a nenačítáme písma ani skripty z cizích serverů pro sledování.
         </p>
 
