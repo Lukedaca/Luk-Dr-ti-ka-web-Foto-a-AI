@@ -7,7 +7,7 @@ Portfolio web pro fotografii, AI projekty a automatizace. Web je pripraveny pro 
 - staticky frontend v rootu projektu
 - buildovane assety v `dist/`
 - Netlify Functions v `netlify/functions/`
-- chat assistant a voice vrstva napojena pres Netlify Functions
+- hybridni agent „Lukas AI" (chat + hlas) napojeny pres Netlify Functions
 - jazykovy prepinac `CZ / EN` s ulozenim volby a podporou `?lang=cs|en`
 
 ## Lokalni spusteni
