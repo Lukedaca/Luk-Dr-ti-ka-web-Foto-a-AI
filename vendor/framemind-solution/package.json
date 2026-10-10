@@ -1,6 +1,6 @@
 {
   "name": "@framemind/solution",
-  "version": "1.3.0",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "description": "Provider-independent local orchestration, knowledge and privacy core for FrameMind agents",
@@ -16,6 +16,7 @@
     "README.md"
   ],
   "scripts": {
+    "training:evaluate": "node --import ../viktorie-prerov-agent/node_modules/tsx/dist/loader.mjs scripts/evaluate-agents.mjs",
     "build": "tsc -p tsconfig.json",
     "check": "tsc -p tsconfig.json --noEmit",
     "compliance:verify": "node scripts/verify-compliance.mjs",

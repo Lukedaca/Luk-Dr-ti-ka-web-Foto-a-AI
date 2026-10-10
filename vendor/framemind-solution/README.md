@@ -1,6 +1,15 @@
-# FrameMind Solution 1.3.0
+# FrameMind Solution 1.5.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
+
+Version 1.5.0 adds opt-in standalone social intents and selects slot values by
+their last occurrence in the visitor's message. Each consumer defines its own
+social phrases, business rules, factual records and action permissions.
+
+Version 1.4.0 adds owner-reviewed, tenant-scoped intent training packs through
+`withIntentTraining`. Corrections match a whole normalized message and select an
+existing intent. They leave factual sources, freshness checks and permissions in
+the normal engine path. See [local training](docs/INTENT-TRAINING.md).
 
 Version 1.2 adds a canonical fail-closed DataPolicy, provider-neutral voice contracts,
 SpeechPrivacyGuard, allowlisted telemetry, and a server-only Azure Speech adapter.
@@ -75,7 +84,24 @@ npm test
 
 ## Distribution
 
-Consumers should add this repository as a Git subtree and import the versioned `dist/index.js` entry. Club/persona facts, intents, actions and knowledge snapshots belong to the consumer repository, not this core.
+Consumers import the versioned `dist/index.js` entry from `vendor/framemind-solution`. Club/persona facts, intents, actions and knowledge snapshots belong to the consumer repository, not this core.
+
+Consumer distribution targets and how the core gets there (1.5.0 is a local
+candidate until the consuming sites are deployed):
+
+| Consumer | Vendoring | Sync |
+|---|---|---|
+| `viktorie-prerov-agent` | Git subtree | `git subtree pull --prefix=vendor/framemind-solution <core> main --squash` |
+| `framemind-hybrid-sport-agent` | Git subtree | same as above, from its own clone |
+| `FrameMind web` (framemind.cz) | plain copy (`dist`, `src`, `tests`, package files, README) | `git -C <core> archive <sha> \| tar -x -C vendor/framemind-solution` |
+| `Luk-Dr-ti-ka-web-Foto-a-AI` (personal web) | plain copy (same files, plus `tsconfig.json`) | same as above |
+| `framemind-hybrid-agent` (business reference template) | plain copy | same as above |
+
+Consumers that run `scripts/verify-compliance.mjs` (Viktorka, framemind.cz) also keep `coreVersion` in `docs/compliance/deployment-profile.json` equal to the vendored version.
+
+In this workspace, `node scripts/sync-agent-core.mjs --apply` copies only the
+26 enumerated files for this change and verifies SHA-256. `--check` is read-only.
+It does not synchronize unrelated core changes or copy client facts/configuration.
 
 ## Compliance boundary
 

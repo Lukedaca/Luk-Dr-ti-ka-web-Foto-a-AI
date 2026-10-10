@@ -2,6 +2,7 @@ import type { ContextSnapshot, DiscourseSnapshot, IntentDefinition, IntentMatch,
 export declare class IntentEngine {
     readonly definitions: IntentDefinition[];
     private readonly slotPatterns;
+    private readonly trainedExamples;
     constructor(definitions: IntentDefinition[], slotPatterns?: SlotPattern[]);
     detect(text: string, context: ContextSnapshot, now?: Date, discourseSnapshot?: DiscourseSnapshot): IntentMatch;
 }

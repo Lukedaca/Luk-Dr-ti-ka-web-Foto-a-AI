@@ -48,15 +48,24 @@ function extractAge(normalized) {
     return adjective ? AGE_ADJECTIVE_STEMS[adjective] : undefined;
 }
 function extractPatternSlots(normalized, patterns) {
-    var _a;
+    var _a, _b;
     const slots = {};
+    const positions = {};
     for (const item of patterns) {
         if (!(item === null || item === void 0 ? void 0 : item.slot) || typeof item.value !== 'string' || !isSafePattern(item.pattern))
             continue;
         try {
-            const match = normalized.match(new RegExp(item.pattern));
-            if (match)
-                slots[item.slot] = item.value.replace(/\$1/g, (_a = match[1]) !== null && _a !== void 0 ? _a : '');
+            const expression = new RegExp(item.pattern, 'g');
+            let match;
+            while ((match = expression.exec(normalized)) !== null) {
+                if (match.index >= ((_a = positions[item.slot]) !== null && _a !== void 0 ? _a : -1)) {
+                    slots[item.slot] = item.value.replace(/\$1/g, (_b = match[1]) !== null && _b !== void 0 ? _b : '');
+                    positions[item.slot] = match.index;
+                }
+                // Optional-only patterns can match an empty string. Never loop on them.
+                if (match[0].length === 0)
+                    expression.lastIndex += 1;
+            }
         }
         catch {
             // Invalid tenant patterns must not break local answers.
@@ -98,16 +107,26 @@ function extractSlots(normalized, now) {
     return slots;
 }
 function scoreIntent(definition, normalized, stemmed) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+    if (definition.standalone) {
+        const phrases = [
+            ...((_a = definition.examples) !== null && _a !== void 0 ? _a : []),
+            ...((_b = definition.keywords) !== null && _b !== void 0 ? _b : []),
+            ...((_c = definition.keywordGroups) !== null && _c !== void 0 ? _c : []).map((group) => group.join(' ')),
+        ];
+        return phrases.some((phrase) => normalized === normalizeText(phrase))
+            ? 120 + ((_d = definition.priority) !== null && _d !== void 0 ? _d : 0)
+            : 0;
+    }
     let evidence = 0;
-    for (const example of (_a = definition.examples) !== null && _a !== void 0 ? _a : []) {
+    for (const example of (_e = definition.examples) !== null && _e !== void 0 ? _e : []) {
         const candidate = normalizeText(example);
         if (candidate && normalized === candidate)
             evidence += 120;
         else if (candidate && normalized.includes(candidate))
             evidence += 60;
     }
-    for (const keyword of (_b = definition.keywords) !== null && _b !== void 0 ? _b : []) {
+    for (const keyword of (_f = definition.keywords) !== null && _f !== void 0 ? _f : []) {
         if (includesTerm(normalized, keyword)) {
             evidence += 18;
         }
@@ -115,12 +134,12 @@ function scoreIntent(definition, normalized, stemmed) {
             evidence += 16;
         }
     }
-    for (const group of (_c = definition.keywordGroups) !== null && _c !== void 0 ? _c : []) {
+    for (const group of (_g = definition.keywordGroups) !== null && _g !== void 0 ? _g : []) {
         const allMatch = group.every((keyword) => includesTerm(normalized, keyword) || includesStemmedTerm(stemmed, keyword));
         if (allMatch)
             evidence += 55 + group.length * 5;
     }
-    for (const pattern of (_d = definition.patterns) !== null && _d !== void 0 ? _d : []) {
+    for (const pattern of (_h = definition.patterns) !== null && _h !== void 0 ? _h : []) {
         if (!isSafePattern(pattern))
             continue;
         try {
@@ -131,15 +150,28 @@ function scoreIntent(definition, normalized, stemmed) {
             // Invalid tenant patterns must not break local answers.
         }
     }
-    return evidence > 0 ? evidence + ((_e = definition.priority) !== null && _e !== void 0 ? _e : 0) : 0;
+    return evidence > 0 ? evidence + ((_j = definition.priority) !== null && _j !== void 0 ? _j : 0) : 0;
 }
 export class IntentEngine {
     constructor(definitions, slotPatterns = []) {
+        var _a;
+        this.trainedExamples = new Map();
         this.definitions = definitions.slice();
         this.slotPatterns = slotPatterns.slice();
+        for (const definition of this.definitions) {
+            for (const example of (_a = definition.exactExamples) !== null && _a !== void 0 ? _a : []) {
+                const normalized = normalizeText(example);
+                if (!normalized || normalized.length > 2000)
+                    throw new Error('Invalid exact intent example');
+                const previous = this.trainedExamples.get(normalized);
+                if (previous && previous.id !== definition.id)
+                    throw new Error(`Conflicting exact intent example: ${previous.id} / ${definition.id}`);
+                this.trainedExamples.set(normalized, definition);
+            }
+        }
     }
     detect(text, context, now = new Date(), discourseSnapshot) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         const normalizedText = normalizeText(text).slice(0, 2000);
         const stemmedText = stemText(normalizedText);
         const slots = { ...extractSlots(normalizedText, now), ...extractPatternSlots(normalizedText, this.slotPatterns) };
@@ -147,19 +179,31 @@ export class IntentEngine {
             slots.activeEntityType = discourseSnapshot.activeEntity.type;
             slots.activeEntityName = discourseSnapshot.activeEntity.name;
         }
+        // Corrections choose an existing intent; normal safety, knowledge freshness,
+        // response composition and action permissions still run in FrameMindEngine.
+        const trained = this.trainedExamples.get(normalizedText);
+        if (trained && normalizeText(text).length <= 2000) {
+            return {
+                id: trained.id,
+                confidence: 1,
+                normalizedText,
+                slots,
+                isFollowUp: Boolean(context.activeIntent && ((_a = trained.followUpFor) === null || _a === void 0 ? void 0 : _a.includes(context.activeIntent))),
+            };
+        }
         let best;
         let bestScore = 0;
         let followUp = false;
         for (const definition of this.definitions) {
             const lexical = scoreIntent(definition, normalizedText, stemmedText);
             let score = lexical;
-            const follows = Boolean(context.activeIntent && ((_a = definition.followUpFor) === null || _a === void 0 ? void 0 : _a.includes(context.activeIntent)));
+            const follows = Boolean(context.activeIntent && ((_b = definition.followUpFor) === null || _b === void 0 ? void 0 : _b.includes(context.activeIntent)));
             if (follows && (slots.childAge || slots.birthYear || slots.nextAge))
                 score += 95;
             // Anaphora boost only breaks ties between intents the message itself supports.
             // Without own lexical evidence it hijacked unrelated questions ("Kdy je trénink?"
             // after a recruitment question) — those belong to unknown, i.e. the managed model.
-            if (lexical > 0 && (discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.lastIntent) && ((_b = definition.followUpFor) === null || _b === void 0 ? void 0 : _b.includes(discourseSnapshot.lastIntent))) {
+            if (lexical > 0 && (discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.lastIntent) && ((_c = definition.followUpFor) === null || _c === void 0 ? void 0 : _c.includes(discourseSnapshot.lastIntent))) {
                 if (/^(?:a\s+)?(?:kolik|kde|kdy|jak|proc|cena|rozpis|trener|adresa)\b/i.test(normalizedText)) {
                     score += 65;
                 }
@@ -170,7 +214,7 @@ export class IntentEngine {
                 followUp = follows;
             }
         }
-        if (!best || bestScore < ((_c = best.minScore) !== null && _c !== void 0 ? _c : 20)) {
+        if (!best || bestScore < ((_d = best.minScore) !== null && _d !== void 0 ? _d : 20)) {
             return { id: 'unknown', confidence: 0, normalizedText, slots, isFollowUp: false };
         }
         return {

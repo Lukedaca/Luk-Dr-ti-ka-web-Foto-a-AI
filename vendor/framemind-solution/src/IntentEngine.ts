@@ -48,11 +48,20 @@ function extractAge(normalized: string): number | undefined {
 
 function extractPatternSlots(normalized: string, patterns: SlotPattern[]): Record<string, SlotValue> {
   const slots: Record<string, SlotValue> = {};
+  const positions: Record<string, number> = {};
   for (const item of patterns) {
     if (!item?.slot || typeof item.value !== 'string' || !isSafePattern(item.pattern)) continue;
     try {
-      const match = normalized.match(new RegExp(item.pattern));
-      if (match) slots[item.slot] = item.value.replace(/\$1/g, match[1] ?? '');
+      const expression = new RegExp(item.pattern, 'g');
+      let match: RegExpExecArray | null;
+      while ((match = expression.exec(normalized)) !== null) {
+        if (match.index >= (positions[item.slot] ?? -1)) {
+          slots[item.slot] = item.value.replace(/\$1/g, match[1] ?? '');
+          positions[item.slot] = match.index;
+        }
+        // Optional-only patterns can match an empty string. Never loop on them.
+        if (match[0].length === 0) expression.lastIndex += 1;
+      }
     } catch {
       // Invalid tenant patterns must not break local answers.
     }
@@ -97,6 +106,16 @@ function extractSlots(normalized: string, now: Date): Record<string, SlotValue> 
 }
 
 function scoreIntent(definition: IntentDefinition, normalized: string, stemmed: string): number {
+  if (definition.standalone) {
+    const phrases = [
+      ...(definition.examples ?? []),
+      ...(definition.keywords ?? []),
+      ...(definition.keywordGroups ?? []).map((group) => group.join(' ')),
+    ];
+    return phrases.some((phrase) => normalized === normalizeText(phrase))
+      ? 120 + (definition.priority ?? 0)
+      : 0;
+  }
   let evidence = 0;
   for (const example of definition.examples ?? []) {
     const candidate = normalizeText(example);
@@ -129,10 +148,20 @@ export class IntentEngine {
   readonly definitions: IntentDefinition[];
 
   private readonly slotPatterns: SlotPattern[];
+  private readonly trainedExamples = new Map<string, IntentDefinition>();
 
   constructor(definitions: IntentDefinition[], slotPatterns: SlotPattern[] = []) {
     this.definitions = definitions.slice();
     this.slotPatterns = slotPatterns.slice();
+    for (const definition of this.definitions) {
+      for (const example of definition.exactExamples ?? []) {
+        const normalized = normalizeText(example);
+        if (!normalized || normalized.length > 2000) throw new Error('Invalid exact intent example');
+        const previous = this.trainedExamples.get(normalized);
+        if (previous && previous.id !== definition.id) throw new Error(`Conflicting exact intent example: ${previous.id} / ${definition.id}`);
+        this.trainedExamples.set(normalized, definition);
+      }
+    }
   }
 
   detect(
@@ -148,6 +177,19 @@ export class IntentEngine {
     if (discourseSnapshot?.activeEntity) {
       slots.activeEntityType = discourseSnapshot.activeEntity.type;
       slots.activeEntityName = discourseSnapshot.activeEntity.name;
+    }
+
+    // Corrections choose an existing intent; normal safety, knowledge freshness,
+    // response composition and action permissions still run in FrameMindEngine.
+    const trained = this.trainedExamples.get(normalizedText);
+    if (trained && normalizeText(text).length <= 2000) {
+      return {
+        id: trained.id,
+        confidence: 1,
+        normalizedText,
+        slots,
+        isFollowUp: Boolean(context.activeIntent && trained.followUpFor?.includes(context.activeIntent)),
+      };
     }
 
     let best: IntentDefinition | undefined;

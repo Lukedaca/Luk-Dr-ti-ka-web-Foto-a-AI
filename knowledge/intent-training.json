@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "tenantId": "lukas-portfolio",
+  "revision": 1,
+  "examples": [
+    { "text": "Dobrý den, potřebuji nafotit fotbalový zápas.", "intentId": "sports_photo" },
+    { "text": "Dobrý den, chtěl bych portrétní focení.", "intentId": "portrait_photo" },
+    { "text": "Kolik bych zaplatil za portrétní focení?", "intentId": "pricing" }
+  ]
+}

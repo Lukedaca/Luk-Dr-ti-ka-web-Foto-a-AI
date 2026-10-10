@@ -1,6 +1,8 @@
 import snapshot from '../../knowledge/lukas.snapshot.json' with { type: 'json' };
+import intentTraining from '../../knowledge/intent-training.json' with { type: 'json' };
 import {
   FrameMindEngine,
+  withIntentTraining,
   GeminiFlashAdapter,
   NoopLearningSink,
   VoiceCapability,
@@ -32,6 +34,7 @@ export const lukasConfig = {
   intents: [
     {
       id: 'greeting',
+      standalone: true,
       examples: [
         'Ahoj',
         'Dobrý den',
@@ -47,6 +50,7 @@ export const lukasConfig = {
     },
     {
       id: 'farewell',
+      standalone: true,
       examples: [
         'Na shledanou',
         'Měj se',
@@ -147,9 +151,11 @@ export const lukasConfig = {
         'Kolik stojí portrét?',
         'Kolik stojí AI agent?',
       ],
-      keywords: ['cenik', 'ceny', 'tarify', 'kalkulace'],
-      keywordGroups: [['kolik', 'stoji'], ['cena', 'foceni'], ['ceny', 'sluzeb']],
-      priority: 55,
+      keywords: ['cenik', 'cena', 'ceny', 'tarify', 'kalkulace', 'rozpocet'],
+      keywordGroups: [['kolik', 'stoji'], ['cena', 'foceni'], ['ceny', 'sluzeb'], ['na', 'kolik', 'vyjde'], ['jak', 'drahe']],
+      patterns: ['\\bzaplat(it|im|il|ime|ila)\\b'],
+      // A price question takes precedence over a description of the same service.
+      priority: 150,
     },
     {
       id: 'process',
@@ -296,12 +302,12 @@ export const lukasConfig = {
     {
       intentId: 'portfolio',
       recordId: 'portfolio.galleries',
-      template: 'Otevírám portfolio. {{record.content}}',
+      template: '{{record.content}}',
     },
     {
       intentId: 'contact',
       recordId: 'contact.general',
-      template: 'Otevírám kontakt. {{record.content}}',
+      template: '{{record.content}}',
     },
     {
       intentId: 'filter_ai',
@@ -372,7 +378,7 @@ export function createLukasEngine(options = {}) {
         tenantPolicy,
         providerCompliance,
       };
-  return new FrameMindEngine(config, snapshot);
+  return new FrameMindEngine(options.intentTraining === false ? config : withIntentTraining(config, intentTraining, 'lukas-portfolio'), snapshot);
 }
 
 export function createLukasVoiceCapability() {

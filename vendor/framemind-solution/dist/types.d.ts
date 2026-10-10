@@ -64,6 +64,10 @@ export type SlotValue = string | number | boolean;
 export interface IntentDefinition {
     id: string;
     examples?: string[];
+    /** Owner-reviewed corrections. Match the entire normalized message only. */
+    exactExamples?: string[];
+    /** Social phrases must occupy the whole message, so they cannot swallow a request. */
+    standalone?: boolean;
     keywords?: string[];
     keywordGroups?: string[][];
     patterns?: string[];
