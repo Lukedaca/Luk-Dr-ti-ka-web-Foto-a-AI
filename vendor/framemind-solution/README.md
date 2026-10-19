@@ -1,6 +1,24 @@
-# FrameMind Solution 1.5.0
+# FrameMind Solution 1.8.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
+
+Version 1.8.0 lets a `selectBy` entry take its value from the visitor's text
+(`mentioned: true`): the record whose `data[dataField]` the text names, in any Czech word
+form, with known values read from the store (live records), never from a phrase list. Other
+selectors' slots narrow the candidates and each selector may carry its own `template`. Once
+the text names a known value, the rule never answers with its default record; a tie or no
+candidate leaves the question to the next layer ("Jak jsme hráli se Slavonínem?" no longer
+gets the last match against another opponent). Words that name such a value are not
+passed to the semantic layer as intent evidence.
+
+Version 1.7.0 adds a built-in, model-free resolver for that layer
+(`ngramSemanticIntents`: TF-IDF over character n-grams of normalized, stemmed text).
+It runs in-process in browsers and serverless functions without any download.
+
+Version 1.6.0 adds an opt-in semantic decision layer: when lexical detection returns
+`unknown`, a host-supplied local embedding model may select an existing intent, whose
+rule still composes the answer from verified knowledge. It never generates text and
+requires `processing: 'local'`. See [semantic intents](docs/SEMANTIC-INTENTS.md).
 
 Version 1.5.0 adds opt-in standalone social intents and selects slot values by
 their last occurrence in the visitor's message. Each consumer defines its own

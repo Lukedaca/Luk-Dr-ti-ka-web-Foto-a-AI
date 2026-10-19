@@ -27,7 +27,14 @@ export declare class FrameMindEngine {
      * Only a fresh context is rebuilt; unsafe turns are skipped.
      */
     private replayHistory;
+    /**
+     * Opt-in semantic decision for messages the lexical detector does not know.
+     * Only intents with a response rule are eligible; any resolver failure means
+     * "not confident" and the request continues as before.
+     */
+    private resolveSemanticIntent;
     respond(request: FrameMindRequest): Promise<FrameMindResponse>;
+    private respondInternal;
     /**
      * Adds or replaces records by id in a running engine, e.g. live club data that arrive
      * after the widget started. Records are validated like a snapshot; invalid ones throw.

@@ -1,8 +1,25 @@
 import { composeCadence, selectVariant } from './ConversationalCadence.js';
+function formatItem(item) {
+    var _a, _b;
+    if (item === undefined || item === null)
+        return '';
+    if (typeof item === 'object') {
+        const rec = item;
+        const label = (_b = (_a = rec.name) !== null && _a !== void 0 ? _a : rec.title) !== null && _b !== void 0 ? _b : rec.label;
+        if (typeof label === 'string' || typeof label === 'number')
+            return String(label);
+    }
+    return String(item);
+}
 function valueAt(path, values) {
     return path.split('.').reduce((current, key) => {
         if (!current || typeof current !== 'object')
             return undefined;
+        if (Array.isArray(current) && !/^\d+$/.test(key)) {
+            return current
+                .map((item) => (item && typeof item === 'object' ? item[key] : undefined))
+                .filter((v) => v !== undefined && v !== null && v !== '');
+        }
         return current[key];
     }, values);
 }
@@ -19,14 +36,17 @@ export class ResponseComposer {
             const value = valueAt(path, values);
             if (value === undefined || value === null)
                 return '';
-            if (Array.isArray(value) && listConjunction) {
-                const items = value.map(String);
-                return items.length < 2
-                    ? items.join('')
-                    : `${items.slice(0, -1).join(', ')} ${listConjunction} ${items[items.length - 1]}`;
+            if (Array.isArray(value)) {
+                const items = value.map(formatItem).filter(Boolean);
+                if (listConjunction) {
+                    return items.length < 2
+                        ? items.join('')
+                        : `${items.slice(0, -1).join(', ')} ${listConjunction} ${items[items.length - 1]}`;
+                }
+                return items.join(',');
             }
-            return String(value);
-        }).replace(/\s+/g, ' ').trim();
+            return formatItem(value);
+        }).replace(/(?<!\.)\.\.(?!\.)/g, '.').replace(/\s+/g, ' ').trim();
         if (!cadence) {
             return interpolated;
         }

@@ -31,6 +31,11 @@ export const lukasConfig = {
   profile: LUKAS_PROFILE,
   tenantPolicy: createPersonalPortfolioTenantPolicy(),
   providerCompliance: createPersonalPortfolioProviderRegister(),
+  slotPatterns: [
+    { slot: 'service', pattern: 'sport|fotbal|zapas|turnaj', value: 'sports_photo' },
+    { slot: 'service', pattern: 'portret|atelier|rodinn', value: 'portrait_photo' },
+    { slot: 'service', pattern: 'agent|automatiz|\\bai\\b', value: 'ai_agents' },
+  ],
   intents: [
     {
       id: 'greeting',
@@ -178,7 +183,7 @@ export const lukasConfig = {
         'Chci vidět práce',
       ],
       keywords: ['portfolio', 'galerie', 'fotky'],
-      keywordGroups: [['ukaz', 'portfolio'], ['otevri', 'portfolio'], ['chci', 'videt', 'fotky']],
+      keywordGroups: [['ukaz', 'portfolio'], ['otevri', 'portfolio'], ['chci', 'videt', 'fotky'], ['fotky', 'sparty'], ['fotky', 'sigmy']],
       priority: 45,
     },
     {
@@ -278,11 +283,30 @@ export const lukasConfig = {
       intentId: 'sports_photo',
       recordId: 'services.sports_photo',
       template: '{{record.content}}',
+      facets: [
+        {
+          id: 'sparta',
+          keywords: ['sparta', 'sigma', 'olomouc', 'prvoligov'],
+          template: '{{record.content}} V portfoliu najdete i ligové fotogalerie SK Sigma Olomouc (včetně zápasu SK Sigma Olomouc vs AC Sparta Praha z 20. 9. 2026, Mainz, Slovácko a Mladá Boleslav).',
+        },
+      ],
     },
     {
       intentId: 'portrait_photo',
       recordId: 'services.portrait_photo',
       template: '{{record.content}}',
+      facets: [
+        {
+          id: 'atelier',
+          keywords: ['atelier', 'kour', 'kourove'],
+          template: '{{record.content}}',
+        },
+        {
+          id: 'exterier',
+          keywords: ['exterier', 'venku', 'festival'],
+          template: '{{record.content}}',
+        },
+      ],
     },
     {
       intentId: 'ai_agents',
@@ -293,6 +317,23 @@ export const lukasConfig = {
       intentId: 'pricing',
       recordId: 'pricing.general',
       template: '{{record.content}}',
+      facets: [
+        {
+          id: 'portrait',
+          keywords: ['portret', 'portretni', 'atelier'],
+          template: '{{record.content}}',
+        },
+        {
+          id: 'sports',
+          keywords: ['sport', 'zapas', 'fotbal', 'turnaj'],
+          template: '{{record.content}}',
+        },
+        {
+          id: 'ai',
+          keywords: ['agent', 'ai', 'automatizace'],
+          template: '{{record.content}}',
+        },
+      ],
     },
     {
       intentId: 'process',
@@ -303,6 +344,18 @@ export const lukasConfig = {
       intentId: 'portfolio',
       recordId: 'portfolio.galleries',
       template: '{{record.content}}',
+      facets: [
+        {
+          id: 'sigma',
+          keywords: ['sigma', 'sparta', 'mainz', 'slovacko', 'mlada boleslav'],
+          template: '{{record.content}} Nejnovější ligovou galerií v portfoliu je SK Sigma Olomouc vs AC Sparta Praha (20. 9. 2026) na /galerie/sigma-vs-sparta/.',
+        },
+        {
+          id: 'prerov',
+          keywords: ['prerov', 'viktorka', 'bystrice', 'zelatovice', 'postrelmov', 'brodek', 'mohelnice', 'prostejov', 'unicov'],
+          template: '{{record.content}}',
+        },
+      ],
     },
     {
       intentId: 'contact',

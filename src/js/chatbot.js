@@ -2786,6 +2786,7 @@ import {
       text: text,
       now: new Date(),
       availablePaths: availablePaths,
+      history: chatbotState.messages.slice(0, -1).filter(function(m) { return m && m.role === 'user'; }).map(function(m) { return m.content; }),
     }).then(function(localResult) {
       if (localResult && localResult.reason === 'known') {
         var replyText = localResult.text;

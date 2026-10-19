@@ -6,12 +6,14 @@ export interface ResolvedSource {
     record?: KnowledgeRecord;
     freshness: FreshnessResult | 'missing';
     reference?: SourceReference;
+    /** Template of the selector that picked the record, if it has one (1.8.0). */
+    template?: string;
 }
 export declare class SourceResolver {
     private readonly store;
     private readonly freshnessPolicy;
     private readonly sourceLabel;
     constructor(store: KnowledgeStore, freshnessPolicy?: FreshnessPolicy, sourceLabel?: string);
-    resolve(rule: IntentResponseRule, context: ContextSnapshot, now?: Date, useMissingRecord?: boolean): ResolvedSource;
+    resolve(rule: IntentResponseRule, context: ContextSnapshot, now?: Date, useMissingRecord?: boolean, text?: string): ResolvedSource;
 }
 //# sourceMappingURL=SourceResolver.d.ts.map

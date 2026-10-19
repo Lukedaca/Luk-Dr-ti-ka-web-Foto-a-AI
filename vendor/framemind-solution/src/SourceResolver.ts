@@ -1,5 +1,6 @@
 import { FreshnessPolicy, type FreshnessResult } from './FreshnessPolicy.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
+import { selectMentioned } from './MentionedRecords.js';
 import type { ContextSnapshot, IntentResponseRule, KnowledgeRecord, SelectBy, SourceReference } from './types.js';
 
 export function selectorsOf(rule: IntentResponseRule): SelectBy[] {
@@ -11,6 +12,8 @@ export interface ResolvedSource {
   record?: KnowledgeRecord;
   freshness: FreshnessResult | 'missing';
   reference?: SourceReference;
+  /** Template of the selector that picked the record, if it has one (1.8.0). */
+  template?: string;
 }
 
 export class SourceResolver {
@@ -20,16 +23,33 @@ export class SourceResolver {
     private readonly sourceLabel = 'Ověřený zdroj',
   ) {}
 
-  resolve(rule: IntentResponseRule, context: ContextSnapshot, now = new Date(), useMissingRecord = false): ResolvedSource {
+  resolve(rule: IntentResponseRule, context: ContextSnapshot, now = new Date(), useMissingRecord = false, text = ''): ResolvedSource {
     let record: KnowledgeRecord | undefined;
+    let template: string | undefined;
     if (useMissingRecord && rule.missingRecordId) record = this.store.get(rule.missingRecordId);
     else {
-      // First selector whose slot the context holds decides; without such a slot the rule's
-      // recordId is the default. A present slot without a matching record is not replaced
-      // by the default — that would answer a different product than the visitor asked about.
-      const selector = selectorsOf(rule).find((item) => context.slots[item.slot] !== undefined);
-      if (selector) record = this.store.findByData(selector.dataField, context.slots[selector.slot]!, selector.recordType);
-      else if (rule.recordId) record = this.store.get(rule.recordId);
+      const selectors = selectorsOf(rule);
+      const defaultRecord = rule.recordId ? this.store.get(rule.recordId) : undefined;
+      // A value the visitor names outranks slots and the default; once named, nothing else
+      // may answer in its place ("se Slavonínem" must not get the match with Bystřice).
+      const mention = selectMentioned(
+        text, selectors, this.store.all(), context.slots, defaultRecord,
+        (candidate) => this.freshnessPolicy.evaluate(candidate, now) === 'fresh',
+      );
+      if (mention.kind === 'unresolved') return { freshness: 'missing' };
+      if (mention.kind === 'record') {
+        record = mention.record;
+        template = mention.selector.template;
+      } else {
+        // First selector whose slot the context holds decides; without such a slot the rule's
+        // recordId is the default. A present slot without a matching record is not replaced
+        // by the default — that would answer a different product than the visitor asked about.
+        const selector = selectors.find((item) => !item.mentioned && item.slot && context.slots[item.slot] !== undefined);
+        if (selector) {
+          record = this.store.findByData(selector.dataField, context.slots[selector.slot!]!, selector.recordType);
+          template = selector.template;
+        } else record = defaultRecord;
+      }
     }
     if (!record) return { freshness: 'missing' };
     return {
@@ -41,6 +61,7 @@ export class SourceResolver {
         url: record.sourceUrl,
         lastVerifiedAt: record.lastVerifiedAt,
       },
+      ...(template ? { template } : {}),
     };
   }
 }

@@ -1,9 +1,24 @@
 import { composeCadence, selectVariant } from './ConversationalCadence.js';
 import type { CadenceConfig, ContextSnapshot, KnowledgeRecord } from './types.js';
 
+function formatItem(item: unknown): string {
+  if (item === undefined || item === null) return '';
+  if (typeof item === 'object') {
+    const rec = item as Record<string, unknown>;
+    const label = rec.name ?? rec.title ?? rec.label;
+    if (typeof label === 'string' || typeof label === 'number') return String(label);
+  }
+  return String(item);
+}
+
 function valueAt(path: string, values: Record<string, unknown>): unknown {
   return path.split('.').reduce<unknown>((current, key) => {
     if (!current || typeof current !== 'object') return undefined;
+    if (Array.isArray(current) && !/^\d+$/.test(key)) {
+      return current
+        .map((item) => (item && typeof item === 'object' ? (item as Record<string, unknown>)[key] : undefined))
+        .filter((v) => v !== undefined && v !== null && v !== '');
+    }
     return (current as Record<string, unknown>)[key];
   }, values);
 }
@@ -26,14 +41,17 @@ export class ResponseComposer {
     const interpolated = base.replace(/\{\{\s*([a-zA-Z0-9_.-]+)\s*\}\}/g, (_whole, path: string) => {
       const value = valueAt(path, values);
       if (value === undefined || value === null) return '';
-      if (Array.isArray(value) && listConjunction) {
-        const items = value.map(String);
-        return items.length < 2
-          ? items.join('')
-          : `${items.slice(0, -1).join(', ')} ${listConjunction} ${items[items.length - 1]}`;
+      if (Array.isArray(value)) {
+        const items = value.map(formatItem).filter(Boolean);
+        if (listConjunction) {
+          return items.length < 2
+            ? items.join('')
+            : `${items.slice(0, -1).join(', ')} ${listConjunction} ${items[items.length - 1]}`;
+        }
+        return items.join(',');
       }
-      return String(value);
-    }).replace(/\s+/g, ' ').trim();
+      return formatItem(value);
+    }).replace(/(?<!\.)\.\.(?!\.)/g, '.').replace(/\s+/g, ' ').trim();
 
     if (!cadence) {
       return interpolated;

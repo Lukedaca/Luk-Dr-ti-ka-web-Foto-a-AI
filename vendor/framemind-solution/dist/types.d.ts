@@ -152,9 +152,20 @@ export interface ResponseFacet {
     template: string;
 }
 export interface SelectBy {
-    slot: string;
+    /** Slot whose value must equal `data[dataField]`. Not used with `mentioned`. */
+    slot?: string;
     dataField: string;
     recordType?: string;
+    /**
+     * 1.8.0. The value comes from the visitor's text: the record whose `data[dataField]` the
+     * text names (Czech word forms, values known from the store, never a configured phrase
+     * list). Slots of the rule's other selectors narrow the candidates. Once the text names a
+     * known value, the rule never falls back to an unrelated record — a tie or no candidate
+     * leaves the question unanswered locally.
+     */
+    mentioned?: boolean;
+    /** 1.8.0. Template used when this selector picked the record. */
+    template?: string;
 }
 /**
  * Tenant-defined slot extraction, e.g. a club category typed as "u9" → slot category "U-9".
@@ -183,7 +194,7 @@ export interface IntentResponseRule {
     missingRecordId?: string;
     /**
      * Record selection by slot value. An array is tried in order and the first slot the
-     * context holds wins; the first entry also drives `ageRangeTemplate` (birth-year slot).
+     * context holds wins; the first entry with a slot also drives `ageRangeTemplate` (birth-year slot).
      */
     selectBy?: SelectBy | SelectBy[];
     template?: string;
@@ -296,6 +307,11 @@ export interface FrameMindConfig {
     slotDependencies?: Record<string, string[]>;
     /** Opt-in. Array data render as a natural list ("pondělí a čtvrtek") instead of "a,b". */
     listConjunction?: string;
+    /**
+     * Opt-in (1.6.0). Semantic decision layer used only when lexical detection returns
+     * `unknown`: picks an existing intent, never generates text. See SemanticIntents.ts.
+     */
+    semanticIntents?: import('./SemanticIntents.js').SemanticIntentConfig;
 }
 export interface FrameMindRequest {
     text: string;
@@ -350,6 +366,8 @@ export interface FrameMindResponse {
     facet?: string;
     suggestions?: string[];
     discourse?: DiscourseSnapshot;
+    /** Present when the intent was chosen by the opt-in semantic layer. */
+    semantic?: import('./SemanticIntents.js').SemanticIntentDecision;
 }
 export interface LocalSpeechRecognitionCapability {
     available: boolean;

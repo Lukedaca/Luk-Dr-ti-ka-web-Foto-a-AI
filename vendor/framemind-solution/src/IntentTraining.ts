@@ -1,3 +1,4 @@
+import { ngramSemanticIntents } from './SemanticIntents.js';
 import type { FrameMindConfig } from './types.js';
 import { normalizeText } from './text.js';
 
@@ -8,8 +9,22 @@ export interface IntentTrainingPack {
   examples: Array<{ text: string; intentId: string }>;
 }
 
+export interface IntentTrainingOptions {
+  /** Enable built-in character n-gram semantic intent resolver (default: true in v2.0.0). */
+  semanticIntents?: boolean;
+  /** Intents excluded from semantic similarity selection. */
+  excludeIntents?: readonly string[];
+}
+
+const DEFAULT_EXCLUDED_SEMANTIC_INTENTS = ['greeting', 'thanks', 'contact_capture', 'recruitment_contact'] as const;
+
 /** Apply owner-reviewed routing corrections without changing facts or permissions. */
-export function withIntentTraining(config: FrameMindConfig, raw: unknown, tenantId: string): FrameMindConfig {
+export function withIntentTraining(
+  config: FrameMindConfig,
+  raw: unknown,
+  tenantId: string,
+  options?: IntentTrainingOptions,
+): FrameMindConfig {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Intent training must be an object');
   const pack = raw as Partial<IntentTrainingPack>;
   if (pack.schemaVersion !== 1) throw new Error('Unsupported intent training schema');
@@ -37,5 +52,10 @@ export function withIntentTraining(config: FrameMindConfig, raw: unknown, tenant
     if (!owners.has(text)) target.exactExamples.push(entry.text);
     owners.set(text, target.id);
   }
-  return { ...config, intents };
+  const semanticIntents = config.semanticIntents ?? (
+    options?.semanticIntents === false
+      ? undefined
+      : ngramSemanticIntents(intents, { excludeIntents: [...(options?.excludeIntents ?? DEFAULT_EXCLUDED_SEMANTIC_INTENTS)] })
+  );
+  return { ...config, intents, ...(semanticIntents ? { semanticIntents } : {}) };
 }

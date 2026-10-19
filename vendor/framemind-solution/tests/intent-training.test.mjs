@@ -57,3 +57,32 @@ test('trained routing cannot bypass stale evidence or safety checks', async () =
   const response = await new FrameMindEngine(unsafe, snapshot).respond({ text: unsafeText, now });
   assert.equal(response.intent, 'safety_refusal');
 });
+
+test('2.0.0: withIntentTraining zapne n-gramovou sémantickou vrstvu i bezstavové přehrání historie', async () => {
+  const configWithFacets = {
+    ...config,
+    responses: [
+      { intentId: 'greeting', sourceRequired: false, template: 'Dobrý den.' },
+      {
+        intentId: 'equipment',
+        recordId: 'equipment',
+        facets: [{ id: 'shoes', keywords: ['obuv', 'kopacky'], template: 'Stačí tenisky nebo turfy.' }],
+      },
+    ],
+  };
+  const trained = withIntentTraining(configWithFacets, pack, 'club');
+  const paraphrase = 'Co potřebuje mít dítě s sebou na trénink?';
+  const r1 = await new FrameMindEngine(trained, snapshot).respond({ text: paraphrase, now });
+  assert.equal(r1.intent, 'equipment');
+  assert.equal(r1.text, content);
+
+  const r2 = await new FrameMindEngine(trained, snapshot).respond({
+    text: 'A jakou obuv na trénink?',
+    history: [paraphrase],
+    now,
+  });
+  assert.equal(r2.intent, 'equipment');
+  assert.equal(r2.facet, 'shoes');
+  assert.equal(r2.text, 'Stačí tenisky nebo turfy.');
+});
+

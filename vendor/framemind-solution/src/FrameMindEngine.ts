@@ -10,7 +10,9 @@ import { ProviderRouter } from './ProviderRouter.js';
 import { ResponseComposer } from './ResponseComposer.js';
 import { pickFacet } from './ResponseFacets.js';
 import { SourceResolver, selectorsOf } from './SourceResolver.js';
+import { knownValues, withoutMentions } from './MentionedRecords.js';
 import { SafetyShield } from './SafetyShield.js';
+import { selectSemanticIntent, type SemanticIntentDecision } from './SemanticIntents.js';
 import type {
   ContextSnapshot,
   FrameMindConfig,
@@ -26,8 +28,8 @@ const MIN_CHILD_AGE = 3;
 const MAX_CHILD_AGE = 19;
 /** Replayed prior user turns; older turns rarely carry slots that still matter. */
 const MAX_HISTORY_TURNS = 6;
-/** "A kde?", "A co s sebou?" — longer messages without an intent are a new topic. */
-const MAX_FACET_FOLLOW_UP_WORDS = 5;
+/** "A kde?", "A co je v ceně?" — longer messages without an intent are a new topic. */
+const MAX_FACET_FOLLOW_UP_WORDS = 6;
 
 function hasAnySlot(rule: IntentResponseRule, slots: Record<string, unknown>): boolean {
   if (!rule.requiredAnySlots?.length) return true;
@@ -104,8 +106,8 @@ export class FrameMindEngine {
   /** Both birth years an age can mean, each grounded in a fresh record; otherwise undefined. */
   private resolveAgeRange(rule: IntentResponseRule, context: ContextSnapshot, now = new Date()) {
     const age = context.slots.childAge;
-    const birthYearSelector = selectorsOf(rule)[0];
-    if (!rule.ageRangeTemplate || !birthYearSelector || typeof age !== 'number') return undefined;
+    const birthYearSelector = selectorsOf(rule).find((selector) => selector.slot);
+    if (!rule.ageRangeTemplate || !birthYearSelector?.slot || typeof age !== 'number') return undefined;
     if (age < MIN_CHILD_AGE || age > MAX_CHILD_AGE) return undefined;
     const slot = birthYearSelector.slot;
     const yearA = (typeof context.slots.currentYear === 'number' ? context.slots.currentYear : now.getUTCFullYear()) - age;
@@ -125,25 +127,73 @@ export class FrameMindEngine {
    * would be lost between turns. Prior user turns rebuild slots and the active intent.
    * Only a fresh context is rebuilt; unsafe turns are skipped.
    */
-  private replayHistory(
+  private async replayHistory(
     sessionCtx: { context: ConversationContext; discourse: DiscourseContext },
     history: string[] | undefined,
     now?: Date,
-  ): void {
+  ): Promise<void> {
     if (!Array.isArray(history) || history.length === 0) return;
     if (sessionCtx.context.snapshot().turn > 0) return;
     for (const past of history.slice(-MAX_HISTORY_TURNS)) {
       if (typeof past !== 'string' || !past.trim()) continue;
       if (!SafetyShield.checkSafety(past).isSafe) continue;
-      const match = this.intentEngine.detect(past, sessionCtx.context.snapshot(), now, sessionCtx.discourse.snapshot());
+      const before = sessionCtx.context.snapshot();
+      let match = this.intentEngine.detect(past, before, now, sessionCtx.discourse.snapshot());
+      if (
+        match.id === 'unknown'
+        && before.activeIntent
+        && match.normalizedText.split(' ').filter(Boolean).length <= MAX_FACET_FOLLOW_UP_WORDS
+      ) {
+        const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
+        if (pickFacet(previousRule?.facets, past)) {
+          match = { ...match, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
+        }
+      }
+      if (match.id === 'unknown' && this.config.semanticIntents) {
+        const semantic = await this.resolveSemanticIntent(past);
+        if (semantic) {
+          match = { ...match, id: semantic.intentId, confidence: semantic.score, isFollowUp: false };
+        }
+      }
       sessionCtx.context.apply(match);
       sessionCtx.discourse.advanceTurn(past, '', match.id);
     }
   }
 
+  /**
+   * Opt-in semantic decision for messages the lexical detector does not know.
+   * Only intents with a response rule are eligible; any resolver failure means
+   * "not confident" and the request continues as before.
+   */
+  private async resolveSemanticIntent(text: string): Promise<SemanticIntentDecision | null> {
+    const settings = this.config.semanticIntents;
+    if (!settings || settings.processing !== 'local' || typeof settings.resolver !== 'function') return null;
+    try {
+      const answerable = new Set(this.config.responses.map((rule) => rule.intentId));
+      const known = new Set(this.config.intents.map((intent) => intent.id).filter((id) => answerable.has(id)));
+      const mentionFields = new Set(this.config.responses.flatMap((rule) => selectorsOf(rule))
+        .filter((selector) => selector.mentioned).map((selector) => selector.dataField));
+      const evidence = mentionFields.size ? withoutMentions(text, knownValues(this.store.all(), mentionFields)) : text;
+      return selectSemanticIntent(await settings.resolver(evidence), known, settings);
+    } catch {
+      return null;
+    }
+  }
+
   async respond(request: FrameMindRequest): Promise<FrameMindResponse> {
+    const trace: { semantic?: SemanticIntentDecision } = {};
+    const response = await this.respondInternal(request, trace);
+    return trace.semantic && response.intent === trace.semantic.intentId
+      ? { ...response, semantic: trace.semantic }
+      : response;
+  }
+
+  private async respondInternal(
+    request: FrameMindRequest,
+    trace: { semantic?: SemanticIntentDecision },
+  ): Promise<FrameMindResponse> {
     const sessionCtx = this.requestContext(request.sessionId);
-    this.replayHistory(sessionCtx, request.history, request.now);
+    await this.replayHistory(sessionCtx, request.history, request.now);
 
     // 1. Safety Shield: block profanity, insults and prompt injections immediately
     const safety = SafetyShield.checkSafety(request.text);
@@ -211,6 +261,15 @@ export class FrameMindEngine {
       const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
       facet = pickFacet(previousRule?.facets, queryText);
       if (facet) match = { ...detected, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
+    }
+    // Opt-in semantic layer: only when neither the lexical detector nor a follow-up
+    // facet recognised the message. It selects an existing intent; the rule answers.
+    if (match.id === 'unknown' && this.config.semanticIntents) {
+      const semantic = await this.resolveSemanticIntent(queryText);
+      if (semantic) {
+        trace.semantic = semantic;
+        match = { ...detected, id: semantic.intentId, confidence: semantic.score, isFollowUp: false };
+      }
     }
     const context = sessionCtx.context.apply(match);
 
@@ -296,12 +355,12 @@ export class FrameMindEngine {
           discourse: sessionCtx.discourse.snapshot(),
         };
       }
-      const resolved = this.sourceResolver.resolve(rule, context, request.now, missingSlot);
+      const resolved = this.sourceResolver.resolve(rule, context, request.now, missingSlot, request.text);
       if (resolved.record && resolved.freshness === 'fresh') {
         sessionCtx.context.markSource(resolved.record.id);
         const answeredFacet = missingSlot ? undefined : facet;
         const text = this.composer.compose(
-          missingSlot ? rule.missingTemplate : (answeredFacet?.template ?? rule.template),
+          missingSlot ? rule.missingTemplate : (answeredFacet?.template ?? resolved.template ?? rule.template),
           resolved.record,
           context,
           rule.cadence,

@@ -2,6 +2,7 @@ export * from './types.js';
 export * from './text.js';
 export * from './IntentEngine.js';
 export * from './IntentTraining.js';
+export * from './SemanticIntents.js';
 export * from './KnowledgeStore.js';
 export * from './ConversationContext.js';
 export * from './ActionResolver.js';

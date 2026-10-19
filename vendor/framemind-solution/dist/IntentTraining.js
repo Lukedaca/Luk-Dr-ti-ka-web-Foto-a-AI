@@ -1,6 +1,9 @@
+import { ngramSemanticIntents } from './SemanticIntents.js';
 import { normalizeText } from './text.js';
+const DEFAULT_EXCLUDED_SEMANTIC_INTENTS = ['greeting', 'thanks', 'contact_capture', 'recruitment_contact'];
 /** Apply owner-reviewed routing corrections without changing facts or permissions. */
-export function withIntentTraining(config, raw, tenantId) {
+export function withIntentTraining(config, raw, tenantId, options) {
+    var _a, _b;
     if (!raw || typeof raw !== 'object' || Array.isArray(raw))
         throw new Error('Intent training must be an object');
     const pack = raw;
@@ -38,6 +41,9 @@ export function withIntentTraining(config, raw, tenantId) {
             target.exactExamples.push(entry.text);
         owners.set(text, target.id);
     }
-    return { ...config, intents };
+    const semanticIntents = (_a = config.semanticIntents) !== null && _a !== void 0 ? _a : ((options === null || options === void 0 ? void 0 : options.semanticIntents) === false
+        ? undefined
+        : ngramSemanticIntents(intents, { excludeIntents: [...((_b = options === null || options === void 0 ? void 0 : options.excludeIntents) !== null && _b !== void 0 ? _b : DEFAULT_EXCLUDED_SEMANTIC_INTENTS)] }));
+    return { ...config, intents, ...(semanticIntents ? { semanticIntents } : {}) };
 }
 //# sourceMappingURL=IntentTraining.js.map

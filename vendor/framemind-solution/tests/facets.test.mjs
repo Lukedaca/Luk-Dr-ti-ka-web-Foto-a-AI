@@ -38,3 +38,34 @@ test('výčet s listConjunction, bez něj beze změny', () => {
   assert.equal(composer.compose('{{days}}', undefined, context, undefined, '', 'a'), 'pondělí, středa a čtvrtek');
   assert.equal(composer.compose('{{one}}', undefined, context, undefined, '', 'a'), 'pondělí');
 });
+
+test('2.0.0: pole objektů v šabloně a odstranění zdvojené tečky za zkratkou', () => {
+  const composer = new ResponseComposer();
+  const record = {
+    id: 'partners',
+    type: 'partners',
+    content: '',
+    sourceUrl: 'https://club.example',
+    contentHash: 'x',
+    fetchedAt: '2026-10-12T00:00:00Z',
+    lastVerifiedAt: '2026-10-12T00:00:00Z',
+    expiresAt: '2026-12-31T00:00:00Z',
+    data: {
+      address: 'Sokolská ul.',
+      partners: [
+        { name: 'Olomoucký kraj', url: 'https://olkraj.cz' },
+        { name: 'Město Přerov', url: 'https://prerov.eu' },
+        { name: 'FAČR', url: 'https://fotbal.cz' },
+      ],
+    },
+  };
+  assert.equal(
+    composer.compose('Partnery jsou {{partners.name}} na {{address}}.', record, { slots: {} }, undefined, '', 'a'),
+    'Partnery jsou Olomoucký kraj, Město Přerov a FAČR na Sokolská ul.',
+  );
+  assert.equal(
+    composer.compose('Partnery jsou {{partners}}...', record, { slots: {} }, undefined, '', 'a'),
+    'Partnery jsou Olomoucký kraj, Město Přerov a FAČR...',
+  );
+});
+
