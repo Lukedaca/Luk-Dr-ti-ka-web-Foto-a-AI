@@ -312,6 +312,12 @@ export interface FrameMindConfig {
      * `unknown`: picks an existing intent, never generates text. See SemanticIntents.ts.
      */
     semanticIntents?: import('./SemanticIntents.js').SemanticIntentConfig;
+    /**
+     * Zero-keyword deductive reasoning & fact synthesis layer (2.5.0).
+     * Enabled by default. Derives intent, records, facets, and logical conclusions
+     * directly from verified knowledge records without relying on hardcoded keyword lists.
+     */
+    deductiveReasoning?: boolean;
 }
 export interface FrameMindRequest {
     text: string;

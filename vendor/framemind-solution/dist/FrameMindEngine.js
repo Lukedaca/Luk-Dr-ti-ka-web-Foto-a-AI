@@ -4,6 +4,7 @@ import { DataPolicy } from './DataPolicy.js';
 import { DiscourseContext } from './DiscourseContext.js';
 import { IntentEngine } from './IntentEngine.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
+import { KnowledgeReasoner } from './KnowledgeReasoner.js';
 import { NoopLearningSink } from './NoopLearningSink.js';
 import { PrivacyGuard } from './PrivacyGuard.js';
 import { ProviderRouter } from './ProviderRouter.js';
@@ -54,6 +55,7 @@ export class FrameMindEngine {
         this.dataPolicy = new DataPolicy(config.tenantPolicy ? [config.tenantPolicy] : [], (_a = config.providerCompliance) !== null && _a !== void 0 ? _a : []);
         this.intentEngine = new IntentEngine(config.intents, config.slotPatterns);
         this.store = new KnowledgeStore(snapshot);
+        this.reasoner = new KnowledgeReasoner(config, this.store);
         this.sourceResolver = new SourceResolver(this.store, undefined, (_b = config.sourceLabel) !== null && _b !== void 0 ? _b : 'Ověřený zdroj');
         this.actionResolver = new ActionResolver(config.actions, this.privacyGuard);
         const adapter = ((_c = config.provider) === null || _c === void 0 ? void 0 : _c.enabled) ? config.provider.adapter : undefined;
@@ -209,6 +211,18 @@ export class FrameMindEngine {
                 const semantic = await this.resolveSemanticIntent(past);
                 if (semantic) {
                     match = { ...match, id: semantic.intentId, confidence: semantic.score, isFollowUp: false };
+                }
+            }
+            if (match.id === 'unknown' && this.config.deductiveReasoning !== false) {
+                const deduced = this.reasoner.deduceIntent(past, before, sessionCtx.discourse.snapshot(), now);
+                if (deduced) {
+                    match = {
+                        ...match,
+                        id: deduced.intentId,
+                        confidence: deduced.confidence,
+                        slots: { ...match.slots, ...deduced.inferredSlots },
+                        isFollowUp: deduced.isFollowUp,
+                    };
                 }
             }
             sessionCtx.context.apply(match);
@@ -371,6 +385,21 @@ export class FrameMindEngine {
                 match = { ...detected, id: semantic.intentId, confidence: semantic.score, isFollowUp: false };
             }
         }
+        if (match.id === 'unknown' && this.config.deductiveReasoning !== false) {
+            const deduced = this.reasoner.deduceIntent(queryText, before, sessionCtx.discourse.snapshot(), request.now);
+            if (deduced) {
+                match = {
+                    ...detected,
+                    id: deduced.intentId,
+                    confidence: deduced.confidence,
+                    slots: { ...detected.slots, ...deduced.inferredSlots },
+                    isFollowUp: deduced.isFollowUp,
+                };
+                if (deduced.facet && !facet) {
+                    facet = deduced.facet;
+                }
+            }
+        }
         const context = sessionCtx.context.apply(match);
         // Match profile entity if configured
         if ((_b = this.config.profile) === null || _b === void 0 ? void 0 : _b.entities) {
@@ -451,6 +480,9 @@ export class FrameMindEngine {
             if (resolved.record && resolved.freshness === 'fresh') {
                 const recordAlreadySeen = before.sourceIds.includes(resolved.record.id);
                 sessionCtx.context.markSource(resolved.record.id);
+                if (!missingSlot && !facet && recordAlreadySeen && this.config.deductiveReasoning !== false) {
+                    facet = this.reasoner.deduceFacet(rule, resolved.record, request.text, recordAlreadySeen);
+                }
                 const answeredFacet = missingSlot ? undefined : facet;
                 let effectiveTemplate = missingSlot
                     ? rule.missingTemplate
@@ -464,6 +496,12 @@ export class FrameMindEngine {
                     effectiveTemplate = stripLeadingRecordContent(answeredFacet.template);
                 }
                 let text = this.composer.compose(effectiveTemplate, resolved.record, context, rule.cadence, request.text, listConjunction);
+                if (this.config.deductiveReasoning !== false && context.slots.budgetKc && !missingSlot) {
+                    const budgetConclusion = this.reasoner.deduceBudgetConclusion(text, resolved.record, context.slots.budgetKc);
+                    if (budgetConclusion && !text.includes('rozpočtu') && !text.includes('rozpočet')) {
+                        text = `${text} ${budgetConclusion}`.trim();
+                    }
+                }
                 let secondaryIntent;
                 if (!missingSlot) {
                     const secondary = this.resolveSecondaryClause(queryText, match.id, resolved.record.id, text, context, request.now);
@@ -567,6 +605,7 @@ export class FrameMindEngine {
      */
     upsertRecords(records) {
         this.store.upsert(records);
+        this.reasoner.rebuildIndex();
     }
     reset(sessionId) {
         if (sessionId) {

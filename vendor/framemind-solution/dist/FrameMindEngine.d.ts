@@ -1,6 +1,7 @@
 import { ConversationContext } from './ConversationContext.js';
 import { DataPolicy } from './DataPolicy.js';
 import { DiscourseContext } from './DiscourseContext.js';
+import { KnowledgeReasoner } from './KnowledgeReasoner.js';
 import { PrivacyGuard } from './PrivacyGuard.js';
 import type { FrameMindConfig, FrameMindRequest, FrameMindResponse, KnowledgeRecord, KnowledgeSnapshot } from './types.js';
 export declare class FrameMindEngine {
@@ -17,6 +18,7 @@ export declare class FrameMindEngine {
     private readonly actionResolver;
     private readonly providerRouter;
     private readonly store;
+    readonly reasoner: KnowledgeReasoner;
     constructor(config: FrameMindConfig, snapshot: KnowledgeSnapshot);
     private requestContext;
     /** Both birth years an age can mean, each grounded in a fresh record; otherwise undefined. */
