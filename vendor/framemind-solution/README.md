@@ -1,6 +1,15 @@
-# FrameMind Solution 1.8.0
+# FrameMind Solution 2.1.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
+
+Version 2.1.0 elevates local conversational intelligence across five layers without external API dependencies:
+- **Slot-Pivot & Mention-Pivot Ellipsis (`FrameMindEngine`)**: Short follow-ups that only supply a new slot or named entity consumed by the active rule ("A béčko?", "A 2016?", "A s Olomoucí?", "A web?") pivot the active intent locally, including during stateless `history` replay.
+- **Colloquial Czech Synonyms & 1-Edit Typo Tolerance (`text.ts`, `IntentEngine`, `SemanticIntents`)**: Secondary fallback pass expands colloquial Czech expressions (`expandCzechSynonyms`) and tolerates single-character substitutions or adjacent transpositions on words >= 6 characters (`isWithinOneEdit`).
+- **Multi-Facet & Compound Multi-Intent Composition (`ResponseFacets`, `FrameMindEngine`)**: Combines multiple supplementary facets (`resolveRuleFacet`, e.g. `voice+existing_web`) without duplicating `{{record.content}}`, and resolves two-clause factual compound questions in a single turn (`secondaryIntent`).
+- **Progressive Disclosure (`FrameMindEngine`, `ResponseFacets`)**: Follow-up facet turns on a record the visitor already saw in the current session omit the redundant `{{record.content}}` overview prefix.
+- **Budget Slot Extraction (`IntentEngine`)**: Extracts Czech budget constraints (`budgetKc`, e.g. "do 10 000 Kč", "do 8 tisíc") into `context.slots`.
+
+Version 2.0.0 enables built-in character n-gram semantic intent resolution by default in `withIntentTraining`, makes stateless `replayHistory` asynchronous so semantic and facet follow-ups work across serverless turns, and adds object-array projection (`{{partners.name}}`) in `ResponseComposer`.
 
 Version 1.8.0 lets a `selectBy` entry take its value from the visitor's text
 (`mentioned: true`): the record whose `data[dataField]` the text names, in any Czech word
@@ -104,8 +113,7 @@ npm test
 
 Consumers import the versioned `dist/index.js` entry from `vendor/framemind-solution`. Club/persona facts, intents, actions and knowledge snapshots belong to the consumer repository, not this core.
 
-Consumer distribution targets and how the core gets there (1.5.0 is a local
-candidate until the consuming sites are deployed):
+Consumer distribution targets and how the core gets there:
 
 | Consumer | Vendoring | Sync |
 |---|---|---|
@@ -117,8 +125,7 @@ candidate until the consuming sites are deployed):
 
 Consumers that run `scripts/verify-compliance.mjs` (Viktorka, framemind.cz) also keep `coreVersion` in `docs/compliance/deployment-profile.json` equal to the vendored version.
 
-In this workspace, `node scripts/sync-agent-core.mjs --apply` copies only the
-26 enumerated files for this change and verifies SHA-256. `--check` is read-only.
+In this workspace, `node scripts/sync-agent-core.mjs --apply` copies the enumerated files for this change and verifies SHA-256. `--check` is read-only.
 It does not synchronize unrelated core changes or copy client facts/configuration.
 
 ## Compliance boundary

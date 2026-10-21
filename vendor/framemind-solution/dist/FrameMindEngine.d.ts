@@ -22,6 +22,13 @@ export declare class FrameMindEngine {
     /** Both birth years an age can mean, each grounded in a fresh record; otherwise undefined. */
     private resolveAgeRange;
     /**
+     * Slot-pivot & mention-pivot ellipsis resolution (2.1.0):
+     * When a short follow-up message has no lexical intent of its own ("A béčko?", "A U-11?",
+     * "A se Slavonínem?", "A u webů?"), checks whether it supplies a slot or mentioned entity
+     * consumed by the active intent's response rule (or its generic pricing sibling).
+     */
+    private resolvePivotIntent;
+    /**
      * Stateless hosts (serverless) create the engine per request, so the dialogue context
      * would be lost between turns. Prior user turns rebuild slots and the active intent.
      * Only a fresh context is rebuilt; unsafe turns are skipped.
@@ -33,6 +40,11 @@ export declare class FrameMindEngine {
      * "not confident" and the request continues as before.
      */
     private resolveSemanticIntent;
+    /**
+     * Resolves the second factual clause of a compound question when the message asks two
+     * distinct factual intents in a single turn ("Kolik stojí příspěvky a kdy je školička?").
+     */
+    private resolveSecondaryClause;
     respond(request: FrameMindRequest): Promise<FrameMindResponse>;
     private respondInternal;
     /**

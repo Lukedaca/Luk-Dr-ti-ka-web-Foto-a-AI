@@ -423,6 +423,8 @@ export interface FrameMindResponse {
   reason?: 'known' | 'unknown' | 'stale' | 'missing-slot' | 'provider';
   /** Id of the response facet that answered, when one did. */
   facet?: string;
+  /** Present when a compound query answered a second factual intent in the same turn. */
+  secondaryIntent?: string;
   suggestions?: string[];
   discourse?: DiscourseSnapshot;
   /** Present when the intent was chosen by the opt-in semantic layer. */

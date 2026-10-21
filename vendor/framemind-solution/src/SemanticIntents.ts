@@ -1,5 +1,5 @@
 import type { IntentDefinition } from './types.js';
-import { normalizeText, stemText } from './text.js';
+import { expandCzechSynonyms, normalizeText, stemText } from './text.js';
 
 /**
  * Semantic intent decision layer (opt-in, FrameMind Solution 1.6.0).
@@ -183,8 +183,8 @@ export function createNgramIntentResolver(
   };
   const exampleVectors = exampleGrams.map(weigh);
 
-  return async (text: string) => {
-    const query = weigh(charGrams(text, minN, maxN));
+  const scoreGrams = (rawText: string) => {
+    const query = weigh(charGrams(rawText, minN, maxN));
     if (!query.length) return [];
     const best = new Map<string, number>();
     exampleVectors.forEach((example, index) => {
@@ -199,6 +199,19 @@ export function createNgramIntentResolver(
       if (score > (best.get(intentId) ?? -Infinity)) best.set(intentId, score);
     });
     return [...best.entries()].map(([intentId, score]) => ({ intentId, score }));
+  };
+
+  return async (text: string) => {
+    const primary = scoreGrams(text);
+    const topPrimary = primary.reduce((max, item) => (item.score > max ? item.score : max), -Infinity);
+    if (topPrimary >= NGRAM_SEMANTIC_MIN_SCORE) return primary;
+    const expanded = expandCzechSynonyms(normalizeText(text));
+    if (expanded !== normalizeText(text)) {
+      const secondary = scoreGrams(expanded);
+      const topSecondary = secondary.reduce((max, item) => (item.score > max ? item.score : max), -Infinity);
+      if (topSecondary > topPrimary) return secondary;
+    }
+    return primary;
   };
 }
 

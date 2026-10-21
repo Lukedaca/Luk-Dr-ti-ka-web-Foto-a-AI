@@ -1,4 +1,4 @@
-import { normalizeText, stemText } from './text.js';
+import { expandCzechSynonyms, normalizeText, stemText } from './text.js';
 /**
  * Defaults measured on 11 Oct 2026 for EmbeddingGemma 2 (q8) with the
  * `task: sentence similarity | query: ` prefix on Czech parent/fan questions:
@@ -126,8 +126,8 @@ export function createNgramIntentResolver(intents, options = {}) {
         return { weights, length: Math.sqrt(sum) };
     };
     const exampleVectors = exampleGrams.map(weigh);
-    return async (text) => {
-        const query = weigh(charGrams(text, minN, maxN));
+    const scoreGrams = (rawText) => {
+        const query = weigh(charGrams(rawText, minN, maxN));
         if (!query.length)
             return [];
         const best = new Map();
@@ -147,6 +147,20 @@ export function createNgramIntentResolver(intents, options = {}) {
                 best.set(intentId, score);
         });
         return [...best.entries()].map(([intentId, score]) => ({ intentId, score }));
+    };
+    return async (text) => {
+        const primary = scoreGrams(text);
+        const topPrimary = primary.reduce((max, item) => (item.score > max ? item.score : max), -Infinity);
+        if (topPrimary >= NGRAM_SEMANTIC_MIN_SCORE)
+            return primary;
+        const expanded = expandCzechSynonyms(normalizeText(text));
+        if (expanded !== normalizeText(text)) {
+            const secondary = scoreGrams(expanded);
+            const topSecondary = secondary.reduce((max, item) => (item.score > max ? item.score : max), -Infinity);
+            if (topSecondary > topPrimary)
+                return secondary;
+        }
+        return primary;
     };
 }
 /** Ready-to-use `semanticIntents` config with the built-in n-gram resolver and its thresholds. */

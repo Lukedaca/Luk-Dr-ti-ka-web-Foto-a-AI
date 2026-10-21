@@ -1,5 +1,5 @@
 import type { ContextSnapshot, DiscourseSnapshot, IntentDefinition, IntentMatch, SlotPattern, SlotValue } from './types.js';
-import { escapeRegExp, hasExplicitNavigation, monthFromText, normalizeText, stemText } from './text.js';
+import { escapeRegExp, expandCzechSynonyms, hasExplicitNavigation, isWithinOneEdit, monthFromText, normalizeText, stemText } from './text.js';
 
 function includesTerm(text: string, term: string): boolean {
   const normalized = normalizeText(term);
@@ -11,6 +11,18 @@ function includesStemmedTerm(stemmedText: string, term: string): boolean {
   const stemmedTerm = stemText(normalizeText(term));
   if (!stemmedTerm) return false;
   return new RegExp(`(?:^|\\s|-)${escapeRegExp(stemmedTerm)}(?:$|\\s|-)`).test(stemmedText);
+}
+
+/**
+ * Same-length 1-edit typo tolerance (single substitution or adjacent transposition) on
+ * words >= 6 chars sharing a 2-char prefix. Same-length constraint prevents matching
+ * different grammatical number/case endings (e.g. "trenink" vs "treninky").
+ */
+function includesFuzzyTerm(text: string, term: string): boolean {
+  const normalizedTerm = normalizeText(term);
+  if (!normalizedTerm || normalizedTerm.includes(' ') || normalizedTerm.length < 6) return false;
+  const words = text.split(/[\s-]+/).filter(Boolean);
+  return words.some((word) => word.length === normalizedTerm.length && isWithinOneEdit(word, normalizedTerm));
 }
 
 function isSafePattern(pattern: string): boolean {
@@ -46,6 +58,16 @@ function extractAge(normalized: string): number | undefined {
   return adjective ? AGE_ADJECTIVE_STEMS[adjective] : undefined;
 }
 
+function extractBudgetKc(normalized: string): number | undefined {
+  const thousands = normalized.match(/\b(?:do|max|maximalne|rozpocet|kolem|cca|za)\s+(\d{1,3})\s*(?:tisic|tis)\b/);
+  if (thousands?.[1]) return Number(thousands[1]) * 1000;
+  const explicitKc = normalized.match(/\b(\d{1,3}(?:\s\d{3})+|\d{3,6})\s*(?:kc|korun|czk)\b/);
+  if (explicitKc?.[1]) return Number(explicitKc[1].replace(/\s+/g, ''));
+  const prefixed = normalized.match(/\b(?:do|max|maximalne|rozpocet)\s+(\d{1,3}(?:\s\d{3})+|\d{4,6})\b/);
+  if (prefixed?.[1]) return Number(prefixed[1].replace(/\s+/g, ''));
+  return undefined;
+}
+
 function extractPatternSlots(normalized: string, patterns: SlotPattern[]): Record<string, SlotValue> {
   const slots: Record<string, SlotValue> = {};
   const positions: Record<string, number> = {};
@@ -76,6 +98,11 @@ function extractSlots(normalized: string, now: Date): Record<string, SlotValue> 
 
   const age = extractAge(normalized);
   if (age !== undefined) slots.childAge = age;
+
+  const budgetKc = extractBudgetKc(normalized);
+  if (budgetKc !== undefined && Number.isFinite(budgetKc) && budgetKc > 0) {
+    slots.budgetKc = budgetKc;
+  }
 
   const nextAgeMatch = normalized.match(/\bv\s+[a-z]+\s+(\d{1,2})\b/);
   if (nextAgeMatch?.[1]) slots.nextAge = Number(nextAgeMatch[1]);
@@ -127,10 +154,17 @@ function scoreIntent(definition: IntentDefinition, normalized: string, stemmed: 
       evidence += 18;
     } else if (includesStemmedTerm(stemmed, keyword)) {
       evidence += 16;
+    } else if (includesFuzzyTerm(normalized, keyword)) {
+      evidence += 15;
     }
   }
   for (const group of definition.keywordGroups ?? []) {
-    const allMatch = group.every((keyword) => includesTerm(normalized, keyword) || includesStemmedTerm(stemmed, keyword));
+    const allMatch = group.every(
+      (keyword) =>
+        includesTerm(normalized, keyword)
+        || includesStemmedTerm(stemmed, keyword)
+        || includesFuzzyTerm(normalized, keyword),
+    );
     if (allMatch) evidence += 55 + group.length * 5;
   }
   for (const pattern of definition.patterns ?? []) {
@@ -162,6 +196,11 @@ export class IntentEngine {
         this.trainedExamples.set(normalized, definition);
       }
     }
+  }
+
+  hasExactExample(text: string): boolean {
+    const normalized = normalizeText(text);
+    return normalized.length <= 2000 && this.trainedExamples.has(normalized);
   }
 
   detect(
@@ -218,6 +257,31 @@ export class IntentEngine {
       }
     }
 
+    // Fallback pass: colloquial Czech synonyms when strict lexical did not match.
+    if (!best || bestScore < (best.minScore ?? 20)) {
+      const expandedNormalized = expandCzechSynonyms(normalizedText);
+      if (expandedNormalized !== normalizedText) {
+        const expandedStemmed = stemText(expandedNormalized);
+        for (const definition of this.definitions) {
+          if (definition.standalone) continue;
+          const lexical = scoreIntent(definition, expandedNormalized, expandedStemmed);
+          let score = lexical;
+          const follows = Boolean(context.activeIntent && definition.followUpFor?.includes(context.activeIntent));
+          if (follows && (slots.childAge || slots.birthYear || slots.nextAge)) score += 95;
+          if (lexical > 0 && discourseSnapshot?.lastIntent && definition.followUpFor?.includes(discourseSnapshot.lastIntent)) {
+            if (/^(?:a\s+)?(?:kolik|kde|kdy|jak|proc|cena|rozpis|trener|adresa)\b/i.test(normalizedText)) {
+              score += 65;
+            }
+          }
+          if (score > bestScore) {
+            best = definition;
+            bestScore = score;
+            followUp = follows;
+          }
+        }
+      }
+    }
+
     if (!best || bestScore < (best.minScore ?? 20)) {
       return { id: 'unknown', confidence: 0, normalizedText, slots, isFollowUp: false };
     }
@@ -230,4 +294,3 @@ export class IntentEngine {
     };
   }
 }
-

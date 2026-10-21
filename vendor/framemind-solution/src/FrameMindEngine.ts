@@ -8,16 +8,18 @@ import { NoopLearningSink } from './NoopLearningSink.js';
 import { PrivacyGuard } from './PrivacyGuard.js';
 import { ProviderRouter } from './ProviderRouter.js';
 import { ResponseComposer } from './ResponseComposer.js';
-import { pickFacet } from './ResponseFacets.js';
+import { resolveRuleFacet, stripLeadingRecordContent } from './ResponseFacets.js';
 import { SourceResolver, selectorsOf } from './SourceResolver.js';
-import { knownValues, withoutMentions } from './MentionedRecords.js';
+import { knownValues, selectMentioned, withoutMentions } from './MentionedRecords.js';
 import { SafetyShield } from './SafetyShield.js';
 import { selectSemanticIntent, type SemanticIntentDecision } from './SemanticIntents.js';
+import { normalizeText } from './text.js';
 import type {
   ContextSnapshot,
   FrameMindConfig,
   FrameMindRequest,
   FrameMindResponse,
+  IntentMatch,
   IntentResponseRule,
   KnowledgeRecord,
   KnowledgeSnapshot,
@@ -30,6 +32,21 @@ const MAX_CHILD_AGE = 19;
 const MAX_HISTORY_TURNS = 6;
 /** "A kde?", "A co je v ceně?" — longer messages without an intent are a new topic. */
 const MAX_FACET_FOLLOW_UP_WORDS = 6;
+
+const COMPOUND_SPLIT_RE = /\?\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽa-záčďéěíňóřšťúůýž]{2,})|\s+(?:a\s+zároveň|a\s+taky|a\s+také|a\s+(?=(?:kolik|kdy|kde|kam|kdo|jak|jaký|jaká|jaké|co|za\s+kolik)\b))\s*/i;
+
+function splitCompoundClauses(text: string): [string, string] | null {
+  const match = COMPOUND_SPLIT_RE.exec(text);
+  if (!match || match.index <= 0) return null;
+  const left = text.slice(0, match.index).trim();
+  const separator = match[0];
+  const rightRaw = text.slice(match.index + separator.length).trim();
+  if (!left || !rightRaw) return null;
+  const leftWords = normalizeText(left).split(' ').filter(Boolean);
+  const rightWords = normalizeText(rightRaw).split(' ').filter(Boolean);
+  if (leftWords.length < 2 || rightWords.length < 2) return null;
+  return [left, rightRaw];
+}
 
 function hasAnySlot(rule: IntentResponseRule, slots: Record<string, unknown>): boolean {
   if (!rule.requiredAnySlots?.length) return true;
@@ -123,6 +140,70 @@ export class FrameMindEngine {
   }
 
   /**
+   * Slot-pivot & mention-pivot ellipsis resolution (2.1.0):
+   * When a short follow-up message has no lexical intent of its own ("A béčko?", "A U-11?",
+   * "A se Slavonínem?", "A u webů?"), checks whether it supplies a slot or mentioned entity
+   * consumed by the active intent's response rule (or its generic pricing sibling).
+   */
+  private resolvePivotIntent(
+    before: ContextSnapshot,
+    detected: IntentMatch,
+    queryText: string,
+  ): string | undefined {
+    if (!before.activeIntent) return undefined;
+    const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
+    if (!previousRule) return undefined;
+
+    const ruleConsumesSlot = (rule: IntentResponseRule): boolean => {
+      const ruleSlots = new Set<string>();
+      for (const s of rule.requiredAnySlots ?? []) ruleSlots.add(s);
+      for (const sel of selectorsOf(rule)) {
+        if (sel.slot) ruleSlots.add(sel.slot);
+      }
+      if (rule.ageRangeTemplate) {
+        ruleSlots.add('childAge');
+        ruleSlots.add('nextAge');
+      }
+      if (this.config.slotDependencies) {
+        for (const [parentSlot, dependents] of Object.entries(this.config.slotDependencies)) {
+          if (dependents.some((dep) => ruleSlots.has(dep))) ruleSlots.add(parentSlot);
+        }
+      }
+      return [...ruleSlots].some((slot) => detected.slots[slot] !== undefined);
+    };
+
+    if (ruleConsumesSlot(previousRule)) {
+      return previousRule.intentId;
+    }
+
+    const selectors = selectorsOf(previousRule);
+    if (selectors.some((s) => s.mentioned)) {
+      const mention = selectMentioned(
+        queryText,
+        selectors,
+        this.store.all(),
+        { ...before.slots, ...detected.slots },
+      );
+      if (mention.kind === 'record') {
+        return previousRule.intentId;
+      }
+    }
+
+    // If active intent is a specific *_pricing rule (e.g. web_pricing) and the visitor pivots
+    // to another product slot ("A za agenta?"), route to the generic pricing rule that selects by slot.
+    if (before.activeIntent.endsWith('_pricing') || before.activeIntent === 'websites' || before.activeIntent === 'hybrid_agent') {
+      const genericPricing = this.config.responses.find(
+        (candidate) => candidate.intentId === 'pricing' && ruleConsumesSlot(candidate),
+      );
+      if (genericPricing && before.activeIntent.endsWith('_pricing')) {
+        return genericPricing.intentId;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
    * Stateless hosts (serverless) create the engine per request, so the dialogue context
    * would be lost between turns. Prior user turns rebuild slots and the active intent.
    * Only a fresh context is rebuilt; unsafe turns are skipped.
@@ -145,8 +226,13 @@ export class FrameMindEngine {
         && match.normalizedText.split(' ').filter(Boolean).length <= MAX_FACET_FOLLOW_UP_WORDS
       ) {
         const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
-        if (pickFacet(previousRule?.facets, past)) {
+        if (resolveRuleFacet(previousRule, past)) {
           match = { ...match, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
+        } else {
+          const pivot = this.resolvePivotIntent(before, match, past);
+          if (pivot) {
+            match = { ...match, id: pivot, confidence: 0.75, isFollowUp: true };
+          }
         }
       }
       if (match.id === 'unknown' && this.config.semanticIntents) {
@@ -178,6 +264,64 @@ export class FrameMindEngine {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Resolves the second factual clause of a compound question when the message asks two
+   * distinct factual intents in a single turn ("Kolik stojí příspěvky a kdy je školička?").
+   */
+  private resolveSecondaryClause(
+    queryText: string,
+    primaryIntentId: string,
+    primaryRecordId: string | undefined,
+    primaryText: string,
+    context: ContextSnapshot,
+    now?: Date,
+  ): { intentId: string; text: string; recordId: string } | undefined {
+    if (this.intentEngine.hasExactExample(queryText)) return undefined;
+    const clauses = splitCompoundClauses(queryText);
+    if (!clauses) return undefined;
+    const [leftClause, rightClause] = clauses;
+
+    const leftMatch = this.intentEngine.detect(leftClause, context, now);
+    const rightMatch = this.intentEngine.detect(rightClause, context, now);
+    if (rightMatch.id === 'unknown') return undefined;
+
+    // Choose whichever clause was not already answered by primaryIntentId.
+    const secondaryClause = rightMatch.id !== primaryIntentId
+      ? { text: rightClause, match: rightMatch }
+      : (leftMatch.id !== 'unknown' && leftMatch.id !== primaryIntentId
+          ? { text: leftClause, match: leftMatch }
+          : undefined);
+    if (!secondaryClause) return undefined;
+
+    const secRule = this.config.responses.find((candidate) => candidate.intentId === secondaryClause.match.id);
+    if (!secRule || secRule.sourceRequired === false || secRule.clarification) return undefined;
+
+    const secContext: ContextSnapshot = {
+      ...context,
+      slots: { ...context.slots, ...secondaryClause.match.slots },
+    };
+    if (!hasAnySlot(secRule, secContext.slots)) return undefined;
+
+    const resolved = this.sourceResolver.resolve(secRule, secContext, now, false, secondaryClause.text);
+    if (!resolved.record || resolved.freshness !== 'fresh') return undefined;
+
+    const secFacet = resolveRuleFacet(secRule, secondaryClause.text);
+    let rawTemplate = secFacet?.template ?? resolved.template ?? secRule.template;
+    if (resolved.record.id === primaryRecordId && rawTemplate) {
+      rawTemplate = stripLeadingRecordContent(rawTemplate);
+    }
+    const secText = this.composer.compose(
+      rawTemplate,
+      resolved.record,
+      secContext,
+      secRule.cadence,
+      secondaryClause.text,
+      this.config.listConjunction,
+    );
+    if (!secText || primaryText.includes(secText)) return undefined;
+    return { intentId: secondaryClause.match.id, text: secText, recordId: resolved.record.id };
   }
 
   async respond(request: FrameMindRequest): Promise<FrameMindResponse> {
@@ -249,8 +393,8 @@ export class FrameMindEngine {
     const before = sessionCtx.context.snapshot();
     const detected = this.intentEngine.detect(queryText, before, request.now, sessionCtx.discourse.snapshot());
 
-    // Doptávka bez vlastního záměru („A kde?“): odpoví aspekt pravidla předchozího záměru.
-    // Jen krátká zpráva — delší věta bez záměru je nové téma, ne doptávka.
+    // Doptávka bez vlastního záměru („A kde?“, „A béčko?“, „A se Slavonínem?“):
+    // odpoví aspekt nebo slot/zmínka pravidla předchozího záměru.
     let match = detected;
     let facet: ResponseFacet | undefined;
     if (
@@ -259,11 +403,18 @@ export class FrameMindEngine {
       && detected.normalizedText.split(' ').filter(Boolean).length <= MAX_FACET_FOLLOW_UP_WORDS
     ) {
       const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
-      facet = pickFacet(previousRule?.facets, queryText);
-      if (facet) match = { ...detected, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
+      facet = resolveRuleFacet(previousRule, queryText);
+      if (facet) {
+        match = { ...detected, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
+      } else {
+        const pivotIntent = this.resolvePivotIntent(before, detected, queryText);
+        if (pivotIntent) {
+          match = { ...detected, id: pivotIntent, confidence: 0.75, isFollowUp: true };
+        }
+      }
     }
     // Opt-in semantic layer: only when neither the lexical detector nor a follow-up
-    // facet recognised the message. It selects an existing intent; the rule answers.
+    // facet/slot pivot recognised the message. It selects an existing intent; the rule answers.
     if (match.id === 'unknown' && this.config.semanticIntents) {
       const semantic = await this.resolveSemanticIntent(queryText);
       if (semantic) {
@@ -286,7 +437,7 @@ export class FrameMindEngine {
     }
 
     const rule = this.config.responses.find((candidate) => candidate.intentId === match.id);
-    facet ??= pickFacet(rule?.facets, queryText);
+    facet ??= resolveRuleFacet(rule, queryText);
     const listConjunction = this.config.listConjunction;
 
     // If rule requires clarification (e.g. general pricing without active entity)
@@ -357,16 +508,50 @@ export class FrameMindEngine {
       }
       const resolved = this.sourceResolver.resolve(rule, context, request.now, missingSlot, request.text);
       if (resolved.record && resolved.freshness === 'fresh') {
+        const recordAlreadySeen = before.sourceIds.includes(resolved.record.id);
         sessionCtx.context.markSource(resolved.record.id);
         const answeredFacet = missingSlot ? undefined : facet;
-        const text = this.composer.compose(
-          missingSlot ? rule.missingTemplate : (answeredFacet?.template ?? resolved.template ?? rule.template),
+        let effectiveTemplate = missingSlot
+          ? rule.missingTemplate
+          : (answeredFacet?.template ?? resolved.template ?? rule.template);
+
+        // Progressive disclosure: on a follow-up facet turn for a record the visitor already
+        // saw in this session, strip the redundant leading {{record.content}} overview.
+        if (
+          !missingSlot
+          && answeredFacet
+          && recordAlreadySeen
+          && answeredFacet.template !== rule.template
+        ) {
+          effectiveTemplate = stripLeadingRecordContent(answeredFacet.template);
+        }
+
+        let text = this.composer.compose(
+          effectiveTemplate,
           resolved.record,
           context,
           rule.cadence,
           request.text,
           listConjunction,
         );
+
+        let secondaryIntent: string | undefined;
+        if (!missingSlot) {
+          const secondary = this.resolveSecondaryClause(
+            queryText,
+            match.id,
+            resolved.record.id,
+            text,
+            context,
+            request.now,
+          );
+          if (secondary) {
+            text = `${text} ${secondary.text}`.replace(/\s+/g, ' ').trim();
+            secondaryIntent = secondary.intentId;
+            sessionCtx.context.markSource(secondary.recordId);
+          }
+        }
+
         const actions = missingSlot ? [] : this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true);
         sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
@@ -377,6 +562,7 @@ export class FrameMindEngine {
           providerUsed: false,
           ...(resolved.reference ? { source: resolved.reference } : {}),
           ...(answeredFacet ? { facet: answeredFacet.id } : {}),
+          ...(secondaryIntent ? { secondaryIntent } : {}),
           actions,
           context: sessionCtx.context.snapshot(),
           reason: missingSlot ? 'missing-slot' : 'known',

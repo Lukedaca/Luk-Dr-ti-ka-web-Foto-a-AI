@@ -1,4 +1,4 @@
-import { escapeRegExp, hasExplicitNavigation, monthFromText, normalizeText, stemText } from './text.js';
+import { escapeRegExp, expandCzechSynonyms, hasExplicitNavigation, isWithinOneEdit, monthFromText, normalizeText, stemText } from './text.js';
 function includesTerm(text, term) {
     const normalized = normalizeText(term);
     if (!normalized)
@@ -10,6 +10,18 @@ function includesStemmedTerm(stemmedText, term) {
     if (!stemmedTerm)
         return false;
     return new RegExp(`(?:^|\\s|-)${escapeRegExp(stemmedTerm)}(?:$|\\s|-)`).test(stemmedText);
+}
+/**
+ * Same-length 1-edit typo tolerance (single substitution or adjacent transposition) on
+ * words >= 6 chars sharing a 2-char prefix. Same-length constraint prevents matching
+ * different grammatical number/case endings (e.g. "trenink" vs "treninky").
+ */
+function includesFuzzyTerm(text, term) {
+    const normalizedTerm = normalizeText(term);
+    if (!normalizedTerm || normalizedTerm.includes(' ') || normalizedTerm.length < 6)
+        return false;
+    const words = text.split(/[\s-]+/).filter(Boolean);
+    return words.some((word) => word.length === normalizedTerm.length && isWithinOneEdit(word, normalizedTerm));
 }
 function isSafePattern(pattern) {
     if (!pattern || pattern.length > 200)
@@ -47,6 +59,18 @@ function extractAge(normalized) {
     const adjective = (_c = normalized.match(AGE_ADJECTIVE_RE)) === null || _c === void 0 ? void 0 : _c[1];
     return adjective ? AGE_ADJECTIVE_STEMS[adjective] : undefined;
 }
+function extractBudgetKc(normalized) {
+    const thousands = normalized.match(/\b(?:do|max|maximalne|rozpocet|kolem|cca|za)\s+(\d{1,3})\s*(?:tisic|tis)\b/);
+    if (thousands === null || thousands === void 0 ? void 0 : thousands[1])
+        return Number(thousands[1]) * 1000;
+    const explicitKc = normalized.match(/\b(\d{1,3}(?:\s\d{3})+|\d{3,6})\s*(?:kc|korun|czk)\b/);
+    if (explicitKc === null || explicitKc === void 0 ? void 0 : explicitKc[1])
+        return Number(explicitKc[1].replace(/\s+/g, ''));
+    const prefixed = normalized.match(/\b(?:do|max|maximalne|rozpocet)\s+(\d{1,3}(?:\s\d{3})+|\d{4,6})\b/);
+    if (prefixed === null || prefixed === void 0 ? void 0 : prefixed[1])
+        return Number(prefixed[1].replace(/\s+/g, ''));
+    return undefined;
+}
 function extractPatternSlots(normalized, patterns) {
     var _a, _b;
     const slots = {};
@@ -81,6 +105,10 @@ function extractSlots(normalized, now) {
     const age = extractAge(normalized);
     if (age !== undefined)
         slots.childAge = age;
+    const budgetKc = extractBudgetKc(normalized);
+    if (budgetKc !== undefined && Number.isFinite(budgetKc) && budgetKc > 0) {
+        slots.budgetKc = budgetKc;
+    }
     const nextAgeMatch = normalized.match(/\bv\s+[a-z]+\s+(\d{1,2})\b/);
     if (nextAgeMatch === null || nextAgeMatch === void 0 ? void 0 : nextAgeMatch[1])
         slots.nextAge = Number(nextAgeMatch[1]);
@@ -133,9 +161,14 @@ function scoreIntent(definition, normalized, stemmed) {
         else if (includesStemmedTerm(stemmed, keyword)) {
             evidence += 16;
         }
+        else if (includesFuzzyTerm(normalized, keyword)) {
+            evidence += 15;
+        }
     }
     for (const group of (_g = definition.keywordGroups) !== null && _g !== void 0 ? _g : []) {
-        const allMatch = group.every((keyword) => includesTerm(normalized, keyword) || includesStemmedTerm(stemmed, keyword));
+        const allMatch = group.every((keyword) => includesTerm(normalized, keyword)
+            || includesStemmedTerm(stemmed, keyword)
+            || includesFuzzyTerm(normalized, keyword));
         if (allMatch)
             evidence += 55 + group.length * 5;
     }
@@ -170,8 +203,12 @@ export class IntentEngine {
             }
         }
     }
+    hasExactExample(text) {
+        const normalized = normalizeText(text);
+        return normalized.length <= 2000 && this.trainedExamples.has(normalized);
+    }
     detect(text, context, now = new Date(), discourseSnapshot) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g;
         const normalizedText = normalizeText(text).slice(0, 2000);
         const stemmedText = stemText(normalizedText);
         const slots = { ...extractSlots(normalizedText, now), ...extractPatternSlots(normalizedText, this.slotPatterns) };
@@ -214,7 +251,33 @@ export class IntentEngine {
                 followUp = follows;
             }
         }
+        // Fallback pass: colloquial Czech synonyms when strict lexical did not match.
         if (!best || bestScore < ((_d = best.minScore) !== null && _d !== void 0 ? _d : 20)) {
+            const expandedNormalized = expandCzechSynonyms(normalizedText);
+            if (expandedNormalized !== normalizedText) {
+                const expandedStemmed = stemText(expandedNormalized);
+                for (const definition of this.definitions) {
+                    if (definition.standalone)
+                        continue;
+                    const lexical = scoreIntent(definition, expandedNormalized, expandedStemmed);
+                    let score = lexical;
+                    const follows = Boolean(context.activeIntent && ((_e = definition.followUpFor) === null || _e === void 0 ? void 0 : _e.includes(context.activeIntent)));
+                    if (follows && (slots.childAge || slots.birthYear || slots.nextAge))
+                        score += 95;
+                    if (lexical > 0 && (discourseSnapshot === null || discourseSnapshot === void 0 ? void 0 : discourseSnapshot.lastIntent) && ((_f = definition.followUpFor) === null || _f === void 0 ? void 0 : _f.includes(discourseSnapshot.lastIntent))) {
+                        if (/^(?:a\s+)?(?:kolik|kde|kdy|jak|proc|cena|rozpis|trener|adresa)\b/i.test(normalizedText)) {
+                            score += 65;
+                        }
+                    }
+                    if (score > bestScore) {
+                        best = definition;
+                        bestScore = score;
+                        followUp = follows;
+                    }
+                }
+            }
+        }
+        if (!best || bestScore < ((_g = best.minScore) !== null && _g !== void 0 ? _g : 20)) {
             return { id: 'unknown', confidence: 0, normalizedText, slots, isFollowUp: false };
         }
         return {

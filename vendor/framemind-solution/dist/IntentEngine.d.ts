@@ -4,6 +4,7 @@ export declare class IntentEngine {
     private readonly slotPatterns;
     private readonly trainedExamples;
     constructor(definitions: IntentDefinition[], slotPatterns?: SlotPattern[]);
+    hasExactExample(text: string): boolean;
     detect(text: string, context: ContextSnapshot, now?: Date, discourseSnapshot?: DiscourseSnapshot): IntentMatch;
 }
 //# sourceMappingURL=IntentEngine.d.ts.map

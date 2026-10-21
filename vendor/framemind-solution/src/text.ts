@@ -75,3 +75,73 @@ export function stemText(normalized: string): string {
     .join(' ');
 }
 
+/**
+ * True when two normalized tokens (length >= 5, sharing a 2-char prefix) are within
+ * Damerau-Levenshtein distance 1 (single substitution, insertion, deletion or adjacent swap).
+ */
+export function isWithinOneEdit(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (a.length < 5 || b.length < 5) return false;
+  if (Math.abs(a.length - b.length) > 1) return false;
+  if (a[0] !== b[0] || a[1] !== b[1]) return false;
+
+  if (a.length === b.length) {
+    let diffCount = 0;
+    let firstDiff = -1;
+    for (let i = 0; i < a.length; i += 1) {
+      if (a[i] !== b[i]) {
+        diffCount += 1;
+        if (firstDiff === -1) firstDiff = i;
+        if (diffCount > 2) return false;
+      }
+    }
+    if (diffCount === 1) return true;
+    if (diffCount === 2 && firstDiff >= 0 && firstDiff + 1 < a.length) {
+      return a[firstDiff] === b[firstDiff + 1] && a[firstDiff + 1] === b[firstDiff];
+    }
+    return false;
+  }
+
+  const shorter = a.length < b.length ? a : b;
+  const longer = a.length < b.length ? b : a;
+  let i = 0;
+  let j = 0;
+  let skipped = false;
+  while (i < shorter.length && j < longer.length) {
+    if (shorter[i] === longer[j]) {
+      i += 1;
+      j += 1;
+    } else {
+      if (skipped) return false;
+      skipped = true;
+      j += 1;
+    }
+  }
+  return true;
+}
+
+const CZECH_COLLOQUIAL_SYNONYMS: ReadonlyArray<{ pattern: RegExp; expansion: string }> = [
+  { pattern: /\b(?:za kolik|kolik kostuj[a-z]*|na kolik vyjd[a-z]*|kolik vyjd[a-z]*|cenovk[a-z]*)\b/, expansion: 'cena kolik stoji' },
+  { pattern: /\b(?:letni\s+)?tabor[a-z]*\b/, expansion: 'kemp soustredeni' },
+  { pattern: /\b(?:spil|mac|utkani)\b/, expansion: 'zapas' },
+  { pattern: /\b(?:kopou|kopeme|hrajem)\b/, expansion: 'hraji zapas' },
+  { pattern: /\b(?:prcek|prcka|prckovi|kluk|kluka|klukovi|holka|holku|holce|decko|decka|ratolest)\b/, expansion: 'dite' },
+  { pattern: /\b(?:webovk[a-z]*|sajt[a-z]*)\b/, expansion: 'web' },
+];
+
+/**
+ * Appends canonical Czech domain terms for colloquial expressions that do not share
+ * a morphological stem with standard keywords, preserving original tokens intact.
+ */
+export function expandCzechSynonyms(normalized: string): string {
+  if (!normalized) return '';
+  const extras: string[] = [];
+  for (const rule of CZECH_COLLOQUIAL_SYNONYMS) {
+    if (rule.pattern.test(normalized)) {
+      extras.push(rule.expansion);
+    }
+  }
+  return extras.length > 0 ? `${normalized} ${extras.join(' ')}` : normalized;
+}
+
+
