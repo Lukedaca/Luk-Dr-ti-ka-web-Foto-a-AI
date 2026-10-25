@@ -1,7 +1,7 @@
 import { FreshnessPolicy } from './FreshnessPolicy.js';
 import { KnowledgeStore } from './KnowledgeStore.js';
 import { selectorsOf } from './SourceResolver.js';
-import { hasExplicitNavigation, isWithinOneEdit, normalizeText, stemCzechWord, stemText } from './text.js';
+import { expandCzechSynonyms, hasExplicitNavigation, isWithinOneEdit, normalizeText, stemCzechWord, stemText } from './text.js';
 import type {
   ContextSnapshot,
   DiscourseSnapshot,
@@ -55,8 +55,11 @@ const GRAMMATICAL_STOPWORDS = new Set([
   'mi', 'me', 'mu', 'ji', 'nam', 'vam', 'jim', 'vas', 'nas', 'svuj', 'svou', 'sve', 'muj', 'moje', 'tvuj',
   'chci', 'chtel', 'chtela', 'chteli', 'potrebuji', 'potreboval', 'potrebovala', 'potrebujeme', 'rad', 'rada',
   'mate', 'mas', 'mam', 'mame', 'maji', 'mozna', 'lze', 'jde', 'muzu', 'muzeme', 'muze', 'musim', 'musi',
-  'prosim', 'dekuji', 'diky', 'dobry', 'den', 'ahoj', 'zdravim', 'cau', 'halo',
+  'prosim', 'dekuji', 'diky', 'dobry', 'dobre', 'den', 'ahoj', 'zdravim', 'cau', 'halo',
   'kolik', 'kdy', 'kde', 'kam', 'kdo', 'komu', 'cim', 'jak', 'jaka', 'jaky', 'jake', 'proc', 'co', 'zda', 'jestli',
+  'vede', 'vedou', 'vedl', 'vedla', 'vedlo', 'stoji', 'stalo', 'funguje', 'funguji', 'fungovat', 'dela', 'delaji', 'delat',
+  'platit', 'plati', 'zaplatit', 'zaplati', 'hradit', 'hradi', 'da', 'daji', 'dalo',
+  'nic', 'moc', 'fakt', 'docela', 'celkem', 'super', 'skvele', 'fajn', 'parada', 'rozumim', 'jasne', 'aha', 'hele',
 ]);
 
 const FOCUS_PATTERNS: ReadonlyArray<{ focus: QueryFocus; pattern: RegExp }> = [
@@ -441,7 +444,24 @@ export class KnowledgeReasoner {
 
       if (matchedCorpusStem) {
         groundedStems.push(matchedCorpusStem);
-      } else if (word.length >= 5) {
+        continue;
+      }
+
+      const expanded = expandCzechSynonyms(word);
+      if (expanded !== word) {
+        const synWords = expanded.slice(word.length).trim().split(/\s+/).filter(Boolean);
+        let synMatched = false;
+        for (const synWord of synWords) {
+          const synStem = stemCzechWord(synWord);
+          if (synStem && this.corpusVocabulary.has(synStem)) {
+            groundedStems.push(synStem);
+            synMatched = true;
+          }
+        }
+        if (synMatched) continue;
+      }
+
+      if (word.length >= 5) {
         ungroundedCount += 1;
       }
     }
@@ -720,49 +740,78 @@ export class KnowledgeReasoner {
       }
     }
 
-    // 2. Auto-Facet Sentence Deduction from multi-sentence record.content on follow-up turns:
-    // When the visitor already received the record's full overview and asks a targeted follow-up
-    // ("A do kdy je splatnost?", "A dá se platit hotově?"), extract the specific grounded sentence.
-    if (recordAlreadySeen) {
-      const sentences = splitSentences(record.content);
-      if (sentences.length >= 2) {
-        const scoredSentences: Array<{ sentence: string; score: number }> = [];
-        for (const sentence of sentences) {
-          const sentStems = new Set(extractInformativeStems(sentence));
-          const sig = analyzeFactSignature(sentence, record.data);
-          let score = 0;
-          for (const stem of groundedStems) {
-            if (sentStems.has(stem)) {
-              score += this.stemIdf.get(stem) ?? 1.2;
+    // 2. Auto-Facet Sentence Deduction from multi-sentence record.content:
+    // - On follow-up turns (recordAlreadySeen === true): extracts only the 1-2 sentences that
+    //   directly answer the visitor's follow-up ("A do kdy je splatnost?", "A dá se platit hotově?").
+    // - On initial turns (recordAlreadySeen === false): when a record has >= 3 sentences and the
+    //   visitor asks a targeted detail question matching a non-leading sentence (with stems absent
+    //   from the overview sentence), synthesizes a concise 1-2 sentence answer instead of dumping
+    //   the entire paragraph wall.
+    const sentences = splitSentences(record.content);
+    if (sentences.length >= 2) {
+      const firstSentStems = new Set(extractInformativeStems(sentences[0]!));
+      const scoredSentences: Array<{ sentence: string; score: number; idx: number; uniqueToBody: boolean }> = [];
+      for (let idx = 0; idx < sentences.length; idx += 1) {
+        const sentence = sentences[idx]!;
+        const sentStems = new Set(extractInformativeStems(sentence));
+        const sig = analyzeFactSignature(sentence, record.data);
+        let score = 0;
+        let uniqueToBody = false;
+        for (const stem of groundedStems) {
+          if (sentStems.has(stem)) {
+            score += this.stemIdf.get(stem) ?? 1.2;
+            if (idx > 0 && !firstSentStems.has(stem)) {
+              uniqueToBody = true;
             }
           }
-          if (focusMatchesSignature(focuses, sig).matched) {
-            score += 1.1;
-          }
-          if (score >= 1.5) {
-            scoredSentences.push({ sentence, score });
-          }
         }
+        if (focusMatchesSignature(focuses, sig).matched) {
+          score += 1.1;
+        }
+        if (score >= 1.5) {
+          scoredSentences.push({ sentence, score, idx, uniqueToBody });
+        }
+      }
 
-        if (scoredSentences.length > 0 && scoredSentences.length < sentences.length) {
-          scoredSentences.sort((a, b) => b.score - a.score);
-          const topScore = scoredSentences[0]!.score;
-          const selected = scoredSentences
-            .filter((s) => topScore - s.score <= 0.6)
-            .slice(0, 2)
-            .map((s) => s.sentence);
-          if (selected.length > 0 && selected.length < sentences.length) {
-            return {
-              id: 'deduced',
-              keywords: [],
-              template: selected.join(' '),
-            };
-          }
+      if (recordAlreadySeen && scoredSentences.length > 0 && scoredSentences.length < sentences.length) {
+        scoredSentences.sort((a, b) => b.score - a.score);
+        const topScore = scoredSentences[0]!.score;
+        const selected = scoredSentences
+          .filter((s) => topScore - s.score <= 0.6)
+          .slice(0, 2)
+          .map((s) => s.sentence);
+        if (selected.length > 0 && selected.length < sentences.length) {
+          return {
+            id: 'deduced',
+            keywords: [],
+            template: selected.join(' '),
+          };
         }
       }
     }
 
     return undefined;
+  }
+
+  /**
+   * Returns grounded content phrases from the verified KnowledgeStore records linked to `intentId`,
+   * used by AnswerGate when the intent has configured lexical definitions so visitors can ask about
+   * any fact inside the verified record without pre-programmed facet keywords.
+   */
+  getRuleRecordTerms(intentId: string, now = new Date()): string[] {
+    const doc = this.docs.find((d) => d.intentId === intentId);
+    if (!doc) return [];
+    const def = doc.definition;
+    const hasConfiguredAnchors = Boolean(
+      def?.keywords?.length
+      || def?.keywordGroups?.length
+      || def?.examples?.length
+      || def?.exactExamples?.length
+      || def?.patterns?.length,
+    );
+    if (!hasConfiguredAnchors) return [];
+    const freshRecords = doc.records.filter((r) => this.freshnessPolicy.evaluate(r, now) === 'fresh');
+    return freshRecords.map((r) => r.content);
   }
 
   /**

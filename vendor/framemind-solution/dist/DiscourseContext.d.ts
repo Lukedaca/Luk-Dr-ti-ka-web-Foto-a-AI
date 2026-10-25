@@ -22,6 +22,15 @@ export declare class DiscourseContext {
     advanceTurn(query?: string, reply?: string, intent?: string): void;
     isAnaphoraQuery(query: string): boolean;
     isRepairQuery(query: string): boolean;
+    /**
+     * Detects Third-Position Contrastive Repairs ("Ne X, ale Y", "Nechci X, chci Y",
+     * "Chtěl jsem Y a ne X") and separates the desired positive target from the rejected one.
+     * Pure negations without a replacement target ("Nechci sídlo klubu") return null.
+     */
+    extractContrastiveRepair(query: string): {
+        positiveTarget: string;
+        rejectedTarget: string;
+    } | null;
     extractRepairSubject(query: string): string | null;
     resolveSuggestions(intentId: string, profile?: AgentProfile): string[];
     snapshot(): DiscourseSnapshot;

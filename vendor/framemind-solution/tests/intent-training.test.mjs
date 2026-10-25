@@ -16,7 +16,8 @@ const content = 'Na první trénink stačí sportovní oblečení.';
 const snapshot = { schemaVersion: 1, generatedAt: now.toISOString(), records: [{ id: 'equipment', type: 'equipment', content, sourceUrl: 'https://club.example/equipment', contentHash: sha256Hex(content), fetchedAt: now.toISOString(), lastVerifiedAt: now.toISOString(), expiresAt: '2026-10-11T10:00:00Z', critical: true }] };
 
 test('an owner correction changes real routing while preserving source and action permission', async () => {
-  assert.equal((await new FrameMindEngine(config, snapshot).respond({ text: pack.examples[0].text, now })).intent, 'greeting');
+  // Bez opravy jádro vybavení nenajde (2.6.0: pozdrav s cizím dotazem předá modelu, dřív odpověděl pozdravem).
+  assert.notEqual((await new FrameMindEngine(config, snapshot).respond({ text: pack.examples[0].text, now })).intent, 'equipment');
   const trained = withIntentTraining(config, pack, 'club');
   const response = await new FrameMindEngine(trained, snapshot).respond({ text: pack.examples[0].text, now });
   assert.equal(response.intent, 'equipment');

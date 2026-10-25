@@ -318,6 +318,16 @@ export interface FrameMindConfig {
      * directly from verified knowledge records without relying on hardcoded keyword lists.
      */
     deductiveReasoning?: boolean;
+    /**
+     * 2.6.0 — brána lokální odpovědi (výchozí zapnutá). Jádro odpoví samo jen přímou
+     * lexikální shodou; podobnost, odvození, zápor, nepokrytá slova a zopakování předchozí
+     * odpovědi předá modelu (`reason: 'unknown'`, `deferred`, `suggestedIntent`).
+     */
+    answerGate?: {
+        enabled?: boolean;
+        /** Slova značky (název klubu, firmy), která o tématu dotazu nic neříkají. */
+        neutralTerms?: string[];
+    };
 }
 export interface FrameMindRequest {
     text: string;
@@ -376,6 +386,10 @@ export interface FrameMindResponse {
     discourse?: DiscourseSnapshot;
     /** Present when the intent was chosen by the opt-in semantic layer. */
     semantic?: import('./SemanticIntents.js').SemanticIntentDecision;
+    /** 2.6.0: proč jádro odpověď předalo modelu, i když záměr tušilo. */
+    deferred?: import('./AnswerGate.js').DeferralReason;
+    /** 2.6.0: záměr, který jádro navrhovalo, ale nesmělo na něj odpovědět samo. */
+    suggestedIntent?: string;
 }
 export interface LocalSpeechRecognitionCapability {
     available: boolean;

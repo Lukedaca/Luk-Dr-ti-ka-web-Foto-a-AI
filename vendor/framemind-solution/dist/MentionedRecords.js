@@ -10,7 +10,7 @@ function words(value) {
  * Same word in another case: each form starts with the other's stem. Both directions, so
  * "start" does not name "Staré" although the stems "start"/"star" share a prefix.
  */
-function sameWord(a, b) {
+export function sameWord(a, b) {
     return a.startsWith(stemCzechWord(b)) && b.startsWith(stemCzechWord(a));
 }
 function stringValues(record, field) {

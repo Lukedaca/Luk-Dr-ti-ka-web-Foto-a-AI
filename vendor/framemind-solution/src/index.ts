@@ -25,6 +25,7 @@ export * from './LearningSink.js';
 export * from './NoopLearningSink.js';
 export * from './FrameMindEngine.js';
 export * from './KnowledgeReasoner.js';
+export * from './AnswerGate.js';
 export * from './SiteNavigation.js';
 export * from './AgentProfile.js';
 export * from './profiles/index.js';

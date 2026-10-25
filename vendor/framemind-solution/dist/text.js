@@ -1,4 +1,4 @@
-const CZECH_MONTHS = {
+export const CZECH_MONTHS = {
     leden: 1,
     lednu: 1,
     unor: 2,
@@ -126,7 +126,36 @@ const CZECH_COLLOQUIAL_SYNONYMS = [
     { pattern: /\b(?:kopou|kopeme|hrajem)\b/, expansion: 'hraji zapas' },
     { pattern: /\b(?:prcek|prcka|prckovi|kluk|kluka|klukovi|holka|holku|holce|decko|decka|ratolest)\b/, expansion: 'dite' },
     { pattern: /\b(?:webovk[a-z]*|sajt[a-z]*)\b/, expansion: 'web' },
+    { pattern: /\b(?:(?:na\s+)?ruku|(?:v\s+)?hotovosti)\b/, expansion: 'hotove platba' },
+    { pattern: /\b(?:(?:na\s+)?zkousku|vyzkouset|zkusebn[a-z]*)\b/, expansion: 'zkousku zdarma prvni' },
+    { pattern: /\b(?:kdyz prsi|v desti|za deste|desti|pres zimu|v zime|zime)\b/, expansion: 'zimni destive umt telocvicna' },
 ];
+const CONVERSATIONAL_BRIDGE_RE = /^(?:(?:dobry\s+den|ahoj|zdravim|cau|super|skvele|perfektni|parada|fajn|dobre|dobry|jasne|jasny|aha|jo|ano|ok|rozumim|chapu|dik|diky|dekuji|dekuju|mockrat\s+dekuji|diky\s+moc|dekuji\s+moc|to\s+je\s+super|to\s+zni\s+dobre|bezva|prima|tak\s+jo|hele|poslys|prosim\s+te|prosim\s+vas|jeste\s+se\s+zeptam|jeste\s+by\s+me\s+zajimalo|zajimalo\s+by\s+me)[\s,!.:;-]+)+/i;
+/**
+ * Strips leading conversational acknowledgements and discourse bridges ("Super, díky, a...",
+ * "Aha rozumím, ještě se zeptám...") when followed by an actual follow-up question or topic,
+ * while leaving pure standalone social turns untouched.
+ */
+export function stripConversationalBridge(text) {
+    const raw = String(text !== null && text !== void 0 ? text : '').trim();
+    if (!raw)
+        return '';
+    const norm = normalizeText(raw);
+    const match = CONVERSATIONAL_BRIDGE_RE.exec(norm);
+    if (!match || match[0].length >= norm.length)
+        return raw;
+    const remainderNorm = norm.slice(match[0].length).trim();
+    if (remainderNorm.length < 3)
+        return raw;
+    if (/^za\s+(?:info\w*|odpoved\w*|pomoc\w*|rad\w*|ochot\w*|cas\w*|vse\w*|zprav\w*)\b/i.test(remainderNorm)) {
+        return raw;
+    }
+    // Strip corresponding leading clauses/words from raw text
+    const rawStripped = raw
+        .replace(/^(?:(?:dobrý\s+den|dobry\s+den|ahoj|zdravím|zdravim|čau|cau|super|skvělé|skvele|perfektní|perfektni|paráda|parada|fajn|dobře|dobre|dobrý|dobry|jasně|jasne|jasný|jasny|aha|jo|ano|ok|rozumím|rozumim|chápu|chapu|dík|dik|díky|diky|děkuji|dekuji|děkuju|dekuju|mockrát\s+děkuji|mockrat\s+dekuji|díky\s+moc|diky\s+moc|děkuji\s+moc|dekuji\s+moc|to\s+je\s+super|to\s+zní\s+dobře|to\s+zni\s+dobre|bezva|prima|tak\s+jo|hele|poslyš|poslys|prosím\s+tě|prosim\s+te|prosím\s+vás|prosim\s+vas|ještě\s+se\s+zeptám|jeste\s+se\s+zeptam|ještě\s+by\s+mě\s+zajímalo|jeste\s+by\s+me\s+zajimalo|zajímalo\s+by\s+mě|zajimalo\s+by\s+me)[\s,!.:;–-]+)+/i, '')
+        .trim();
+    return rawStripped.length >= 3 ? rawStripped : raw;
+}
 /**
  * Appends canonical Czech domain terms for colloquial expressions that do not share
  * a morphological stem with standard keywords, preserving original tokens intact.

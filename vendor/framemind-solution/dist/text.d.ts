@@ -1,3 +1,4 @@
+export declare const CZECH_MONTHS: Record<string, number>;
 export declare function normalizeText(value: unknown): string;
 export declare function escapeRegExp(value: string): string;
 export declare function monthFromText(normalized: string, prefix?: string): number | undefined;
@@ -9,6 +10,12 @@ export declare function stemText(normalized: string): string;
  * Damerau-Levenshtein distance 1 (single substitution, insertion, deletion or adjacent swap).
  */
 export declare function isWithinOneEdit(a: string, b: string): boolean;
+/**
+ * Strips leading conversational acknowledgements and discourse bridges ("Super, díky, a...",
+ * "Aha rozumím, ještě se zeptám...") when followed by an actual follow-up question or topic,
+ * while leaving pure standalone social turns untouched.
+ */
+export declare function stripConversationalBridge(text: string): string;
 /**
  * Appends canonical Czech domain terms for colloquial expressions that do not share
  * a morphological stem with standard keywords, preserving original tokens intact.

@@ -1,5 +1,10 @@
 import type { KnowledgeRecord, SelectBy, SlotValue } from './types.js';
 /**
+ * Same word in another case: each form starts with the other's stem. Both directions, so
+ * "start" does not name "Staré" although the stems "start"/"star" share a prefix.
+ */
+export declare function sameWord(a: string, b: string): boolean;
+/**
  * Score of every known value the text names. A word naming several values counts
  * proportionally less ("Velkou" fits "Velká Bystřice" and "Velké Losiny"; "Bystřicí" decides).
  */

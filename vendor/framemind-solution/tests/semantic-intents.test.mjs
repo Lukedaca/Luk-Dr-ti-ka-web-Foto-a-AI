@@ -102,8 +102,8 @@ test('výběr: jen při dostatečném skóre i odstupu, vyloučený nebo neznám
   assert.equal(pick([{ intentId: 'fees', score: Number.NaN }]), null);
 });
 
-test('engine: parafrázi, kterou lexikální jádro nezná, rozhodne vrstva a odpoví pravidlo', async () => {
-  const text = 'Kolik se platí za fotbal?';
+test('engine: parafrázi ze slov záměru (překlep, jiný tvar) rozhodne vrstva a odpoví pravidlo', async () => {
+  const text = 'Kolik stoji prspevky?';
   const engine = engineWith({
     processing: 'local',
     resolver: resolverFor({ [text]: [{ intentId: 'fees', score: 0.94 }, { intentId: 'camp', score: 0.82 }] }),
@@ -114,6 +114,21 @@ test('engine: parafrázi, kterou lexikální jádro nezná, rozhodne vrstva a od
   assert.equal(response.text, 'Příspěvky jsou 3 000 Kč za pololetí.');
   assert.equal(response.semantic?.intentId, 'fees');
   assert.ok(Math.abs(response.semantic.margin - 0.12) < 1e-9);
+});
+
+test('2.6.0: parafráze se slovy mimo záměr jde na model, záměr zůstane jen návrhem', async () => {
+  // Podobnost není doklad: 22. 10. 2026 „Jaká je historie klubu?“ dostalo sídlo (0,39).
+  const text = 'Kolik se platí za fotbal?';
+  const engine = engineWith({
+    processing: 'local',
+    resolver: resolverFor({ [text]: [{ intentId: 'fees', score: 0.94 }, { intentId: 'camp', score: 0.82 }] }),
+  });
+  const response = await engine.respond({ text, now });
+  assert.equal(response.intent, 'unknown');
+  assert.equal(response.reason, 'unknown');
+  assert.equal(response.deferred, 'uncovered');
+  assert.equal(response.suggestedIntent, 'fees');
+  assert.equal(response.context.activeIntent, undefined);
 });
 
 test('engine: nejistá vrstva = chování jako bez ní (unknown → fallback hostitele)', async () => {

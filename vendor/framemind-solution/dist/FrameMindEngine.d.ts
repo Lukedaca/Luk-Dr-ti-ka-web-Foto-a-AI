@@ -37,6 +37,16 @@ export declare class FrameMindEngine {
      */
     private replayHistory;
     /**
+     * Záměr tahu: lexikální detektor, doptávka (aspekt, slot, zmínka), sémantika, odvození.
+     * Brána 2.6.0 pak rozhodne, jestli smí jádro odpovědět samo; když ne, vrací `unknown`
+     * a záměr jen jako návrh (`deferral.intent`).
+     */
+    private detectTurn;
+    private gateEnabled;
+    private gateReason;
+    /** Stejná odpověď podruhé za sebou znamená, že první nepomohla — rozhodne model. */
+    private repeatsLastReply;
+    /**
      * Opt-in semantic decision for messages the lexical detector does not know.
      * Only intents with a response rule are eligible; any resolver failure means
      * "not confident" and the request continues as before.

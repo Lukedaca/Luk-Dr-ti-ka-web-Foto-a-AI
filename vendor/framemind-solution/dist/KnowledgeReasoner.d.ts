@@ -68,6 +68,12 @@ export declare class KnowledgeReasoner {
      */
     deduceFacet(rule: IntentResponseRule | undefined, record: KnowledgeRecord | undefined, queryText: string, recordAlreadySeen?: boolean): ResponseFacet | undefined;
     /**
+     * Returns grounded content phrases from the verified KnowledgeStore records linked to `intentId`,
+     * used by AnswerGate when the intent has configured lexical definitions so visitors can ask about
+     * any fact inside the verified record without pre-programmed facet keywords.
+     */
+    getRuleRecordTerms(intentId: string, now?: Date): string[];
+    /**
      * Evaluates numeric budget constraints (`context.slots.budgetKc`) against grounded price
      * tiers inside the composed response or record content, returning a verified conclusion.
      */

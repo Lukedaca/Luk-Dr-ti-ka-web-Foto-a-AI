@@ -148,6 +148,23 @@ test('jméno soupeře není doklad záměru: sémantická vrstva ho nedostane', 
   }, { schemaVersion: 1, generatedAt: '2026-10-12T07:00:00.000Z', records });
   const result = await engine.respond({ text: 'Ahoj, jak hraje áčko ve Velké Bystřici ?', now });
   assert.deepEqual(seen, ['Ahoj, jak hraje áčko ve ?']);
-  // Výběr záznamu ale zmínku vidí celou.
+  // 2.6.0: „hraje“ a „áčko“ slovník záměru nezná → podobnost sama nerozhodne.
+  assert.equal(result.deferred, 'uncovered');
+  assert.equal(result.suggestedIntent, 'match_last');
+});
+
+test('2.6.0: jméno soupeře se do pokrytí nepočítá, výběr záznamu ho vidí celé', async () => {
+  const engine = new FrameMindEngine({
+    mode: 'strict',
+    locale: 'cs-CZ',
+    intents: [{ id: 'match_last', keywordGroups: [['jak', 'dopadl']], keywords: ['hraje', 'acko'], priority: 30 }],
+    responses: [lastRule],
+    actions: [],
+    unknownResponse: 'Nevím.',
+    staleResponse: 'Staré.',
+    provider: { enabled: false },
+    semanticIntents: { processing: 'local', resolver: async () => [{ intentId: 'match_last', score: 0.9 }] },
+  }, { schemaVersion: 1, generatedAt: '2026-10-12T07:00:00.000Z', records });
+  const result = await engine.respond({ text: 'Ahoj, jak hraje áčko ve Velké Bystřici ?', now });
   assert.equal(result.text, 'P Muži A 0:4 FK Velká Bystřice');
 });

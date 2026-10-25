@@ -48,6 +48,11 @@ const AGE_WORD_ALTERNATION = Object.keys(AGE_WORDS).join('|');
 const AGE_WORD_RE = new RegExp(`\\b(?:ma|je mu|je ji|je|jsou mu)\\s+(${AGE_WORD_ALTERNATION})\\b|\\b(${AGE_WORD_ALTERNATION})\\s+let\\b`);
 const AGE_ADJECTIVE_RE = new RegExp(`\\b(${Object.keys(AGE_ADJECTIVE_STEMS).join('|')})let[a-z]*\\b`);
 
+/** Word that only carries an age slot ("osm", "osmiletý"), not a topic. */
+export function isAgeToken(token: string): boolean {
+  return token in AGE_WORDS || AGE_ADJECTIVE_RE.test(token);
+}
+
 function extractAge(normalized: string): number | undefined {
   const digits = normalized.match(/\b(?:ma|je mu|je ji|je)\s+(\d{1,2})\b/) ?? normalized.match(/\b(\d{1,2})\s+let\b/);
   if (digits?.[1]) return Number(digits[1]);

@@ -22,12 +22,22 @@ export const LUKAS_PROFILE = createPersonalPortfolioProfile({
   version: '1.0.0',
   disclosure: 'Ahoj, jsem Lukáš AI – AI Hybridní Agent. Umím si s tebou povídat, provést tě portfoliem a ovládat web: vyfiltrovat fotky, ukázat ceník, přetočit showreel i přepnout vzhled.',
   privacyNotice: 'V soukromém režimu se veškerá konverzace a navigace zpracovávají lokálně ve vašem prohlížeči.',
+  suggestedFollowUps: {
+    greeting: ['Chci nafotit portrét nebo rodinu', 'Kolik stojí focení?', 'Ukaž mi portfolio'],
+    about: ['Jakou fototechnikou fotíš?', 'Co děláš v oblasti AI?', 'Ukaž mi portfolio'],
+    services: ['Kolik stojí focení?', 'Jak probíhá rezervace termínu?', 'Ukaž mi sportovní fotky'],
+    pricing: ['Co je v ceně focení?', 'Chci rezervovat termín', 'Ukaž mi rodinné fotky'],
+    portfolio: ['Ukaž sportovní fotky', 'Ukaž portréty', 'Kolik stojí focení?'],
+    ai_projects: ['Co je FrameMind Studio?', 'Co umí AI Hybridní Agent?', 'Přejít na kontakt'],
+    contact: ['Kolik stojí focení?', 'Kde všude fotíš?', 'Ukaž mi portfolio'],
+  },
 });
 
 export const lukasConfig = {
   mode: 'strict',
   locale: 'cs-CZ',
   sourceLabel: 'Oficiální portfolio Lukáš Drštička',
+  answerGate: { neutralTerms: ['Lukáš', 'Drštička', 'portfolio'] },
   profile: LUKAS_PROFILE,
   tenantPolicy: createPersonalPortfolioTenantPolicy(),
   providerCompliance: createPersonalPortfolioProviderRegister(),

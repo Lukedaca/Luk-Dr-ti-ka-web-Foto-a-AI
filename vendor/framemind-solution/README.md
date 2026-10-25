@@ -1,6 +1,24 @@
-# FrameMind Solution 2.1.0
+# FrameMind Solution 2.6.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
+
+Version 2.6.0 adds an answer gate (`AnswerGate`, on by default, `answerGate.enabled: false`
+restores the earlier behaviour). The core answers on its own only with direct lexical evidence
+for the intent that answers. It passes the message to the host's model (`reason: 'unknown'`,
+`deferred`, `suggestedIntent`) when:
+- the intent was only deduced from record content (`deduced`). The `KnowledgeReasoner` intent
+  deduction from 2.5.0 is a suggestion, never an answer;
+- a semantic (similarity) choice leaves any content word of the message outside the intent's
+  vocabulary (`uncovered`). The vocabulary is the intent's keywords, examples, patterns and
+  facet keywords; slots, named record values, numbers and tenant `neutralTerms` do not count;
+- a lexical, facet or slot match carries at least three content words outside the vocabulary
+  and more of them than covered ones (`uncovered`);
+- the message is a negated wish ("Nechci sídlo", "historii a ne sídlo", `negation`), while contrastive repairs toward another known intent ("Nechci automatizaci, ale ceník webů", "Myslel jsem články a ne sídlo") resolve locally to the positive target;
+- the message is an open-ended opinion or advisory question ("Co si myslíš o…", "Má podle tebe smysl…", `uncovered`), so static templates are never forced on open-ended questions;
+- the composed answer would repeat the previous reply word for word or re-emit the same static record template on a follow-up turn without a new facet or slot (`repeat`).
+A deferred turn never sets the active intent, live or in stateless `history` replay. Natural conversational bridges ("Super, díky, a…", "Aha rozumím, a…") are stripped before follow-up resolution (`stripConversationalBridge`), and follow-up turns over multi-sentence records extract only the targeted 1–2 sentences (`deduceFacet`) without requiring pre-programmed facet keywords.
+
+Version 2.5.0 added `KnowledgeReasoner` (fact signatures, query focus, budget conclusions).
 
 Version 2.1.0 elevates local conversational intelligence across five layers without external API dependencies:
 - **Slot-Pivot & Mention-Pivot Ellipsis (`FrameMindEngine`)**: Short follow-ups that only supply a new slot or named entity consumed by the active rule ("A béčko?", "A 2016?", "A s Olomoucí?", "A web?") pivot the active intent locally, including during stateless `history` replay.

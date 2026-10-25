@@ -15,7 +15,7 @@ function words(value: string): string[] {
  * Same word in another case: each form starts with the other's stem. Both directions, so
  * "start" does not name "Staré" although the stems "start"/"star" share a prefix.
  */
-function sameWord(a: string, b: string): boolean {
+export function sameWord(a: string, b: string): boolean {
   return a.startsWith(stemCzechWord(b)) && b.startsWith(stemCzechWord(a));
 }
 

@@ -1,4 +1,5 @@
 import { ActionResolver } from './ActionResolver.js';
+import { deferralReason, type DeferralReason, type IntentOrigin } from './AnswerGate.js';
 import { ConversationContext } from './ConversationContext.js';
 import { DataPolicy } from './DataPolicy.js';
 import { DiscourseContext } from './DiscourseContext.js';
@@ -14,9 +15,10 @@ import { SourceResolver, selectorsOf } from './SourceResolver.js';
 import { knownValues, selectMentioned, withoutMentions } from './MentionedRecords.js';
 import { SafetyShield } from './SafetyShield.js';
 import { selectSemanticIntent, type SemanticIntentDecision } from './SemanticIntents.js';
-import { normalizeText } from './text.js';
+import { normalizeText, stripConversationalBridge } from './text.js';
 import type {
   ContextSnapshot,
+  DiscourseSnapshot,
   FrameMindConfig,
   FrameMindRequest,
   FrameMindResponse,
@@ -31,8 +33,8 @@ const MIN_CHILD_AGE = 3;
 const MAX_CHILD_AGE = 19;
 /** Replayed prior user turns; older turns rarely carry slots that still matter. */
 const MAX_HISTORY_TURNS = 6;
-/** "A kde?", "A co je v ceně?" — longer messages without an intent are a new topic. */
-const MAX_FACET_FOLLOW_UP_WORDS = 6;
+/** "A kde?", "A co je v ceně?", "A do kdy je splatnost?" — longer messages without an intent are a new topic. */
+const MAX_FACET_FOLLOW_UP_WORDS = 8;
 
 const COMPOUND_SPLIT_RE = /\?\s+(?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽa-záčďéěíňóřšťúůýž]{2,})|\s+(?:a\s+zároveň|a\s+taky|a\s+také|a\s+(?=(?:kolik|kdy|kde|kam|kdo|jak|jaký|jaká|jaké|co|za\s+kolik)\b))\s*/i;
 
@@ -222,43 +224,174 @@ export class FrameMindEngine {
       if (typeof past !== 'string' || !past.trim()) continue;
       if (!SafetyShield.checkSafety(past).isSafe) continue;
       const before = sessionCtx.context.snapshot();
-      let match = this.intentEngine.detect(past, before, now, sessionCtx.discourse.snapshot());
-      if (
-        match.id === 'unknown'
-        && before.activeIntent
-        && match.normalizedText.split(' ').filter(Boolean).length <= MAX_FACET_FOLLOW_UP_WORDS
-      ) {
-        const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
-        if (resolveRuleFacet(previousRule, past)) {
-          match = { ...match, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
-        } else {
-          const pivot = this.resolvePivotIntent(before, match, past);
-          if (pivot) {
-            match = { ...match, id: pivot, confidence: 0.75, isFollowUp: true };
-          }
-        }
-      }
-      if (match.id === 'unknown' && this.config.semanticIntents) {
-        const semantic = await this.resolveSemanticIntent(past);
-        if (semantic) {
-          match = { ...match, id: semantic.intentId, confidence: semantic.score, isFollowUp: false };
-        }
-      }
-      if (match.id === 'unknown' && this.config.deductiveReasoning !== false) {
-        const deduced = this.reasoner.deduceIntent(past, before, sessionCtx.discourse.snapshot(), now);
-        if (deduced) {
-          match = {
-            ...match,
-            id: deduced.intentId,
-            confidence: deduced.confidence,
-            slots: { ...match.slots, ...deduced.inferredSlots },
-            isFollowUp: deduced.isFollowUp,
-          };
-        }
-      }
+      // Stejné rozhodnutí jako živý tah: co tehdy šlo na model, nesmí teď nastavit téma.
+      const { match } = await this.detectTurn(past, before, sessionCtx.discourse.snapshot(), now);
       sessionCtx.context.apply(match);
       sessionCtx.discourse.advanceTurn(past, '', match.id);
     }
+  }
+
+  /**
+   * Záměr tahu: lexikální detektor, doptávka (aspekt, slot, zmínka), sémantika, odvození.
+   * Brána 2.6.0 pak rozhodne, jestli smí jádro odpovědět samo; když ne, vrací `unknown`
+   * a záměr jen jako návrh (`deferral.intent`).
+   */
+  private async detectTurn(
+    queryText: string,
+    before: ContextSnapshot,
+    discourse: DiscourseSnapshot,
+    now?: Date,
+  ): Promise<{
+    match: IntentMatch;
+    facet?: ResponseFacet | undefined;
+    semantic?: SemanticIntentDecision | undefined;
+    deferral?: { reason: DeferralReason; intent: string } | undefined;
+  }> {
+    const isExactRaw = this.intentEngine.hasExactExample(queryText);
+    const coreQuery = isExactRaw ? queryText : stripConversationalBridge(queryText);
+    const rawDetected = this.intentEngine.detect(queryText, before, now, discourse);
+    const coreDetected = coreQuery !== queryText
+      ? this.intentEngine.detect(coreQuery, before, now, discourse)
+      : rawDetected;
+
+    const rawIsBridgeSocial = coreQuery !== queryText
+      && ['greeting', 'thanks', 'affirmation'].includes(rawDetected.id);
+
+    let effectiveQuery = (coreQuery !== queryText && coreDetected.id !== 'unknown')
+      ? coreQuery
+      : queryText;
+    let detected = effectiveQuery === coreQuery ? coreDetected : rawDetected;
+    let match = detected;
+    let facet: ResponseFacet | undefined;
+    let semantic: SemanticIntentDecision | undefined;
+    let origin: IntentOrigin = isExactRaw
+      ? 'exact'
+      : (this.intentEngine.hasExactExample(effectiveQuery) ? 'exact' : 'lexical');
+
+    // Doptávka bez vlastního záměru („A kde?“, „A béčko?“, „A do kdy je splatnost?“):
+    // odpoví aspekt, slot/zmínka nebo odvozená věta pravidla předchozího záměru.
+    const followUpWords = coreDetected.normalizedText.split(' ').filter(Boolean);
+    if (
+      (detected.id === 'unknown' || rawIsBridgeSocial)
+      && before.activeIntent
+      && followUpWords.length <= MAX_FACET_FOLLOW_UP_WORDS
+    ) {
+      const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
+      facet = resolveRuleFacet(previousRule, coreQuery);
+      if (facet) {
+        match = { ...coreDetected, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
+        origin = 'facet';
+        effectiveQuery = coreQuery;
+      } else {
+        const pivotIntent = this.resolvePivotIntent(before, coreDetected, coreQuery);
+        if (pivotIntent) {
+          match = { ...coreDetected, id: pivotIntent, confidence: 0.75, isFollowUp: true };
+          origin = 'pivot';
+          effectiveQuery = coreQuery;
+        } else if (
+          previousRule
+          && this.config.deductiveReasoning !== false
+          && this.reasoner.getRuleRecordTerms(before.activeIntent, now).length > 0
+        ) {
+          const mergedContext: ContextSnapshot = {
+            ...before,
+            slots: { ...before.slots, ...coreDetected.slots },
+          };
+          const resolvedPrev = this.sourceResolver.resolve(previousRule, mergedContext, now, false, coreQuery);
+          if (resolvedPrev.record && resolvedPrev.freshness === 'fresh') {
+            const deducedFacet = this.reasoner.deduceFacet(previousRule, resolvedPrev.record, coreQuery, true);
+            if (deducedFacet) {
+              facet = deducedFacet;
+              match = {
+                ...coreDetected,
+                id: before.activeIntent,
+                confidence: 0.72,
+                slots: mergedContext.slots,
+                isFollowUp: true,
+              };
+              origin = 'facet';
+              effectiveQuery = coreQuery;
+            }
+          }
+        }
+      }
+    }
+
+    // If stripping a social bridge did not yield a follow-up or factual intent, fall back to the social intent.
+    if (match.id === 'unknown' && rawIsBridgeSocial && rawDetected.id !== 'unknown') {
+      match = rawDetected;
+      detected = rawDetected;
+      effectiveQuery = queryText;
+      origin = 'lexical';
+    }
+
+    // Opt-in semantic layer: only when neither the lexical detector nor a follow-up
+    // facet/slot pivot recognised the message. It selects an existing intent; the rule answers.
+    if (match.id === 'unknown' && this.config.semanticIntents) {
+      semantic = (await this.resolveSemanticIntent(effectiveQuery)) ?? undefined;
+      if (semantic) {
+        match = { ...detected, id: semantic.intentId, confidence: semantic.score, isFollowUp: false };
+        origin = 'semantic';
+      }
+    }
+    if (match.id === 'unknown' && this.config.deductiveReasoning !== false) {
+      const deduced = this.reasoner.deduceIntent(effectiveQuery, before, discourse, now);
+      if (deduced) {
+        match = {
+          ...detected,
+          id: deduced.intentId,
+          confidence: deduced.confidence,
+          slots: { ...detected.slots, ...deduced.inferredSlots },
+          isFollowUp: deduced.isFollowUp,
+        };
+        origin = 'deduced';
+        if (deduced.facet && !facet) facet = deduced.facet;
+      }
+    }
+    if (match.id === 'unknown') return { match };
+
+    const reason = this.gateReason(effectiveQuery, match.id, origin, facet, now);
+    if (!reason) return { match, facet, semantic };
+    return {
+      match: { ...detected, id: 'unknown', confidence: 0, isFollowUp: false },
+      deferral: { reason, intent: match.id },
+    };
+  }
+
+  private gateEnabled(): boolean {
+    return this.config.answerGate?.enabled !== false;
+  }
+
+  private gateReason(
+    text: string,
+    intentId: string,
+    origin: IntentOrigin,
+    activeFacet?: ResponseFacet,
+    now?: Date,
+  ): DeferralReason | null {
+    if (!this.gateEnabled()) return null;
+    const rule = this.config.responses.find((candidate) => candidate.intentId === intentId);
+    const mentionFields = new Set(this.config.responses.flatMap((candidate) => selectorsOf(candidate))
+      .filter((selector) => selector.mentioned).map((selector) => selector.dataField));
+    const facets = activeFacet
+      ? [...(rule?.facets ?? []), activeFacet]
+      : rule?.facets;
+    return deferralReason({
+      text,
+      origin,
+      definition: this.config.intents.find((definition) => definition.id === intentId),
+      facets,
+      recordTerms: this.reasoner.getRuleRecordTerms(intentId, now),
+      slotPatterns: this.config.slotPatterns,
+      mentionValues: mentionFields.size ? knownValues(this.store.all(), mentionFields) : [],
+      neutralTerms: this.config.answerGate?.neutralTerms,
+    });
+  }
+
+  /** Stejná odpověď podruhé za sebou znamená, že první nepomohla — rozhodne model. */
+  private repeatsLastReply(text: string, discourse: DiscourseContext): boolean {
+    if (!this.gateEnabled() || !text.trim()) return false;
+    return normalizeText(text) === normalizeText(discourse.snapshot().lastReply);
   }
 
   /**
@@ -379,6 +512,7 @@ export class FrameMindEngine {
 
     // 2. Discourse repair & clarification handling
     let queryText = request.text;
+    let contrastiveRejectedIntent: string | undefined;
     const pendingClarification = sessionCtx.discourse.getAwaitingClarification();
     if (pendingClarification) {
       const norm = queryText.toLowerCase().trim();
@@ -398,58 +532,37 @@ export class FrameMindEngine {
         sessionCtx.discourse.clearAwaitingClarification();
         queryText = mappedIntent;
       }
-    } else if (sessionCtx.discourse.isRepairQuery(request.text)) {
-      const subject = sessionCtx.discourse.extractRepairSubject(request.text);
-      if (subject) {
-        queryText = subject;
+    } else {
+      const contrastive = sessionCtx.discourse.extractContrastiveRepair(request.text);
+      if (contrastive) {
+        queryText = contrastive.positiveTarget;
+        const rejectedDetected = this.intentEngine.detect(
+          contrastive.rejectedTarget,
+          sessionCtx.context.snapshot(),
+          request.now,
+          sessionCtx.discourse.snapshot(),
+        );
+        if (rejectedDetected.id !== 'unknown') {
+          contrastiveRejectedIntent = rejectedDetected.id;
+        }
+      } else if (sessionCtx.discourse.isRepairQuery(request.text)) {
+        const subject = sessionCtx.discourse.extractRepairSubject(request.text);
+        if (subject) {
+          queryText = subject;
+        }
       }
     }
 
     const before = sessionCtx.context.snapshot();
-    const detected = this.intentEngine.detect(queryText, before, request.now, sessionCtx.discourse.snapshot());
-
-    // Doptávka bez vlastního záměru („A kde?“, „A béčko?“, „A se Slavonínem?“):
-    // odpoví aspekt nebo slot/zmínka pravidla předchozího záměru.
-    let match = detected;
-    let facet: ResponseFacet | undefined;
-    if (
-      detected.id === 'unknown'
-      && before.activeIntent
-      && detected.normalizedText.split(' ').filter(Boolean).length <= MAX_FACET_FOLLOW_UP_WORDS
-    ) {
-      const previousRule = this.config.responses.find((candidate) => candidate.intentId === before.activeIntent);
-      facet = resolveRuleFacet(previousRule, queryText);
-      if (facet) {
-        match = { ...detected, id: before.activeIntent, confidence: 0.5, isFollowUp: true };
-      } else {
-        const pivotIntent = this.resolvePivotIntent(before, detected, queryText);
-        if (pivotIntent) {
-          match = { ...detected, id: pivotIntent, confidence: 0.75, isFollowUp: true };
-        }
-      }
-    }
-    // Opt-in semantic layer: only when neither the lexical detector nor a follow-up
-    // facet/slot pivot recognised the message. It selects an existing intent; the rule answers.
-    if (match.id === 'unknown' && this.config.semanticIntents) {
-      const semantic = await this.resolveSemanticIntent(queryText);
-      if (semantic) {
-        trace.semantic = semantic;
-        match = { ...detected, id: semantic.intentId, confidence: semantic.score, isFollowUp: false };
-      }
-    }
-    if (match.id === 'unknown' && this.config.deductiveReasoning !== false) {
-      const deduced = this.reasoner.deduceIntent(queryText, before, sessionCtx.discourse.snapshot(), request.now);
-      if (deduced) {
-        match = {
-          ...detected,
-          id: deduced.intentId,
-          confidence: deduced.confidence,
-          slots: { ...detected.slots, ...deduced.inferredSlots },
-          isFollowUp: deduced.isFollowUp,
-        };
-        if (deduced.facet && !facet) {
-          facet = deduced.facet;
-        }
+    const turn = await this.detectTurn(queryText, before, sessionCtx.discourse.snapshot(), request.now);
+    let match = turn.match;
+    let facet = turn.facet;
+    if (turn.semantic) trace.semantic = turn.semantic;
+    let deferral = turn.deferral;
+    if (contrastiveRejectedIntent && this.gateEnabled()) {
+      if (match.id === 'unknown' || match.id === contrastiveRejectedIntent) {
+        match = { ...match, id: 'unknown', confidence: 0, isFollowUp: false };
+        deferral = { reason: 'negation', intent: contrastiveRejectedIntent };
       }
     }
     const context = sessionCtx.context.apply(match);
@@ -497,7 +610,8 @@ export class FrameMindEngine {
 
     if (rule?.sourceRequired === false) {
       const text = this.composer.compose(facet?.template ?? rule.template, undefined, context, rule.cadence, request.text, listConjunction);
-      if (text) {
+      if (text && this.repeatsLastReply(text, sessionCtx.discourse)) deferral = { reason: 'repeat', intent: match.id };
+      else if (text) {
         sessionCtx.discourse.advanceTurn(request.text, text, match.id);
         return {
           text,
@@ -541,7 +655,7 @@ export class FrameMindEngine {
         const recordAlreadySeen = before.sourceIds.includes(resolved.record.id);
         sessionCtx.context.markSource(resolved.record.id);
         if (!missingSlot && !facet && recordAlreadySeen && this.config.deductiveReasoning !== false) {
-          facet = this.reasoner.deduceFacet(rule, resolved.record, request.text, recordAlreadySeen);
+          facet = this.reasoner.deduceFacet(rule, resolved.record, queryText, recordAlreadySeen);
         }
         const answeredFacet = missingSlot ? undefined : facet;
         let effectiveTemplate = missingSlot
@@ -593,22 +707,34 @@ export class FrameMindEngine {
         }
 
         const actions = missingSlot ? [] : this.actionResolver.resolve(match.id, context, request.availablePaths, match.slots.navigationRequested === true);
-        sessionCtx.discourse.advanceTurn(request.text, text, match.id);
-        return {
-          text,
-          intent: match.id,
-          confidence: match.confidence,
-          local: true,
-          providerUsed: false,
-          ...(resolved.reference ? { source: resolved.reference } : {}),
-          ...(answeredFacet ? { facet: answeredFacet.id } : {}),
-          ...(secondaryIntent ? { secondaryIntent } : {}),
-          actions,
-          context: sessionCtx.context.snapshot(),
-          reason: missingSlot ? 'missing-slot' : 'known',
-          suggestions,
-          discourse: sessionCtx.discourse.snapshot(),
-        };
+        const sameSlots = JSON.stringify(before.slots) === JSON.stringify(context.slots);
+        const repeatsStaticRecord = this.gateEnabled()
+          && recordAlreadySeen
+          && before.activeIntent === match.id
+          && !answeredFacet
+          && !missingSlot
+          && !secondaryIntent
+          && sameSlots;
+        if (this.repeatsLastReply(text, sessionCtx.discourse) || repeatsStaticRecord) {
+          deferral = { reason: 'repeat', intent: match.id };
+        } else {
+          sessionCtx.discourse.advanceTurn(request.text, text, match.id);
+          return {
+            text,
+            intent: match.id,
+            confidence: match.confidence,
+            local: true,
+            providerUsed: false,
+            ...(resolved.reference ? { source: resolved.reference } : {}),
+            ...(answeredFacet ? { facet: answeredFacet.id } : {}),
+            ...(secondaryIntent ? { secondaryIntent } : {}),
+            actions,
+            context: sessionCtx.context.snapshot(),
+            reason: missingSlot ? 'missing-slot' : 'known',
+            suggestions,
+            discourse: sessionCtx.discourse.snapshot(),
+          };
+        }
       }
       if (resolved.record && resolved.freshness !== 'fresh') {
         const text = this.composer.compose(
@@ -636,6 +762,7 @@ export class FrameMindEngine {
       }
     }
 
+    const deferredFields = deferral ? { deferred: deferral.reason, suggestedIntent: deferral.intent } : {};
     if (
       this.config.mode === 'managed'
       && this.config.provider?.enabled
@@ -651,10 +778,11 @@ export class FrameMindEngine {
         this.config.provider.maxInputChars,
       );
       if (provider?.text) {
-        sessionCtx.discourse.advanceTurn(request.text, provider.text, match.id);
+        sessionCtx.discourse.advanceTurn(request.text, provider.text, deferral ? 'unknown' : match.id);
         return {
           text: provider.text,
-          intent: match.id,
+          intent: deferral ? 'unknown' : match.id,
+          ...deferredFields,
           confidence: match.confidence,
           local: false,
           providerUsed: true,
@@ -685,10 +813,11 @@ export class FrameMindEngine {
     }
 
     const unknownText = this.config.unknownResponse;
-    sessionCtx.discourse.advanceTurn(request.text, unknownText, match.id);
+    sessionCtx.discourse.advanceTurn(request.text, unknownText, deferral ? 'unknown' : match.id);
     return {
       text: unknownText,
-      intent: match.id,
+      intent: deferral ? 'unknown' : match.id,
+      ...deferredFields,
       confidence: match.confidence,
       local: true,
       providerUsed: false,

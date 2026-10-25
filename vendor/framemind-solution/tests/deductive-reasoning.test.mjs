@@ -44,16 +44,16 @@ const testSnapshot = {
   ],
 };
 
-function createZeroKeywordEngine() {
+function createZeroKeywordEngine(keywords = {}) {
   return new FrameMindEngine(
     {
       mode: 'strict',
       locale: 'cs-CZ',
       // Zero keywords, zero keywordGroups, zero examples! Pure declarative intents.
       intents: [
-        { id: 'fees' },
-        { id: 'web_pricing' },
-        { id: 'hybrid_agent' },
+        { id: 'fees', ...(keywords.fees ? { keywords: keywords.fees } : {}) },
+        { id: 'web_pricing', ...(keywords.web_pricing ? { keywords: keywords.web_pricing } : {}) },
+        { id: 'hybrid_agent', ...(keywords.hybrid_agent ? { keywords: keywords.hybrid_agent } : {}) },
       ],
       responses: [
         {
@@ -87,39 +87,36 @@ function createZeroKeywordEngine() {
   );
 }
 
-test('2.5.0: Zero-keyword intent deduction directly from verified knowledge records', async () => {
+// 2.6.0: odvození z obsahu záznamu je návrh, ne odpověď. Rozhoduje model s kontextem
+// (22. 10. 2026: „Ahoj, jak se vede?“ odvodilo trenéra školičky, „1:1 nic moc“ sponzoring).
+function assertDeferred(res, intentId) {
+  assert.equal(res.intent, 'unknown');
+  assert.equal(res.reason, 'unknown');
+  assert.equal(res.deferred, 'deduced');
+  assert.equal(res.suggestedIntent, intentId);
+  assert.equal(res.text, 'Tuto informaci nemohu spolehlivě potvrdit.');
+}
+
+test('2.6.0: Zero-keyword intent deduction only suggests the intent, the model answers', async () => {
   const engine = createZeroKeywordEngine();
-  // No keyword list programmed; intent resolved strictly from grounded record content
-  const res = await engine.respond({ text: 'Jaké jsou členské příspěvky?', now });
-  assert.equal(res.intent, 'fees');
-  assert.equal(res.reason, 'known');
-  assert.match(res.text, /3 000 Kč/);
+  assertDeferred(await engine.respond({ text: 'Jaké jsou členské příspěvky?', now }), 'fees');
 });
 
-test('2.5.0: Zero-keyword follow-up sentence deduction (auto-facet) on already-seen record', async () => {
+test('2.6.0: Zero-keyword follow-up deduction never sets the topic for later turns', async () => {
   const engine = createZeroKeywordEngine();
-  // Turn 1: full overview of fees record
   await engine.respond({ text: 'Jaké jsou členské příspěvky?', now });
-
-  // Turn 2: targeted follow-up on a detail inside the record (no facets exist in config)
   const res = await engine.respond({ text: 'A do kdy je splatnost?', now });
-  assert.equal(res.intent, 'fees');
-  assert.equal(res.reason, 'known');
-  assert.equal(res.facet, 'deduced');
-  assert.equal(res.text, 'Splatnost je 31. října a 28. února.');
+  assert.equal(res.reason, 'unknown');
+  assert.equal(res.context.activeIntent, undefined);
 });
 
-test('2.5.0: Zero-keyword facet template content deduction without facet keywords', async () => {
+test('2.6.0: Zero-keyword facet deduction is deferred as well', async () => {
   const engine = createZeroKeywordEngine();
-  const res = await engine.respond({ text: 'Má hybridní agent hlasový výstup?', now });
-  assert.equal(res.intent, 'hybrid_agent');
-  assert.equal(res.reason, 'known');
-  assert.equal(res.facet, 'voice');
-  assert.match(res.text, /7 990 Kč/);
+  assertDeferred(await engine.respond({ text: 'Má hybridní agent hlasový výstup?', now }), 'hybrid_agent');
 });
 
-test('2.5.0: Deductive budget constraint reasoning over grounded pricing tiers', async () => {
-  const engine = createZeroKeywordEngine();
+test('2.5.0: Deductive budget constraint reasoning over grounded pricing tiers of a lexical intent', async () => {
+  const engine = createZeroKeywordEngine({ web_pricing: ['web', 'rozpocet'] });
   const res = await engine.respond({ text: 'Mám rozpočet 10 000 Kč na web', now });
   assert.equal(res.intent, 'web_pricing');
   assert.equal(res.context.slots.budgetKc, 10000);
@@ -135,4 +132,25 @@ test('2.5.0: Strict out-of-scope protection rejects ungrounded questions without
   const res2 = await engine.respond({ text: 'Jaké bude zítra počasí v Olomouci?', now });
   assert.equal(res2.intent, 'unknown');
   assert.equal(res2.reason, 'unknown');
+});
+
+test('Přirozená doptávka s konverzačním mostem odvodí jen příslušnou větu záznamu bez předprogramovaných slov', async () => {
+  const engine = createZeroKeywordEngine({ fees: ['prispevky', 'clenske'] });
+  const turn1 = await engine.respond({ text: 'Kolik stojí členské příspěvky?', now });
+  assert.equal(turn1.intent, 'fees');
+  assert.equal(turn1.reason, 'known');
+
+  const turn2 = await engine.respond({ text: 'Super, díky, a do kdy je splatnost?', now });
+  assert.equal(turn2.intent, 'fees');
+  assert.equal(turn2.reason, 'known');
+  assert.equal(turn2.facet, 'deduced');
+  assert.match(turn2.text, /Splatnost je 31\. října a 28\. února\./);
+  assert.doesNotMatch(turn2.text, /3 000 Kč za pololetí/);
+
+  const turn3 = await engine.respond({ text: 'Aha rozumím, a dá se platit na ruku?', now });
+  assert.equal(turn3.intent, 'fees');
+  assert.equal(turn3.reason, 'known');
+  assert.equal(turn3.facet, 'deduced');
+  assert.match(turn3.text, /hotově jen po domluvě s vedením/i);
+  assert.doesNotMatch(turn3.text, /3 000 Kč za pololetí/);
 });

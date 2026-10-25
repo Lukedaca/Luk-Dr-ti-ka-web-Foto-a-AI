@@ -2791,19 +2791,20 @@ import {
       if (localResult && localResult.reason === 'known') {
         var replyText = localResult.text;
         var replyActions = localResult.actions || [];
+        var replySuggestions = localResult.suggestions && localResult.suggestions.length ? localResult.suggestions : undefined;
 
         if (explicitNav && matchedLink && replyActions.length === 0) {
           replyActions = [{ tool: 'navigate', args: { path: matchedLink.path, label: matchedLink.label } }];
         }
 
-        chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId);
+        chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId, typeof replySuggestions !== 'undefined' ? replySuggestions : undefined);
         return;
       }
 
       if (explicitNav && matchedLink) {
         var replyText = 'Otevírám ' + matchedLink.label + '.';
         var replyActions = [{ tool: 'navigate', args: { path: matchedLink.path, label: matchedLink.label } }];
-        chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId);
+        chatbotDeliverLocalResult(replyText, replyActions, modeAtSend, wantsVoice, speechRequestId, typeof replySuggestions !== 'undefined' ? replySuggestions : undefined);
         return;
       }
 
