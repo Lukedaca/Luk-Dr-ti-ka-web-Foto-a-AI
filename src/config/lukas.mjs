@@ -142,6 +142,13 @@ export const lukasConfig = {
       priority: 50,
     },
     {
+      // Schválené dotazy porovnávající oba druhy focení mají vlastní odpověď.
+      id: 'photo_comparison',
+      standalone: true,
+      examples: [],
+      priority: 40,
+    },
+    {
       id: 'ai_agents',
       examples: [
         'AI hybridní agent',
@@ -319,6 +326,11 @@ export const lukasConfig = {
       ],
     },
     {
+      intentId: 'photo_comparison',
+      recordId: 'services.sports_photo',
+      template: 'Portrétní focení se soustředí na člověka a atmosféru. Sportovní fotografie zachycuje dění na zápasech a dalších sportovních akcích. Co bys chtěl nafotit?',
+    },
+    {
       intentId: 'ai_agents',
       recordId: 'services.ai_agents',
       template: '{{record.content}}',
@@ -441,7 +453,8 @@ export function createLukasEngine(options = {}) {
         tenantPolicy,
         providerCompliance,
       };
-  return new FrameMindEngine(options.intentTraining === false ? config : withIntentTraining(config, intentTraining, 'lukas-portfolio'), snapshot);
+  const training = options.trainingExamples === false ? { ...intentTraining, examples: [] } : intentTraining;
+  return new FrameMindEngine(options.intentTraining === false ? config : withIntentTraining(config, training, 'lukas-portfolio'), snapshot);
 }
 
 export function createLukasVoiceCapability() {

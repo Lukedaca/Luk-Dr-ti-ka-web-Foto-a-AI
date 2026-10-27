@@ -1,22 +1,27 @@
 {
   "schemaVersion": 1,
   "tenantId": "lukas-portfolio",
-  "revision": 2,
+  "revision": 3,
   "examples": [
     { "text": "Dobrý den, potřebuji nafotit fotbalový zápas.", "intentId": "sports_photo" },
     { "text": "Zdravím, nafotíš nám sobotní fotbalový turnaj?", "intentId": "sports_photo" },
     { "text": "Dobrý den, chtěl bych portrétní focení.", "intentId": "portrait_photo" },
     { "text": "Fotíš i rodinné nebo kreativní portréty v ateliéru?", "intentId": "portrait_photo" },
+    { "text": "Jak se liší portrétní a sportovní focení?", "intentId": "photo_comparison" },
+    { "text": "Jaký je rozdíl mezi portrétní a sportovní fotografií?", "intentId": "photo_comparison" },
     { "text": "Kolik bych zaplatil za portrétní focení?", "intentId": "pricing" },
     { "text": "Jaká je cena za nafocení sportovní akce?", "intentId": "pricing" },
     { "text": "Vytváříš i hybridní AI agenty na web?", "intentId": "ai_agents" },
     { "text": "Jak probíhá domluva a spolupráce při focení?", "intentId": "process" },
     { "text": "Máš v portfoliu fotky ze zápasu Sigma Olomouc vs Sparta?", "intentId": "portfolio" },
     { "text": "Kde najdu fotogalerie ze zápasů Viktorie Přerov?", "intentId": "portfolio" },
+    { "text": "Kde si můžu prohlédnout fotografie ze sportovních akcí?", "intentId": "portfolio" },
     { "text": "Kdo je Lukáš Drštička a odkud působí?", "intentId": "about" },
     { "text": "Jaký je na tebe telefon a e-mail?", "intentId": "contact" },
+    { "text": "Potřebuji portrét na pracovní profil, jak se domluvíme?", "intentId": "contact" },
     { "text": "Ukaž v portfoliu jenom AI projekty.", "intentId": "filter_ai" },
     { "text": "Zobraz v galerii pouze fotografie.", "intentId": "filter_foto" },
+    { "text": "Chci místo AI projektů vidět jen fotografickou tvorbu.", "intentId": "filter_foto" },
     { "text": "Přepni web na světlý nebo tmavý motiv.", "intentId": "theme_toggle" },
     { "text": "Spusť prosím ukázkový showreel.", "intentId": "showreel" }
   ]
