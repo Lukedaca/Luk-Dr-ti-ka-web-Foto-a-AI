@@ -146,10 +146,10 @@ async function generateTour({ apiKey, lang, context }) {
 
   const dbg = { stage: "start" };
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(TOUR_MODEL)}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(TOUR_MODEL)}:generateContent`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: buildSystemPrompt(lang) }] },
         contents: [{ role: "user", parts: [{ text: userText }] }],

@@ -1,39 +1,21 @@
 /**
- * voice.js — hlasový hovor s Lukáš AI přes Microsoft Azure AI Speech.
+ * voice.js — hlasový hovor s Lukáš AI přes nativní Web Speech API a Gemini 3.8 TTS.
  *
- * Smyčka: mikrofon → detekce řeči → Azure REST rozpoznání (krátká nahrávka)
- * → text jde do stejného agenta jako psaný dotaz (window.aiChat.send)
- * → agent odpoví a přečte odpověď svým hlasem (Azure TTS) → znovu poslouchám.
- *
- * Nahrávka se nikam neukládá ani neposílá jinam než do Azure na rozpoznání.
- * Token vydává /.netlify/functions/voice-token (krátkodobý, klíč nejde do prohlížeče).
+ * Smyčka: mikrofon (nativní SpeechRecognition v prohlížeči, bez externích tokenů a bez Azure)
+ * → text jde do agenta (window.aiChat.send)
+ * → agent odpoví a přečte odpověď svým hlasem (Google Gemini 3.8 TTS, Sulafat)
+ * → po domluvení znovu poslouchá další repliku.
  *
  * Public API: window.aiVoice = { start, end, state }
- * Stav nikdy není 'active' — chatbot kvůli tomu dřív mlčel (legacy Gemini Live).
  */
-import {
-  downsample,
-  concatFloat32,
-  encodeWavPcm16,
-  rms,
-  createSpeechDetector,
-  sttUrl,
-  parseSttResponse,
-} from './voice-audio.mjs';
 
 (function voiceIIFE() {
   'use strict';
 
-  var VOICE_TOKEN_URL = '/.netlify/functions/voice-token';
   var VOICE_MAX_DURATION_MS = 5 * 60 * 1000;
-  var VOICE_MAX_UTTERANCE_MS = 15000;
-  var VOICE_NO_SPEECH_MS = 12000;
-  var VOICE_MAX_IDLE_ROUNDS = 2;
   var VOICE_REPLY_SETTLE_MS = 1200;
   var VOICE_REPLY_MAX_WAIT_MS = 60000;
-  var VOICE_BUFFER_SIZE = 4096;
 
-  // idle | connecting | listening | recognizing | thinking | speaking | ending
   var voiceState = {
     status: 'idle',
     transcript: [],
@@ -41,14 +23,17 @@ import {
     elapsed: 0
   };
 
-  var voiceDOM = { callBtn: null, overlay: null, orb: null, timer: null, hangup: null, transcript: null, statusEl: null };
+  var voiceDOM = {
+    callBtn: null,
+    overlay: null,
+    orb: null,
+    timer: null,
+    hangup: null,
+    transcript: null,
+    statusEl: null
+  };
 
-  var session = null; // { token, region, fetchedAt }
-  var audioCtx = null;
-  var micStream = null;
-  var micSource = null;
-  var processor = null;
-  var capture = null; // aktivní poslech: { chunks, detector, startedAt, resolve }
+  var recognition = null;
   var maxTimer = null;
   var elapsedTimer = null;
   var runId = 0;
@@ -62,9 +47,12 @@ import {
     return typeof window.ldGetLanguage === 'function' && window.ldGetLanguage() === 'en';
   }
 
+  function getSpeechRecognitionCtor() {
+    return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  }
+
   function checkSupport() {
-    var Ctx = window.AudioContext || window.webkitAudioContext;
-    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && Ctx && window.fetch);
+    return !!getSpeechRecognitionCtor();
   }
 
   function setStatus(status, customText) {
@@ -124,108 +112,6 @@ import {
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
 
-  // ── Token ────────────────────────────────────────────────────────────────
-  function fetchSession() {
-    return fetch(VOICE_TOKEN_URL, { method: 'POST' })
-      .then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (data) {
-          if (!res.ok || !data.token || !data.region) {
-            throw new Error(data.error || ('voice token ' + res.status));
-          }
-          session = { token: data.token, region: data.region, fetchedAt: Date.now() };
-          return session;
-        });
-      });
-  }
-
-  function ensureSession() {
-    // Azure STS token platí 10 minut; obnovíme s rezervou.
-    if (session && Date.now() - session.fetchedAt < 8 * 60 * 1000) return Promise.resolve(session);
-    return fetchSession();
-  }
-
-  // ── Mikrofon ─────────────────────────────────────────────────────────────
-  function openMic() {
-    return navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }
-    }).then(function (stream) {
-      var Ctx = window.AudioContext || window.webkitAudioContext;
-      micStream = stream;
-      audioCtx = new Ctx();
-      micSource = audioCtx.createMediaStreamSource(stream);
-      processor = audioCtx.createScriptProcessor(VOICE_BUFFER_SIZE, 1, 1);
-      processor.onaudioprocess = onAudioBlock;
-      micSource.connect(processor);
-      processor.connect(audioCtx.destination);
-    });
-  }
-
-  function onAudioBlock(event) {
-    var out = event.outputBuffer;
-    if (out && out.numberOfChannels) out.getChannelData(0).fill(0); // nic nepouštět do repro
-    if (!capture) return;
-    var block = new Float32Array(event.inputBuffer.getChannelData(0));
-    var blockMs = (block.length / audioCtx.sampleRate) * 1000;
-    var phase = capture.detector.push(rms(block), blockMs);
-    if (phase === 'waiting' || phase === 'calibrating') {
-      // Nikdo nemluví: zahodit případné cvaknutí a držet krátký předběh,
-      // ať se neusekne první slabika.
-      capture.chunks = [];
-      capture.preroll.push(block);
-      if (capture.preroll.length > 3) capture.preroll.shift();
-    } else {
-      capture.chunks.push(block);
-    }
-    var elapsed = Date.now() - capture.startedAt;
-    if (phase === 'done') finishCapture('speech');
-    else if (capture.detector.started && elapsed > VOICE_MAX_UTTERANCE_MS) finishCapture('speech');
-    else if (!capture.detector.started && elapsed > VOICE_NO_SPEECH_MS) finishCapture('silence');
-  }
-
-  function listenOnce() {
-    return new Promise(function (resolve) {
-      capture = {
-        chunks: [],
-        preroll: [],
-        detector: createSpeechDetector(),
-        startedAt: Date.now(),
-        resolve: resolve
-      };
-    });
-  }
-
-  function finishCapture(kind) {
-    var c = capture;
-    capture = null;
-    if (!c) return;
-    if (kind !== 'speech' || !c.chunks.length) { c.resolve(null); return; }
-    var samples = downsample(concatFloat32(c.preroll.concat(c.chunks)), audioCtx.sampleRate);
-    c.resolve(encodeWavPcm16(samples));
-  }
-
-  // ── Rozpoznání (Azure REST, krátká nahrávka) ─────────────────────────────
-  function recognize(wav, retried) {
-    return ensureSession().then(function (s) {
-      return fetch(sttUrl(s.region, isEnglish() ? 'en-US' : 'cs-CZ'), {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + s.token,
-          'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
-          'Accept': 'application/json'
-        },
-        body: wav
-      }).then(function (res) {
-        if (res.status === 401 && !retried) {
-          session = null;
-          return recognize(wav, true);
-        }
-        if (!res.ok) throw new Error('stt ' + res.status);
-        return res.json().then(parseSttResponse);
-      });
-    });
-  }
-
-  // ── Odpověď agenta ───────────────────────────────────────────────────────
   function lastAssistantText() {
     var msgs = window.aiChat && window.aiChat.state && window.aiChat.state.messages;
     if (!msgs) return '';
@@ -243,8 +129,6 @@ import {
     return !!(chat.state && chat.state.isProcessing) || speaking;
   }
 
-  // Čeká, až agent dopíše i domluví; ticho musí vydržet, protože TTS věty
-  // dobíhají po skončení textového streamu.
   function waitForReply(myRun) {
     var started = Date.now();
     var quietSince = 0;
@@ -271,22 +155,81 @@ import {
     });
   }
 
-  // ── Hlavní smyčka ────────────────────────────────────────────────────────
+  function listenTurn(myRun) {
+    return new Promise(function (resolve) {
+      var SpeechRecognitionCtor = getSpeechRecognitionCtor();
+      if (!SpeechRecognitionCtor || myRun !== runId) {
+        resolve(null);
+        return;
+      }
+
+      var rec = new SpeechRecognitionCtor();
+      recognition = rec;
+      rec.lang = isEnglish() ? 'en-US' : 'cs-CZ';
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.maxAlternatives = 1;
+
+      var recognizedText = '';
+
+      rec.onstart = function () {
+        if (myRun === runId) setStatus('listening');
+      };
+
+      rec.onresult = function (event) {
+        if (myRun !== runId) return;
+        var interim = '';
+        for (var i = event.resultIndex; i < event.results.length; i++) {
+          var res = event.results[i];
+          if (res.isFinal) {
+            recognizedText = (recognizedText + ' ' + res[0].transcript).trim();
+          } else {
+            interim = (interim + ' ' + res[0].transcript).trim();
+          }
+        }
+        if (interim) {
+          setStatus('listening', interim);
+        }
+      };
+
+      rec.onerror = function (event) {
+        if (event.error === 'no-speech') {
+          resolve(null);
+          return;
+        }
+        console.warn('SpeechRecognition error:', event.error);
+        resolve(null);
+      };
+
+      rec.onend = function () {
+        recognition = null;
+        resolve(recognizedText || null);
+      };
+
+      try {
+        rec.start();
+      } catch (err) {
+        console.warn('SpeechRecognition start failed:', err);
+        recognition = null;
+        resolve(null);
+      }
+    });
+  }
+
   function loop(myRun, idleRounds) {
     if (myRun !== runId) return Promise.resolve();
-    setStatus('listening');
-    return listenOnce().then(function (wav) {
+    return listenTurn(myRun).then(function (text) {
       if (myRun !== runId) return;
-      if (!wav) {
-        if (idleRounds + 1 >= VOICE_MAX_IDLE_ROUNDS) { voiceEnd(); return; }
+      if (!text) {
+        if (idleRounds + 1 >= 3) {
+          voiceEnd();
+          return;
+        }
         return loop(myRun, idleRounds + 1);
       }
-      setStatus('recognizing');
-      return recognize(wav).then(function (result) {
-        if (myRun !== runId) return;
-        if (!result.ok) return loop(myRun, idleRounds);
-        addTranscriptLine('user', result.text);
-        return askAgent(result.text, myRun).then(function () { return loop(myRun, 0); });
+      addTranscriptLine('user', text);
+      return askAgent(text, myRun).then(function () {
+        return loop(myRun, 0);
       });
     });
   }
@@ -306,7 +249,7 @@ import {
     if (voiceState.status !== 'idle') return;
     if (!checkSupport()) {
       showOverlay();
-      setStatus('ending', t('voice.unsupported', 'Tenhle prohlížeč hlasový hovor nepodporuje. Můžete psát.'));
+      setStatus('ending', t('voice.unsupported', 'Tenhle prohlížeč nativní hlas nepodporuje. Můžete psát.'));
       setTimeout(function () { hideOverlay(); setStatus('idle'); }, 2500);
       return;
     }
@@ -316,36 +259,28 @@ import {
     showOverlay();
     setStatus('connecting');
 
-    // Odpovědi v hovoru agent čte nahlas; původní volbu po hovoru vrátíme.
     if (window.aiChat && window.aiChat.state && typeof window.aiChat.setVoiceOutput === 'function') {
       prevVoiceOutput = !!window.aiChat.state.voiceOutputEnabled;
       if (!prevVoiceOutput) window.aiChat.setVoiceOutput(true, { silent: true });
     }
 
-    fetchSession()
-      .then(openMic)
-      .then(function () {
-        if (myRun !== runId) return;
-        startTimers();
-        return loop(myRun, 0);
-      })
-      .catch(function (err) {
-        console.error('voice.js:', err);
-        if (myRun !== runId) return;
-        setStatus('ending', t('voice.connectionFailed', 'Nepodařilo se navázat spojení') + '. ' + t('voice.fallbackText', 'Můžete psát.'));
-        cleanup();
-        setTimeout(function () { hideOverlay(); setStatus('idle'); }, 2500);
-      });
+    startTimers();
+    loop(myRun, 0).catch(function (err) {
+      console.error('voice.js loop error:', err);
+      if (myRun !== runId) return;
+      setStatus('ending', t('voice.connectionFailed', 'Hovor byl ukončen.'));
+      cleanup();
+      setTimeout(function () { hideOverlay(); setStatus('idle'); }, 2000);
+    });
   }
 
   function cleanup() {
-    capture = null;
     if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
     if (maxTimer) { clearTimeout(maxTimer); maxTimer = null; }
-    if (processor) { try { processor.disconnect(); } catch (e) {} processor.onaudioprocess = null; processor = null; }
-    if (micSource) { try { micSource.disconnect(); } catch (e) {} micSource = null; }
-    if (micStream) { micStream.getTracks().forEach(function (tr) { tr.stop(); }); micStream = null; }
-    if (audioCtx) { try { audioCtx.close(); } catch (e) {} audioCtx = null; }
+    if (recognition) {
+      try { recognition.abort(); } catch (e) {}
+      recognition = null;
+    }
     if (prevVoiceOutput === false && window.aiChat && typeof window.aiChat.setVoiceOutput === 'function') {
       window.aiChat.setVoiceOutput(false, { silent: true });
     }
@@ -356,7 +291,10 @@ import {
     if (voiceState.status === 'idle' || voiceState.status === 'ending') return;
     runId++;
     setStatus('ending');
-    if (capture) capture.resolve(null);
+    if (recognition) {
+      try { recognition.abort(); } catch (e) {}
+      recognition = null;
+    }
     if (window.aiChat && typeof window.aiChat.stopSpeech === 'function') window.aiChat.stopSpeech();
     cleanup();
     setTimeout(function () { hideOverlay(); setStatus('idle'); }, 500);

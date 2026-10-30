@@ -16,6 +16,8 @@ import {
   handleLukasConversationalTurn,
   createLukasDiscourseContext,
 } from './lukas-nlg-engine.mjs';
+import { extractPcmFromBytes } from '../lib/tts-guard.mjs';
+import { cleanTextForSpeech } from '../lib/speech-text.mjs';
 
 ;(function chatbotIIFE() {
   'use strict';
@@ -346,6 +348,7 @@ import {
   var chatbotStreamSources = [];
   var chatbotStreamChain = Promise.resolve();
   var chatbotAudioPlaying = false;
+  var chatbotStreamAbortCtrl = null;
   var chatbotWarmedUp = false;
   var chatbotTtsWarmedUp = false;
 
@@ -538,6 +541,10 @@ import {
       });
       chatbotStreamSources = [];
     }
+    if (chatbotStreamAbortCtrl) {
+      try { chatbotStreamAbortCtrl.abort(); } catch (err) {}
+      chatbotStreamAbortCtrl = null;
+    }
     chatbotStreamChain = Promise.resolve();
     pendingNavManager.cancel();
   }
@@ -665,9 +672,13 @@ import {
           resolve(decoded);
         }, function() {
           try {
-            var int16 = new Int16Array(arrayBuf);
+            var rawBytes = new Uint8Array(arrayBuf);
+            var extracted = extractPcmFromBytes(rawBytes, sampleRate || CHATBOT_TTS_SAMPLE_RATE);
+            var pcmBytes = extracted.pcmBytes;
+            var actualRate = extracted.sampleRate || sampleRate || CHATBOT_TTS_SAMPLE_RATE;
+            var int16 = new Int16Array(pcmBytes.buffer, pcmBytes.byteOffset, pcmBytes.byteLength / 2);
             var float32 = chatbotInt16ToFloat32(int16);
-            var audioBuffer = audioCtx.createBuffer(1, float32.length, sampleRate || CHATBOT_TTS_SAMPLE_RATE);
+            var audioBuffer = audioCtx.createBuffer(1, float32.length, actualRate);
             audioBuffer.getChannelData(0).set(float32);
             resolve(audioBuffer);
           } catch (pcmErr) {
@@ -841,10 +852,18 @@ import {
     return chatbotEnsurePlaybackContext().then(function (ctx) {
       if (!ctx || requestId !== chatbotSpeechRequestId) return;
       if (chatbotStreamCursor < ctx.currentTime) chatbotStreamCursor = ctx.currentTime + 0.05;
+
+      if (chatbotStreamAbortCtrl) {
+        try { chatbotStreamAbortCtrl.abort(); } catch (e) {}
+      }
+      chatbotStreamAbortCtrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var signal = chatbotStreamAbortCtrl ? chatbotStreamAbortCtrl.signal : undefined;
+
       return fetch(CHATBOT_TTS_STREAM_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: text, lang: lang })
+        body: JSON.stringify({ text: text, lang: lang }),
+        signal: signal
       }).then(function (res) {
         if (!res.ok || !res.body || typeof res.body.getReader !== 'function') {
           throw new Error('tts-stream http ' + res.status);
@@ -852,6 +871,7 @@ import {
         var reader = res.body.getReader();
         var leftover = null;
         var total = 0;
+        var isFirstChunk = true;
         function pump() {
           return reader.read().then(function (r) {
             if (requestId !== chatbotSpeechRequestId) { try { reader.cancel(); } catch (e) {} return; }
@@ -866,6 +886,11 @@ import {
                 merged.set(bytes, leftover.length);
                 bytes = merged;
                 leftover = null;
+              }
+              if (isFirstChunk) {
+                isFirstChunk = false;
+                var extracted = extractPcmFromBytes(bytes, CHATBOT_TTS_SAMPLE_RATE);
+                bytes = extracted.pcmBytes;
               }
               var usable = bytes.length - (bytes.length % 2);
               if (usable < bytes.length) leftover = bytes.slice(usable);
@@ -886,6 +911,7 @@ import {
           }
         });
       }).catch(function (err) {
+        if (err && err.name === 'AbortError') return;
         console.warn('TTS stream → fallback:', err && err.message);
         if (requestId === chatbotSpeechRequestId) return chatbotStreamFallbackOneShot(text, lang, requestId, ctx);
       });
@@ -983,7 +1009,7 @@ import {
     if (!CHATBOT_CAN_SPEAK || !chatbotState.voiceOutputEnabled || !text) return;
     if (window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active') return;
 
-    var cleanText = String(text).replace(/\s+/g, ' ').trim();
+    var cleanText = cleanTextForSpeech(text);
     if (!cleanText) return;
 
     var lang = chatbotGuessSpeechLang(langHint || cleanText);
@@ -997,7 +1023,7 @@ import {
   function chatbotSpeakStreamingSentence(sentence, langHint, requestId) {
     if (!CHATBOT_CAN_SPEAK || !chatbotState.voiceOutputEnabled || !sentence) return;
     if (window.aiVoice && window.aiVoice.state && window.aiVoice.state.status === 'active') return;
-    var clean = String(sentence).replace(/\s+/g, ' ').trim();
+    var clean = cleanTextForSpeech(sentence);
     if (!clean || clean.length < 3) return;
     var lang = chatbotGuessSpeechLang(langHint || clean);
     chatbotState.preferredSpeechLang = lang;

@@ -1,11 +1,20 @@
 // ── Streaming TTS endpoint (Netlify Functions v2) ───────────────────────────
-// Microsoft Azure AI Speech REST API → streams raw binary PCM16 24kHz directly
+// Google Gemini 3.8 TTS (voice: Sulafat) → streams raw binary PCM16 24kHz directly
 // to the client as chunks arrive. Frontend plans chunks gapless into AudioContext.
+// Primary model: gemini-3.8-flash-lite-tts (fallback: gemini-3.8-flash-tts).
 
 import { isAllowedOrigin } from "./_lib/security.mjs";
 import { checkLimit } from "./_lib/limits.mjs";
+import { validateTtsRequestSecurity } from "../../src/lib/chat-privacy.mjs";
+import { cleanTextForSpeech as cleanSpeechText, normalizeForSpeech } from "../../src/lib/speech-text.mjs";
+import { buildTtsPrompt, extractPcmFromBytes } from "../../src/lib/tts-guard.mjs";
+import { canUseGeminiTts } from "../../src/lib/tenant-policy.mjs";
 
 const MAX_TEXT_LENGTH = 360;
+const DEFAULT_GEMINI_TTS_MODEL = "gemini-3.8-flash-lite-tts";
+const FALLBACK_GEMINI_TTS_MODEL = "gemini-3.8-flash-tts";
+const GEMINI_VOICE_NAME = "Sulafat";
+const ALLOWED_PUBLIC_EMAILS = ["lukas.drsticka@gmail.com"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,50 +29,102 @@ function json(status, body) {
   });
 }
 
-function getApiKey() {
-  return String(
-    process.env.AZURE_SPEECH_KEY ||
-    process.env.SPEECH_KEY ||
-    ""
-  ).trim();
+function getGeminiApiKey() {
+  return String(process.env.GEMINI_API_KEY || "").trim();
 }
 
-function getRegion() {
-  return String(
-    process.env.AZURE_SPEECH_REGION ||
-    process.env.SPEECH_REGION ||
-    "northeurope"
-  ).trim().toLowerCase();
-}
-
-function getVoice(locale) {
-  const norm = String(locale || "cs-CZ").trim();
-  if (norm.toLowerCase().startsWith("en")) {
-    return process.env.AZURE_SPEECH_VOICE_EN || "en-US-JennyNeural";
-  }
-  return process.env.AZURE_SPEECH_VOICE_CS || "cs-CZ-VlastaNeural";
-}
-
-function escapeXml(value) {
-  return String(value || "").replace(/[<>&'"]/g, (char) => {
-    switch (char) {
-      case "<": return "&lt;";
-      case ">": return "&gt;";
-      case "&": return "&amp;";
-      case "'": return "&apos;";
-      case '"': return "&quot;";
-      default: return char;
-    }
-  });
+function getGeminiTtsModels() {
+  const primary = String(process.env.GEMINI_TTS_MODEL || DEFAULT_GEMINI_TTS_MODEL).trim();
+  const fallback = String(process.env.GEMINI_TTS_FALLBACK_MODEL || FALLBACK_GEMINI_TTS_MODEL).trim();
+  return fallback && fallback !== primary ? [primary, fallback] : [primary];
 }
 
 function cleanTextForSpeech(value) {
-  return String(value || "")
-    .replace(/\[\[ACTION:[^\]]+\]\]/gi, "")
-    .replace(/https?:\/\/\S+/gi, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, MAX_TEXT_LENGTH);
+  return cleanSpeechText(value).slice(0, MAX_TEXT_LENGTH);
+}
+
+async function streamGeminiPcm(geminiKey, normalizedText, lang) {
+  const promptText = buildTtsPrompt(normalizedText, lang);
+  const models = getGeminiTtsModels();
+
+  for (const model of models) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+    const upstream = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": geminiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: GEMINI_VOICE_NAME },
+            },
+          },
+        },
+      }),
+    }).catch(() => null);
+
+    if (!upstream || !upstream.ok || !upstream.body) {
+      continue;
+    }
+
+    const reader = upstream.body.getReader();
+    const decoder = new TextDecoder();
+    let sseBuffer = "";
+
+    const pcmStream = new ReadableStream({
+      async pull(controller) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            controller.close();
+            return;
+          }
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split(/\r?\n/);
+          sseBuffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            const rawJson = line.slice(5).trim();
+            if (!rawJson || rawJson === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(rawJson);
+              const b64 = parsed?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+              if (b64) {
+                const rawBytes = new Uint8Array(Buffer.from(b64, "base64"));
+                const { pcmBytes } = extractPcmFromBytes(rawBytes, 24000);
+                if (pcmBytes.byteLength > 0) {
+                  controller.enqueue(pcmBytes);
+                }
+              }
+            } catch {
+              // ignore malformed SSE fragment
+            }
+          }
+        }
+      },
+      cancel() {
+        try { reader.cancel(); } catch {}
+      },
+    });
+
+    return new Response(pcmStream, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "audio/pcm; rate=24000",
+        "Cache-Control": "no-store",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  }
+
+  return json(502, { error: "Gemini TTS stream failed" });
 }
 
 export default async (req) => {
@@ -88,17 +149,21 @@ export default async (req) => {
     return json(429, { error: "Příliš mnoho TTS požadavků. Zkus to za chvíli." });
   }
 
-  const apiKey = getApiKey();
-  const region = getRegion();
-  if (!apiKey) {
-    return json(503, { error: "Azure Speech hlas není nastavený." });
-  }
-
   let body;
   try {
     body = await req.json();
   } catch (err) {
     return json(400, { error: "Invalid JSON body" });
+  }
+
+  const sec = validateTtsRequestSecurity(body, { allowedPublicEmails: ALLOWED_PUBLIC_EMAILS });
+  if (!sec.allowed) {
+    return json(sec.status, {
+      error: sec.reason === "empty-text"
+        ? "Chybí text pro hlas."
+        : "Text obsahuje údaje, které nelze odeslat do externího TTS.",
+      reason: sec.reason,
+    });
   }
 
   const text = cleanTextForSpeech(body && body.text);
@@ -107,41 +172,15 @@ export default async (req) => {
     return json(400, { error: "Chybí text pro hlas." });
   }
 
-  const voice = getVoice(lang);
-  const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${escapeXml(lang)}"><voice name="${escapeXml(voice)}">${escapeXml(text)}</voice></speak>`;
-
-  let upstream;
-  try {
-    upstream = await fetch(
-      `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`,
-      {
-        method: "POST",
-        headers: {
-          "Ocp-Apim-Subscription-Key": apiKey,
-          "Content-Type": "application/ssml+xml",
-          "X-Microsoft-OutputFormat": "raw-24khz-16bit-mono-pcm",
-          "User-Agent": "lukas-portfolio",
-        },
-        body: ssml,
-      }
-    );
-  } catch (err) {
-    return json(502, { error: "Azure Speech TTS upstream fetch failed" });
+  if (!canUseGeminiTts(undefined, body.text, "visitor", true)) {
+    return json(403, { error: "Hlasový výstup není povolen politikou zpracování dat." });
   }
 
-  if (!upstream.ok || !upstream.body) {
-    const errText = await upstream.text().catch(() => "");
-    console.error("Azure Speech TTS stream error:", upstream.status, errText.slice(0, 300));
-    return json(502, { error: "TTS stream failed", upstreamStatus: upstream.status });
+  const geminiKey = getGeminiApiKey();
+  if (!geminiKey) {
+    return json(503, { error: "Gemini TTS hlas není nastavený. Nastav GEMINI_API_KEY." });
   }
 
-  return new Response(upstream.body, {
-    status: 200,
-    headers: {
-      ...corsHeaders,
-      "Content-Type": "audio/pcm; rate=24000",
-      "Cache-Control": "no-store",
-      "X-Accel-Buffering": "no",
-    },
-  });
+  const normalizedText = normalizeForSpeech(text, lang);
+  return streamGeminiPcm(geminiKey, normalizedText, lang);
 };
