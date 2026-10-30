@@ -14,7 +14,7 @@ export function buildTtsPrompt(text, lang, variant = DEFAULT_VARIANT, customHint
 
   switch (variant) {
     case 'legacy':
-      return style + text;
+      return text;
     case 'mark-cs':
       return [
         'Úkol: vytvoř mluvenou nahrávku. Přečti nahlas VÝHRADNĚ text, který následuje za značkou [PŘEPIS].',
@@ -36,7 +36,7 @@ export function buildTtsPrompt(text, lang, variant = DEFAULT_VARIANT, customHint
     case 'short':
       return (en ? 'Warm, professional female voice, calm pace: ' : 'Vřelý profesionální ženský hlas, spisovná čeština, klidné tempo: ') + text;
     default:
-      return style + text;
+      return text;
   }
 }
 
