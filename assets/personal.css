@@ -44,7 +44,19 @@ body.personal-site{
 .mast{position:absolute;top:76px;width:126px;height:70px}
 .mast-left{left:clamp(12px,5vw,110px)}
 .mast-right{right:clamp(12px,5vw,110px);transform:scaleX(-1)}
-.floodlight-sweep{position:absolute;inset:0;transform-origin:63px 30px}
+/* Pevný příhradový stožár zůstává na místě, zatímco se hlava natáčí. */
+.mast::before{
+  content:'';position:absolute;left:44px;top:86px;width:38px;height:calc(100svh - 162px);
+  border-left:2px solid rgba(125,148,164,.48);border-right:2px solid rgba(84,108,126,.5);
+  background:
+    repeating-linear-gradient(45deg,transparent 0 18px,rgba(126,150,167,.3) 18px 20px,transparent 20px 38px),
+    repeating-linear-gradient(-45deg,transparent 0 18px,rgba(96,120,139,.34) 18px 20px,transparent 20px 38px),
+    repeating-linear-gradient(0deg,transparent 0 36px,rgba(139,159,175,.28) 36px 38px),
+    linear-gradient(90deg,rgba(57,74,87,.55),rgba(12,20,28,.45) 45%,rgba(45,62,76,.6));
+  -webkit-mask-image:linear-gradient(#000 0 74%,transparent 100%);
+  mask-image:linear-gradient(#000 0 74%,transparent 100%)
+}
+.floodlight-sweep{position:absolute;inset:0;z-index:1;transform-origin:63px 30px}
 .floodlight-beam{
   position:absolute;left:61px;top:28px;width:min(76vw,950px);height:min(76vh,720px);
   background:conic-gradient(from 106deg at 0 0,
@@ -545,6 +557,11 @@ html[lang="en"] .personal-site .lang-en{display:block}
   .wordmark-logo{width:24px;height:24px}
   .mast{top:70px;width:94px;height:55px}
   .mast-left{left:10px}.mast-right{right:10px}
+  .mast::before{left:-3px;top:63px;width:27px;height:calc(100svh - 133px);opacity:.62}
+  .mast::after{
+    content:'';position:absolute;left:9px;top:60px;width:39px;height:4px;
+    background:linear-gradient(#62717d,#27343f);transform:rotate(-10deg);transform-origin:right center
+  }
   .floodlight-sweep{transform-origin:46px 22px}
   .floodlight-fixture{transform:scale(.74);transform-origin:0 0}
   .floodlight-beam{left:45px;top:22px;width:82vw;height:65vh}
