@@ -25,7 +25,7 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="preload" href="/dist/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="/dist/css/styles.min.css?v=52">
-    <link rel="stylesheet" href="/assets/personal.css?v=9">
+    <link rel="stylesheet" href="/assets/personal.css?v=10">
     <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"Person","name":"Lukáš Drštička","url":"https://lukasdrsticka-ai-and-foto.com/","email":"lukas.drsticka@gmail.com","sameAs":["https://www.instagram.com/lukas_drsticka_foto/","https://github.com/Lukedaca"]}
     </script>
@@ -39,10 +39,32 @@
         <textarea name="message"></textarea><textarea name="brief"></textarea>
     </form>
 
-    <!-- Světlomety: dva stožáry v horních rozích, kužely se natáčí podle scrollu (čistě CSS) -->
+    <!-- Prostorové reflektory stadionu; dekorace je skrytá čtečkám -->
     <div class="floodlights" aria-hidden="true">
-        <span class="mast mast-left"><i></i></span>
-        <span class="mast mast-right"><i></i></span>
+        <div class="mast mast-left">
+            <div class="floodlight-sweep">
+                <span class="floodlight-beam"></span><span class="floodlight-halo"></span>
+                <div class="floodlight-fixture">
+                    <span class="floodlight-bracket"></span>
+                    <div class="floodlight-housing">
+                        <span class="floodlight-top"></span><span class="floodlight-side"></span>
+                        <span class="floodlight-face"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mast mast-right">
+            <div class="floodlight-sweep">
+                <span class="floodlight-beam"></span><span class="floodlight-halo"></span>
+                <div class="floodlight-fixture">
+                    <span class="floodlight-bracket"></span>
+                    <div class="floodlight-housing">
+                        <span class="floodlight-top"></span><span class="floodlight-side"></span>
+                        <span class="floodlight-face"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <header class="site-header">

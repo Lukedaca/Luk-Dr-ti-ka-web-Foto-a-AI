@@ -34,60 +34,74 @@ body.personal-site{
 }
 
 /* ================================================================
-   Světlomety — dva stožáry, kužel studeného LED světla.
-   Natáčí se se scrollem přes scroll-driven animations; bez podpory
-   nebo s reduced-motion stojí v klidové poloze.
+   Stadionové reflektory — prostorové tělo, optika a jemný kužel.
+   Animuje se jen transformace celé sestavy, bez JavaScriptu a WebGL.
    ================================================================ */
-.floodlights{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-.mast{position:absolute;top:0;width:0;height:0}
-.mast-left{left:7vw}
-.mast-right{right:7vw}
-/* baterie lamp na stožáru */
-.mast i{
-  position:absolute;top:10px;left:-22px;width:44px;height:15px;
-  background:radial-gradient(circle,#f4f8ff 0 1.5px,transparent 2.2px) 0 0/8.8px 7.5px;
-  filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 12px rgba(232,241,255,.8)) drop-shadow(0 0 32px rgba(232,241,255,.45))
+.floodlights{
+  position:absolute;inset:0 0 auto;height:100svh;overflow:hidden;
+  pointer-events:none;z-index:0;contain:layout paint;content-visibility:auto
 }
-/* záře u zdroje — ať je vidět, odkud světlo jde */
-.mast::after{
-  content:'';position:absolute;top:-130px;left:-160px;width:320px;height:220px;
-  background:radial-gradient(ellipse at 50% 45%,rgba(232,241,255,.28),rgba(232,241,255,.08) 38%,transparent 70%)
+.mast{position:absolute;top:76px;width:126px;height:70px}
+.mast-left{left:clamp(12px,5vw,110px)}
+.mast-right{right:clamp(12px,5vw,110px);transform:scaleX(-1)}
+.floodlight-sweep{position:absolute;inset:0;transform-origin:63px 30px}
+.floodlight-beam{
+  position:absolute;left:61px;top:28px;width:min(76vw,950px);height:min(76vh,720px);
+  background:conic-gradient(from 106deg at 0 0,
+    transparent 0deg,rgba(222,235,255,.025) 7deg,rgba(222,235,255,.14) 20deg,
+    rgba(222,235,255,.09) 33deg,rgba(222,235,255,.025) 48deg,transparent 59deg);
+  -webkit-mask-image:radial-gradient(ellipse at 0 0,#000 0,rgba(0,0,0,.7) 35%,transparent 78%);
+  mask-image:radial-gradient(ellipse at 0 0,#000 0,rgba(0,0,0,.7) 35%,transparent 78%)
 }
-/* kužel světla — míří na střed obrazovky.
-   Úhel = atan2(vodorovná vzdálenost stožáru od středu, svislá), dosah = přepona.
-   U zdroje svítí naplno, ke středu slábne, aby text uprostřed zůstal čitelný. */
-.mast{--aim:36deg;--reach:760px}
-@supports (width:hypot(1px,1px)) and (transform:rotate(atan2(1px,1px))){
-  .mast{--aim:atan2(43vw,50vh);--reach:hypot(43vw,50vh)}
+.floodlight-halo{
+  position:absolute;left:-82px;top:-86px;width:286px;height:210px;
+  background:radial-gradient(ellipse,rgba(218,232,255,.17),rgba(218,232,255,.045) 33%,transparent 70%)
 }
-.mast::before{
-  content:'';position:absolute;top:14px;left:-80vmax;width:160vmax;height:160vh;
-  transform-origin:50% 0;
-  background:conic-gradient(from 158deg at 50% 0,
-    transparent 0deg,rgba(232,241,255,.06) 7deg,rgba(232,241,255,.17) 15deg,
-    rgba(232,241,255,.3) 22deg,rgba(232,241,255,.17) 29deg,
-    rgba(232,241,255,.06) 37deg,transparent 44deg);
-  -webkit-mask-image:radial-gradient(circle at 50% 0,#000 0,rgba(0,0,0,.62) calc(var(--reach)*.45),rgba(0,0,0,.3) var(--reach),transparent calc(var(--reach)*1.45));
-          mask-image:radial-gradient(circle at 50% 0,#000 0,rgba(0,0,0,.62) calc(var(--reach)*.45),rgba(0,0,0,.3) var(--reach),transparent calc(var(--reach)*1.45))
+.floodlight-fixture{position:absolute;inset:0;perspective:480px}
+.floodlight-bracket{
+  position:absolute;left:23px;top:32px;width:82px;height:43px;
+  border:3px solid #39434d;border-top:0;border-radius:0 0 10px 10px;
+  box-shadow:inset 0 -1px #111720,0 1px #111720
 }
-.mast-left::before{transform:rotate(calc(var(--aim)*-1))}
-.mast-right::before{transform:rotate(var(--aim))}
-/* při scrollu se kužel jen lehce kývne kolem středu */
-@supports (animation-timeline: scroll()){
-  @media (prefers-reduced-motion:no-preference){
-    .mast-left::before{animation:sweep-left linear both;animation-timeline:scroll(root)}
-    .mast-right::before{animation:sweep-right linear both;animation-timeline:scroll(root)}
-  }
+.floodlight-bracket::after{
+  content:'';position:absolute;top:100%;left:calc(50% - 4px);width:8px;height:18px;
+  background:linear-gradient(90deg,#151c24,#525d68 45%,#141a21);border-radius:0 0 2px 2px
 }
-@keyframes sweep-left{
-  0%{transform:rotate(calc(var(--aim)*-1 - 6deg))}
-  50%{transform:rotate(calc(var(--aim)*-1 + 6deg))}
-  100%{transform:rotate(calc(var(--aim)*-1 - 6deg))}
+.floodlight-housing{
+  position:absolute;inset:0;width:126px;height:65px;transform-style:preserve-3d;
+  transform:rotateX(-14deg) rotateY(20deg) rotateZ(3deg)
 }
-@keyframes sweep-right{
-  0%{transform:rotate(calc(var(--aim) + 6deg))}
-  50%{transform:rotate(calc(var(--aim) - 6deg))}
-  100%{transform:rotate(calc(var(--aim) + 6deg))}
+.floodlight-face{
+  position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);
+  grid-template-rows:repeat(3,1fr);gap:2px;padding:4px;
+  border:2px solid #46525e;border-radius:4px;
+  background:linear-gradient(145deg,#313b46,#10161e 45%,#252f39);
+  box-shadow:0 0 18px rgba(205,226,255,.19),inset 0 1px rgba(224,239,255,.35);
+  transform:translateZ(8px)
+}
+.floodlight-face i{
+  display:block;border:1px solid #384857;border-radius:2px;
+  background:radial-gradient(ellipse at 50% 45%,#fff 0 12%,#d9eeff 19%,#9db5c9 34%,#344454 49%,#121c26 67%,#25323d 100%);
+  box-shadow:inset 0 1px rgba(240,250,255,.23)
+}
+.floodlight-top,.floodlight-side{position:absolute;display:block;backface-visibility:hidden}
+.floodlight-top{
+  left:0;top:-12px;width:100%;height:12px;transform-origin:bottom;
+  transform:translateZ(8px) rotateX(90deg);border:1px solid #53606c;
+  background:linear-gradient(#121922,#47545e)
+}
+.floodlight-side{
+  right:-12px;top:0;width:12px;height:100%;transform-origin:left;
+  transform:translateZ(8px) rotateY(90deg);border:1px solid #111720;
+  background:repeating-linear-gradient(0deg,#1a222b 0 3px,#35414a 3px 4px)
+}
+@media (prefers-reduced-motion:no-preference){
+  .floodlight-sweep{animation:floodlight-sway 18s ease-in-out infinite alternate}
+  .mast-right .floodlight-sweep{animation-delay:-7s}
+}
+@keyframes floodlight-sway{
+  from{transform:perspective(900px) rotateY(-3deg) rotate(-1.5deg)}
+  to{transform:perspective(900px) rotateY(3deg) rotate(1.5deg)}
 }
 
 /* ---- Header (statická, odscrolluje s obsahem) ------------------ */
@@ -529,10 +543,12 @@ html[lang="en"] .personal-site .lang-en{display:block}
   .desktop-nav{display:none}
   .menu-toggle{display:block;border:0;background:none;color:var(--text);font-size:13px;padding:8px 0 8px 10px}
   .wordmark-logo{width:24px;height:24px}
-  .mast-left{left:4vw}.mast-right{right:4vw}
-  @supports (width:hypot(1px,1px)) and (transform:rotate(atan2(1px,1px))){
-    .mast{--aim:atan2(46vw,50vh);--reach:hypot(46vw,50vh)}
-  }
+  .mast{top:70px;width:94px;height:55px}
+  .mast-left{left:10px}.mast-right{right:10px}
+  .floodlight-sweep{transform-origin:46px 22px}
+  .floodlight-fixture{transform:scale(.74);transform-origin:0 0}
+  .floodlight-beam{left:45px;top:22px;width:82vw;height:65vh}
+  .floodlight-halo{left:-66px;top:-75px;width:220px;height:170px}
 
   .personal-site .personal-hero{min-height:calc(100svh - 56px);padding:32px 0}
   .intro-copy{font-size:14px}
