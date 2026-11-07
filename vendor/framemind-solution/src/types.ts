@@ -131,6 +131,11 @@ export type ActionTool =
   | 'open_menu'
   | 'scroll_to'
   | 'highlight_element'
+  | 'click_element'
+  | 'switch_tab'
+  | 'open_accordion'
+  | 'fill_field'
+  | 'inspect_item'
   | 'show_sponsors'
   | 'contact'
   | 'filter_gallery'
@@ -145,6 +150,14 @@ export type ActionTool =
   | 'show_pricing'
   | 'compare_services'
   | string;
+
+export interface InteractiveTarget {
+  id: string;
+  label: string;
+  selector: string;
+  kind: 'section' | 'tab' | 'accordion' | 'button' | 'field';
+  tool: ActionTool;
+}
 
 export interface ActionDefinition {
   id: string;
@@ -486,6 +499,8 @@ export interface SpeechToTextRequest {
   audio: ArrayBuffer;
   locale: string;
   signal?: AbortSignal;
+  /** Whether the visitor explicitly activated this voice request. */
+  voiceActivated?: boolean;
 }
 
 export interface SpeechToTextResponse {
@@ -499,6 +514,10 @@ export interface TextToSpeechRequest {
   locale: string;
   voice?: string;
   signal?: AbortSignal;
+  /** Whether the visitor explicitly activated this voice request. */
+  voiceActivated?: boolean;
+  /** Provenance of the text; unknown text is treated as visitor content. */
+  origin?: 'verified-public-knowledge' | 'visitor' | 'internal';
 }
 
 export interface TextToSpeechResponse {

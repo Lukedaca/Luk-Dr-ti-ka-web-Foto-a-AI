@@ -113,7 +113,14 @@ export interface ContextSnapshot {
     slots: Record<string, SlotValue>;
     sourceIds: string[];
 }
-export type ActionTool = 'navigate' | 'open_menu' | 'scroll_to' | 'highlight_element' | 'show_sponsors' | 'contact' | 'filter_gallery' | 'toggle_theme' | 'open_lightbox' | 'play_showreel' | 'show_project_detail' | 'compare_before_after' | 'prefill_contact_form' | 'send_inquiry' | 'request_callback' | 'show_pricing' | 'compare_services' | string;
+export type ActionTool = 'navigate' | 'open_menu' | 'scroll_to' | 'highlight_element' | 'click_element' | 'switch_tab' | 'open_accordion' | 'fill_field' | 'inspect_item' | 'show_sponsors' | 'contact' | 'filter_gallery' | 'toggle_theme' | 'open_lightbox' | 'play_showreel' | 'show_project_detail' | 'compare_before_after' | 'prefill_contact_form' | 'send_inquiry' | 'request_callback' | 'show_pricing' | 'compare_services' | string;
+export interface InteractiveTarget {
+    id: string;
+    label: string;
+    selector: string;
+    kind: 'section' | 'tab' | 'accordion' | 'button' | 'field';
+    tool: ActionTool;
+}
 export interface ActionDefinition {
     id: string;
     tool: ActionTool;
@@ -422,6 +429,8 @@ export interface SpeechToTextRequest {
     audio: ArrayBuffer;
     locale: string;
     signal?: AbortSignal;
+    /** Whether the visitor explicitly activated this voice request. */
+    voiceActivated?: boolean;
 }
 export interface SpeechToTextResponse {
     text: string;
@@ -433,6 +442,10 @@ export interface TextToSpeechRequest {
     locale: string;
     voice?: string;
     signal?: AbortSignal;
+    /** Whether the visitor explicitly activated this voice request. */
+    voiceActivated?: boolean;
+    /** Provenance of the text; unknown text is treated as visitor content. */
+    origin?: 'verified-public-knowledge' | 'visitor' | 'internal';
 }
 export interface TextToSpeechResponse {
     audio: ArrayBuffer;

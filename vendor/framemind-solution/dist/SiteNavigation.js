@@ -93,6 +93,7 @@ const DEFAULT_STOP_WORDS = new Set([
     'prehled', 'prejdi', 'prejdete', 'se', 'sekce', 'sekci', 'stoji', 'stranka', 'stranku', 'ukaz',
     'ukazat', 'ukazte', 'tam', 'uvnitr', 'v', 've', 'vsechno', 'web', 'webu', 'zobraz', 'zobrazit',
     'zobrazte', 'proklikni', 'prokliknete', 'sroluj', 'srolujte', 'scrolluj', 'scrollujte',
+    'rozbal', 'rozbalte', 'klikni', 'kliknete', 'prepni', 'prepnete', 'vyber', 'vyberte', 'oznac', 'oznacte',
     'menu', 'to', 'ten', 'ta', 'ty', 'tom', 'tomu', 'tento', 'tuto', 'tahle',
     'videt', 'otevrit', 'prejit', 'prohlidnout', 'najit',
 ]);
@@ -129,7 +130,7 @@ function tokenMatches(query, candidate) {
 }
 export function hasExplicitUiActionIntent(value) {
     const text = normalizeNavText(value);
-    return /\b(otevri|otevrete|ukaz|ukazte|prejdi|prejdete|doved|dovedte|naviguj|navigujte|proklikni|prokliknete|zobraz|zobrazte|sroluj|srolujte|scrolluj|scrollujte|rozbal|rozbalte)\b/.test(text)
+    return /\b(otevri|otevrete|ukaz|ukazte|prejdi|prejdete|doved|dovedte|naviguj|navigujte|proklikni|prokliknete|klikni|kliknete|prepni|prepnete|vyber|vyberte|oznac|oznacte|zobraz|zobrazte|sroluj|srolujte|scrolluj|scrollujte|rozbal|rozbalte)\b/.test(text)
         || /^(?:prosim\s+)?(?:najdi|najdete)\b/.test(text)
         || /\bchci\b.{0,20}\b(videt|otevrit|prejit)\b/.test(text);
 }
@@ -289,6 +290,147 @@ export function collectDomSiteMenus(rootDoc, options) {
     catch {
         return [];
     }
+}
+export function collectDomInteractiveTargets(rootDoc, options) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+    try {
+        const doc = rootDoc !== null && rootDoc !== void 0 ? rootDoc : (typeof document !== 'undefined' ? document : null);
+        if (!doc || typeof doc.querySelectorAll !== 'function')
+            return [];
+        const max = (_a = options === null || options === void 0 ? void 0 : options.maxTargets) !== null && _a !== void 0 ? _a : 120;
+        const out = [];
+        const seen = new Set();
+        const pushTarget = (target) => {
+            if (out.length >= max)
+                return;
+            const cleanLabel = target.label.replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+            if (!cleanLabel || cleanLabel.length < 2 || !target.selector)
+                return;
+            const dedupeKey = `${target.kind}:${target.selector}`;
+            if (seen.has(dedupeKey))
+                return;
+            seen.add(dedupeKey);
+            out.push({ ...target, label: cleanLabel });
+        };
+        // 1. Named sections with headings
+        const sections = Array.from(doc.querySelectorAll('section[id], [data-section][id]'));
+        for (const sec of sections) {
+            const id = (((_b = sec.getAttribute) === null || _b === void 0 ? void 0 : _b.call(sec, 'id')) || sec.id || '').trim();
+            if (!id || !/^[a-zA-Z0-9_-]+$/.test(id))
+                continue;
+            const heading = (_c = sec.querySelector) === null || _c === void 0 ? void 0 : _c.call(sec, 'h1, h2, h3, h4');
+            const label = ((heading === null || heading === void 0 ? void 0 : heading.textContent) || ((_d = sec.getAttribute) === null || _d === void 0 ? void 0 : _d.call(sec, 'aria-label')) || ((_e = sec.getAttribute) === null || _e === void 0 ? void 0 : _e.call(sec, 'data-section')) || id).trim();
+            pushTarget({
+                id,
+                label,
+                selector: `#${id}`,
+                kind: 'section',
+                tool: 'scroll_to',
+            });
+        }
+        // 2. Tabs & category filters
+        const tabs = Array.from(doc.querySelectorAll('[role="tab"], [data-tab], [data-filter], [data-service]'));
+        for (const tab of tabs) {
+            const id = (((_f = tab.getAttribute) === null || _f === void 0 ? void 0 : _f.call(tab, 'id')) || tab.id || '').trim();
+            const dataTab = (((_g = tab.getAttribute) === null || _g === void 0 ? void 0 : _g.call(tab, 'data-tab')) || '').trim();
+            const dataFilter = (((_h = tab.getAttribute) === null || _h === void 0 ? void 0 : _h.call(tab, 'data-filter')) || '').trim();
+            const dataService = (((_j = tab.getAttribute) === null || _j === void 0 ? void 0 : _j.call(tab, 'data-service')) || '').trim();
+            const label = (tab.textContent || ((_k = tab.getAttribute) === null || _k === void 0 ? void 0 : _k.call(tab, 'aria-label')) || dataTab || dataFilter || dataService || id).trim();
+            let selector = '';
+            if (id && /^[a-zA-Z0-9_-]+$/.test(id))
+                selector = `#${id}`;
+            else if (dataTab && /^[a-zA-Z0-9_-]+$/.test(dataTab))
+                selector = `[data-tab="${dataTab}"]`;
+            else if (dataFilter && /^[a-zA-Z0-9_-]+$/.test(dataFilter))
+                selector = `[data-filter="${dataFilter}"]`;
+            else if (dataService && /^[a-zA-Z0-9_-]+$/.test(dataService))
+                selector = `[data-service="${dataService}"]`;
+            if (!selector)
+                continue;
+            pushTarget({
+                id: id || dataTab || dataFilter || dataService || selector,
+                label,
+                selector,
+                kind: 'tab',
+                tool: 'switch_tab',
+            });
+        }
+        // 3. Accordions / <details>
+        const summaries = Array.from(doc.querySelectorAll('details > summary'));
+        summaries.forEach((summary, idx) => {
+            var _a, _b, _c;
+            const details = summary.parentElement;
+            const id = (((_a = details === null || details === void 0 ? void 0 : details.getAttribute) === null || _a === void 0 ? void 0 : _a.call(details, 'id')) || (details === null || details === void 0 ? void 0 : details.id) || ((_b = summary.getAttribute) === null || _b === void 0 ? void 0 : _b.call(summary, 'id')) || summary.id || '').trim();
+            const label = (summary.textContent || ((_c = summary.getAttribute) === null || _c === void 0 ? void 0 : _c.call(summary, 'aria-label')) || '').trim();
+            const selector = id && /^[a-zA-Z0-9_-]+$/.test(id) ? `#${id}` : '';
+            if (!selector)
+                return;
+            pushTarget({
+                id: id || `accordion-${idx}`,
+                label,
+                selector,
+                kind: 'accordion',
+                tool: 'open_accordion',
+            });
+        });
+        // 4. Explicit agent action buttons
+        const buttons = Array.from(doc.querySelectorAll('[data-fm-action], button[id]'));
+        for (const btn of buttons) {
+            const id = (((_l = btn.getAttribute) === null || _l === void 0 ? void 0 : _l.call(btn, 'id')) || btn.id || '').trim();
+            const fmAction = (((_m = btn.getAttribute) === null || _m === void 0 ? void 0 : _m.call(btn, 'data-fm-action')) || '').trim();
+            const label = (btn.textContent || ((_o = btn.getAttribute) === null || _o === void 0 ? void 0 : _o.call(btn, 'aria-label')) || fmAction || id).trim();
+            let selector = '';
+            if (fmAction && /^[a-zA-Z0-9_-]+$/.test(fmAction))
+                selector = `[data-fm-action="${fmAction}"]`;
+            else if (id && /^[a-zA-Z0-9_-]+$/.test(id))
+                selector = `#${id}`;
+            if (!selector)
+                continue;
+            pushTarget({
+                id: fmAction || id,
+                label,
+                selector,
+                kind: 'button',
+                tool: 'click_element',
+            });
+        }
+        return out;
+    }
+    catch {
+        return [];
+    }
+}
+export function findInteractiveTargetIntent(userText, targets, options) {
+    var _a;
+    const queryText = normalizeNavText(userText);
+    const aliases = (options === null || options === void 0 ? void 0 : options.aliases) ? { ...DEFAULT_TOKEN_ALIASES, ...options.aliases } : DEFAULT_TOKEN_ALIASES;
+    const stopWords = (_a = options === null || options === void 0 ? void 0 : options.stopWords) !== null && _a !== void 0 ? _a : DEFAULT_STOP_WORDS;
+    const queryTokens = meaningfulTokens(userText, aliases, stopWords).filter((t) => !['klikni', 'kliknete', 'prepni', 'prepnete', 'vyber', 'vyberte', 'oznac', 'oznacte', 'karta', 'kartu', 'zalozka', 'zalozku', 'tab'].includes(t));
+    if (!queryText || queryTokens.length === 0 || !Array.isArray(targets))
+        return null;
+    let best = null;
+    let bestScore = -1;
+    for (const target of targets) {
+        if (!target || !target.selector || !target.label)
+            continue;
+        const labelText = normalizeNavText(target.label);
+        const candidateTokens = meaningfulTokens(`${target.label} ${target.id}`, aliases, stopWords);
+        if (candidateTokens.length === 0)
+            continue;
+        const everyTokenMatches = queryTokens.every((query) => candidateTokens.some((candidate) => tokenMatches(query, candidate)));
+        if (!everyTokenMatches)
+            continue;
+        let score = 50 + queryTokens.length * 10;
+        if (labelText && queryText.includes(labelText))
+            score += 100 + labelText.length;
+        if (queryTokens.length === candidateTokens.length)
+            score += 5;
+        if (score > bestScore) {
+            bestScore = score;
+            best = target;
+        }
+    }
+    return best;
 }
 export class PendingNavigationManager {
     constructor() {

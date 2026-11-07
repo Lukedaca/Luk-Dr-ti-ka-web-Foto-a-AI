@@ -1,6 +1,7 @@
 export class PendingActionCoordinator {
     constructor() {
         this.pending = null;
+        this.cueQueue = [];
         this.timer = null;
         this.onExecute = null;
         this.isVoiceActive = null;
@@ -36,13 +37,92 @@ export class PendingActionCoordinator {
         };
         armFailsafe();
     }
+    scheduleSequence(steps, onExecute, isVoiceActive, failsafeMs = 6000) {
+        this.cancel();
+        if (!Array.isArray(steps) || steps.length === 0)
+            return;
+        this.cueQueue = steps.map((s) => {
+            var _a, _b;
+            return ({
+                ...s,
+                sentenceIndex: (_a = s.sentenceIndex) !== null && _a !== void 0 ? _a : 0,
+                timing: (_b = s.timing) !== null && _b !== void 0 ? _b : 'onCue',
+            });
+        });
+        this.onExecute = onExecute;
+        this.isVoiceActive = isVoiceActive;
+        if (!this.isVoiceActive()) {
+            this.flushSequence();
+            return;
+        }
+        this.timer = setTimeout(() => {
+            this.timer = null;
+            this.flushSequence();
+        }, failsafeMs);
+    }
+    notifyCuePoint(sentenceIndex) {
+        var _a;
+        if (!this.onExecute || this.cueQueue.length === 0)
+            return 0;
+        const execute = this.onExecute;
+        const ready = [];
+        const remaining = [];
+        for (const step of this.cueQueue) {
+            if (((_a = step.sentenceIndex) !== null && _a !== void 0 ? _a : 0) <= sentenceIndex && step.timing !== 'onSpeakEnd') {
+                ready.push(step);
+            }
+            else {
+                remaining.push(step);
+            }
+        }
+        this.cueQueue = remaining;
+        for (const step of ready) {
+            execute(step.action);
+        }
+        if (this.cueQueue.length === 0 && !this.pending) {
+            if (this.timer) {
+                clearTimeout(this.timer);
+                this.timer = null;
+            }
+            this.onExecute = null;
+            this.isVoiceActive = null;
+        }
+        return ready.length;
+    }
+    flushSequence() {
+        if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+        const execute = this.onExecute;
+        const steps = [...this.cueQueue];
+        this.cueQueue = [];
+        if (!this.pending) {
+            this.onExecute = null;
+            this.isVoiceActive = null;
+        }
+        if (!execute || steps.length === 0)
+            return 0;
+        for (const step of steps) {
+            execute(step.action);
+        }
+        return steps.length;
+    }
     notifySpeakStart() {
+        if (this.cueQueue.length > 0) {
+            this.notifyCuePoint(0);
+        }
         if (this.pending && this.timing === 'onSpeakStart') {
             return this.flush();
         }
         return false;
     }
     notifySpeakEnd() {
+        if (this.cueQueue.length > 0) {
+            const count = this.flushSequence();
+            if (!this.pending)
+                return count > 0;
+        }
         if (this.pending && this.timing === 'onSpeakEnd') {
             return this.flush();
         }
@@ -52,6 +132,11 @@ export class PendingActionCoordinator {
         if (this.timer) {
             clearTimeout(this.timer);
             this.timer = null;
+        }
+        if (this.cueQueue.length > 0) {
+            const count = this.flushSequence();
+            if (!this.pending)
+                return count > 0;
         }
         const action = this.pending;
         const execute = this.onExecute;
@@ -70,11 +155,12 @@ export class PendingActionCoordinator {
             this.timer = null;
         }
         this.pending = null;
+        this.cueQueue = [];
         this.onExecute = null;
         this.isVoiceActive = null;
     }
     isPending() {
-        return this.pending !== null;
+        return this.pending !== null || this.cueQueue.length > 0;
     }
     getPending() {
         return this.pending;

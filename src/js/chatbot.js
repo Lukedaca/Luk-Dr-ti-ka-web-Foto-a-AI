@@ -8,6 +8,9 @@ import {
   collectDomSiteLinks,
   PendingNavigationManager,
   extractProfileSiteLinks,
+  InPageActionDispatcher,
+  collectDomInteractiveTargets,
+  findInteractiveTargetIntent,
 } from '../../vendor/framemind-solution/dist/index.js';
 import { createLukasEngine, LUKAS_PROFILE, snapshot } from '../config/lukas.mjs';
 import {
@@ -39,6 +42,7 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
   }
   var lukasDiscourseContext = createLukasDiscourseContext();
   var pendingNavManager = new PendingNavigationManager();
+  var actionDispatcher = new InPageActionDispatcher();
 
   var CHATBOT_AGENT_FORM_URL = '/';
   var CHATBOT_AGENT_FORM_NAME = 'lukas-ai-agent';
@@ -1746,7 +1750,14 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
         }
         return null;
       case 'highlight_element':
-        return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target));
+        return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target || args.selector));
+      case 'inspect_item':
+        return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target || args.selector));
+      case 'click_element':
+      case 'switch_tab':
+      case 'open_accordion':
+      case 'fill_field':
+        return actionDispatcher.findTargetElement(args.selector || args.target || args.id || '');
       case 'filter_gallery':
         return chatbotManifestSectionEl('portfolio');
       case 'show_pricing':
@@ -1794,7 +1805,22 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
       }
     },
     highlight_element: function(args) {
-      chatbotHighlightSelector(args.target);
+      chatbotHighlightSelector(args.target || args.selector);
+    },
+    inspect_item: function(args) {
+      chatbotHighlightSelector(args.target || args.selector);
+    },
+    click_element: function(args) {
+      actionDispatcher.clickElement(args.selector || args.target || args.id || '');
+    },
+    switch_tab: function(args) {
+      actionDispatcher.clickElement(args.selector || args.target || args.id || '');
+    },
+    open_accordion: function(args) {
+      actionDispatcher.clickElement(args.selector || args.target || args.id || '');
+    },
+    fill_field: function(args) {
+      actionDispatcher.fillField(args.selector || args.target || args.id || '', args.value || '');
     },
     toggle_theme: function(args) {
       var mode = args && args.mode;
@@ -3260,6 +3286,14 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
     chatbotInitWidget();
     chatbotSyncLocaleUI();
     chatbotSetupPrewarm();
+    try {
+      var handoff = actionDispatcher.consumeCrossPageAction(window.location.pathname);
+      if (handoff && handoff.action && handoff.action.tool) {
+        setTimeout(function() {
+          chatbotRunAction(handoff.action.tool, handoff.action.args || {});
+        }, 420);
+      }
+    } catch (e) {}
   }
 
   if (document.readyState === 'loading') {

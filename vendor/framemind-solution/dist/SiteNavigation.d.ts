@@ -1,4 +1,4 @@
-import type { ResolvedAction, SiteLink, SiteMenu } from './types.js';
+import type { InteractiveTarget, ResolvedAction, SiteLink, SiteMenu } from './types.js';
 export declare function normalizeNavTarget(value: unknown, baseOrigin?: string, allowedApex?: string): string | null;
 export declare function sanitizeNavLinks(raw: unknown, maxLinks?: number, normalizer?: (path: string) => string | null): SiteLink[];
 export declare function normalizeNavText(value: unknown): string;
@@ -17,6 +17,10 @@ export declare function collectDomSiteLinks(rootDoc?: any, options?: {
 export declare function collectDomSiteMenus(rootDoc?: any, options?: {
     normalizer?: (raw: string) => string | null;
 }): SiteMenu[];
+export declare function collectDomInteractiveTargets(rootDoc?: any, options?: {
+    maxTargets?: number;
+}): InteractiveTarget[];
+export declare function findInteractiveTargetIntent(userText: string, targets: InteractiveTarget[], options?: NavSearchOptions): InteractiveTarget | null;
 export declare class PendingNavigationManager {
     private pending;
     private timer;

@@ -20,6 +20,7 @@ export * from './PrivacyGuard.js';
 export * from './DataPolicy.js';
 export * from './SpeechPrivacyGuard.js';
 export * from './AzureSpeechAdapter.js';
+export * from './FrameMindVoiceAdapter.js';
 export * from './VoiceCapability.js';
 export * from './LearningSink.js';
 export * from './NoopLearningSink.js';
