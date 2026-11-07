@@ -1,6 +1,13 @@
-# FrameMind Solution 2.6.0
+# FrameMind Solution 2.7.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
+
+Version 2.7.0 introduces GhostPilot 2.0 and the DOM Action Graph for deterministic, zero-token UI control:
+- **Autonomous DOM Interactions (`InPageActionDispatcher`)**: Direct, safe execution of UI interactions including `click_element`, `switch_tab`, `open_accordion`, `fill_field`, and `inspect_item`. Interacts with existing tabs (ARIA `tab`, `tabpanel`), accordions (`details`, `aria-expanded`), and form inputs without modifying page markup.
+- **Action Chains & InterruptWatcher (`InPageActionDispatcher`)**: Sequential execution of complex interaction workflows (`runActionChain`) backed by `InterruptWatcher`, which immediately aborts pending autonomous actions upon manual user intervention (click, scroll, keydown, touch).
+- **Cross-Page Action Handoff (`scheduleCrossPageAction`, `consumeCrossPageAction`)**: Safely preserves and executes queued interactive actions across page transitions via `sessionStorage` with TTL and origin safeguards.
+- **Voice-Action Sentence Synchronization (`PendingActionCoordinator`)**: Multi-cue sequence coordination linking action triggers (`notifyCuePoint`) to precise sentence boundaries in TTS voice playback with failsafe fallback timers.
+- **DOM Action Graph Discovery (`SiteNavigation`)**: Dynamic real-time collection of interactive targets (`collectDomInteractiveTargets`, `findInteractiveTargetIntent`) with fuzzy Czech matching, intent keyword recognition, and stopword-aware scoring.
 
 Version 2.6.0 adds an answer gate (`AnswerGate`, on by default, `answerGate.enabled: false`
 restores the earlier behaviour). The core answers on its own only with direct lexical evidence
