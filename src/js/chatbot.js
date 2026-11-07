@@ -1654,6 +1654,7 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
       el = document.getElementById(selector.replace(/^#/, ''));
     }
     if (!el) return false;
+    actionDispatcher.unfoldAncestors(el);
     el.classList.add('ai-highlight');
     setTimeout(function() { el.classList.remove('ai-highlight'); }, 3000);
     return true;
@@ -1753,6 +1754,12 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
         return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target || args.selector));
       case 'inspect_item':
         return chatbotQuerySafe(chatbotResolveHighlightSelector(args.target || args.selector));
+      case 'highlight_range': {
+        var dm = actionDispatcher.findDeicticTextMatch(args.query || args.text || args.target || '');
+        return dm ? dm.subElement : null;
+      }
+      case 'compare_elements':
+        return actionDispatcher.findTargetElement(args.first || (args.targets || '').split('|')[0] || '');
       case 'click_element':
       case 'switch_tab':
       case 'open_accordion':
@@ -1821,6 +1828,14 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
     },
     fill_field: function(args) {
       actionDispatcher.fillField(args.selector || args.target || args.id || '', args.value || '');
+    },
+    highlight_range: function(args) {
+      actionDispatcher.highlightTextRange(args.query || args.text || args.target || '');
+    },
+    compare_elements: function(args) {
+      var raw = args.targets || [args.first, args.second].filter(Boolean).join('|');
+      var parts = String(raw).split('|').map(function(s) { return s.trim(); }).filter(Boolean);
+      if (parts.length >= 2) actionDispatcher.compareElements(parts);
     },
     toggle_theme: function(args) {
       var mode = args && args.mode;
@@ -1998,7 +2013,12 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
       '#chatbot-ghost-cursor.cb-ghost-tap .cb-ghost-ring{animation:cbGhostTap .55s ease-out;}' +
       '@keyframes cbGhostTap{0%{opacity:.9;transform:scale(.5);}100%{opacity:0;transform:scale(2.1);}}' +
       '@media (prefers-reduced-motion: reduce){#chatbot-ghost-cursor{transition:opacity .2s ease;}' +
-      '#chatbot-ghost-cursor.cb-ghost-tap .cb-ghost-ring{animation:none;}}';
+      '#chatbot-ghost-cursor.cb-ghost-tap .cb-ghost-ring{animation:none;}}' +
+      '::highlight(framemind-source),::highlight(fm-source){background-color:rgba(0,255,140,.28);text-decoration:underline solid rgba(0,255,140,.85);text-underline-offset:.2em;}' +
+      '.fm-deictic-subelement{position:relative;background-color:rgba(0,255,140,.11);box-shadow:inset 3px 0 0 0 #00ff8c,0 0 0 1px rgba(0,255,140,.35);border-radius:.35rem;}' +
+      '.fm-compare-target{position:relative;}.fm-compare-target::after{content:attr(data-fm-compare-badge);position:absolute;top:-11px;right:-11px;z-index:40;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#00ff8c;color:#041016;font-size:.8rem;font-weight:700;pointer-events:none;}' +
+      '.fm-compare-active{outline:2px solid rgba(0,255,140,.92);outline-offset:6px;}.fm-compare-standby{outline:1.5px dashed rgba(0,255,140,.55);outline-offset:4px;opacity:.88;}' +
+      '#fm-foveal-callout{padding:.35rem .75rem;border-radius:9999px;border:1px solid rgba(0,255,140,.55);background:rgba(10,16,24,.96);color:#f8fafc;font-size:.76rem;font-weight:600;white-space:nowrap;}';
     var style = document.createElement('style');
     style.id = 'chatbot-ghost-style';
     style.textContent = css;
@@ -2028,6 +2048,7 @@ import { cleanTextForSpeech } from '../lib/speech-text.mjs';
     var el = chatbotGhostEnsureEl();
     el.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
     el.classList.add('cb-ghost-visible');
+    actionDispatcher.homingLockToElement(target, { durationMs: 360, frameIntervalMs: 32, scroll: false, autoUnfold: false, onFrame: function(pt) { el.style.transform = 'translate(' + Math.round(Math.max(24, Math.min(pt.x, vw - 24))) + 'px,' + Math.round(Math.max(24, Math.min(pt.y, vh - 24))) + 'px)'; } });
     // retrigger tap animace
     el.classList.remove('cb-ghost-tap');
     void el.offsetWidth;

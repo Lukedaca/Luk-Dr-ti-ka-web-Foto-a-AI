@@ -113,7 +113,7 @@ export interface ContextSnapshot {
     slots: Record<string, SlotValue>;
     sourceIds: string[];
 }
-export type ActionTool = 'navigate' | 'open_menu' | 'scroll_to' | 'highlight_element' | 'click_element' | 'switch_tab' | 'open_accordion' | 'fill_field' | 'inspect_item' | 'show_sponsors' | 'contact' | 'filter_gallery' | 'toggle_theme' | 'open_lightbox' | 'play_showreel' | 'show_project_detail' | 'compare_before_after' | 'prefill_contact_form' | 'send_inquiry' | 'request_callback' | 'show_pricing' | 'compare_services' | string;
+export type ActionTool = 'navigate' | 'open_menu' | 'scroll_to' | 'highlight_element' | 'highlight_range' | 'compare_elements' | 'click_element' | 'switch_tab' | 'open_accordion' | 'fill_field' | 'inspect_item' | 'show_sponsors' | 'contact' | 'filter_gallery' | 'toggle_theme' | 'open_lightbox' | 'play_showreel' | 'show_project_detail' | 'compare_before_after' | 'prefill_contact_form' | 'send_inquiry' | 'request_callback' | 'show_pricing' | 'compare_services' | string;
 export interface InteractiveTarget {
     id: string;
     label: string;

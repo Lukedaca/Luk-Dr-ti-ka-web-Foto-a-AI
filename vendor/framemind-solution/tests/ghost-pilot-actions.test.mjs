@@ -5,8 +5,12 @@ import {
   InterruptWatcher,
   PendingActionCoordinator,
   collectDomInteractiveTargets,
+  computeMinimumJerkTrajectoryPoint,
   findInteractiveTargetIntent,
+  foldDeicticText,
   hasExplicitUiActionIntent,
+  minimumJerkProgress,
+  minimumJerkVelocityFactor,
 } from '../dist/index.js';
 
 function createMockDom() {
@@ -14,6 +18,8 @@ function createMockDom() {
   const selectorMap = new Map();
   const windowListeners = new Map();
   const storageMap = new Map();
+  const cssHighlights = new Map();
+  const textNodes = [];
 
   class MockCustomEvent {
     constructor(type, init = {}) {
@@ -23,42 +29,99 @@ function createMockDom() {
     }
   }
 
+  class MockRange {
+    constructor() {
+      this.startNode = null;
+      this.startOffset = 0;
+      this.endNode = null;
+      this.endOffset = 0;
+    }
+    setStart(node, offset) {
+      this.startNode = node;
+      this.startOffset = offset;
+    }
+    setEnd(node, offset) {
+      this.endNode = node;
+      this.endOffset = offset;
+    }
+  }
+
+  class MockHighlight {
+    constructor(...ranges) {
+      this.ranges = ranges;
+    }
+  }
+
   function makeElement(tagName, attrs = {}, textContent = '') {
     const classes = new Set();
     const events = [];
+    const attrStore = { ...attrs };
+    let rect = attrs.rect || { left: 100, top: 200, width: 160, height: 48, right: 260, bottom: 248 };
     const el = {
       tagName: tagName.toUpperCase(),
-      id: attrs.id || '',
+      id: attrStore.id || '',
       textContent,
-      value: attrs.value || '',
-      open: Boolean(attrs.open),
+      value: attrStore.value || '',
+      open: Boolean(attrStore.open),
+      hidden: Boolean(attrStore.hidden),
       clicked: 0,
       focused: false,
       scrolled: false,
       parentElement: null,
+      style: {},
       events,
+      setRect: (nextRect) => {
+        rect = {
+          ...nextRect,
+          right: nextRect.right ?? (nextRect.left + nextRect.width),
+          bottom: nextRect.bottom ?? (nextRect.top + nextRect.height),
+        };
+      },
+      getBoundingClientRect: () => rect,
       classList: {
         add: (c) => classes.add(c),
         remove: (c) => classes.delete(c),
         contains: (c) => classes.has(c),
       },
-      getAttribute: (k) => (k in attrs ? attrs[k] : null),
+      getAttribute: (k) => (k in attrStore ? String(attrStore[k]) : null),
+      setAttribute: (k, v) => {
+        attrStore[k] = String(v);
+        if (k === 'id') {
+          el.id = String(v);
+          elementsById.set(el.id, el);
+        }
+        if (k === 'open') el.open = true;
+      },
+      removeAttribute: (k) => {
+        delete attrStore[k];
+        if (k === 'hidden') el.hidden = false;
+      },
       scrollIntoView: () => {
         el.scrolled = true;
       },
       click: () => {
         el.clicked += 1;
+        if (typeof el.onClick === 'function') el.onClick();
       },
       focus: () => {
         el.focused = true;
+      },
+      remove: () => {
+        if (el.id) elementsById.delete(el.id);
       },
       dispatchEvent: (evt) => {
         events.push(evt.type);
         return true;
       },
       closest: (sel) => {
-        if (sel === 'details' && el.parentElement?.tagName === 'DETAILS') return el.parentElement;
-        if (sel.includes('[data-chat-panel]') && attrs['data-chat-panel']) return el;
+        let cur = el;
+        while (cur) {
+          if (sel === 'details' && cur.tagName === 'DETAILS') return cur;
+          if (sel.includes('[data-chat-panel]') && cur.getAttribute?.('data-chat-panel')) return cur;
+          if (sel.includes('td, th, li, p') && (cur.tagName === 'P' || cur.tagName === 'LI' || cur.tagName === 'TD')) return cur;
+          if (sel.includes('article, tr, details') && (cur.tagName === 'SECTION' || cur.tagName === 'ARTICLE' || cur.tagName === 'DETAILS')) return cur;
+          cur = cur.parentElement;
+        }
         return null;
       },
       querySelector: (sel) => el._childQuery?.(sel) ?? null,
@@ -67,10 +130,25 @@ function createMockDom() {
     return el;
   }
 
+  function addTextNode(parentElement, nodeValue) {
+    const node = {
+      nodeType: 3,
+      nodeValue,
+      parentElement,
+    };
+    textNodes.push(node);
+    return node;
+  }
+
   const mockWindow = {
     CustomEvent: MockCustomEvent,
+    Highlight: MockHighlight,
+    CSS: { highlights: cssHighlights },
+    innerWidth: 1280,
+    innerHeight: 800,
     scrollY: 0,
     scrollTo: () => {},
+    getComputedStyle: () => ({ display: 'block', visibility: 'visible', position: 'relative' }),
     addEventListener: (event, fn) => {
       const list = windowListeners.get(event) || [];
       list.push(fn);
@@ -95,8 +173,27 @@ function createMockDom() {
     removeItem: (k) => storageMap.delete(k),
   };
 
+  const bodyEl = makeElement('body', { id: 'body' });
+  bodyEl.appendChild = (child) => {
+    child.parentElement = bodyEl;
+    if (child.id) elementsById.set(child.id, child);
+    return child;
+  };
+
   const mockDocument = {
     defaultView: mockWindow,
+    body: bodyEl,
+    createElement: (tag) => makeElement(tag),
+    createRange: () => new MockRange(),
+    createTreeWalker: () => {
+      let idx = -1;
+      return {
+        nextNode: () => {
+          idx += 1;
+          return idx < textNodes.length ? textNodes[idx] : null;
+        },
+      };
+    },
     getElementById: (id) => elementsById.get(id) || null,
     querySelector: (sel) => {
       if (sel.startsWith('#')) return elementsById.get(sel.slice(1)) || null;
@@ -111,7 +208,9 @@ function createMockDom() {
   return {
     scope: { window: mockWindow, document: mockDocument, sessionStorage: mockStorage },
     makeElement,
+    addTextNode,
     selectorMap,
+    cssHighlights,
     mockWindow,
     mockStorage,
   };
@@ -305,3 +404,177 @@ test('PendingActionCoordinator: scheduleSequence fires actions at sentence cue-p
   assert.deepEqual(executed, ['a0', 'a1', 'a2']);
   assert.equal(coordinator.isPending(), false);
 });
+
+test('v2.8.0 Minimum-Jerk Trajectory: Flash & Hogan (1985) 5th-order polynomial and perpendicular arc', () => {
+  assert.equal(minimumJerkProgress(0), 0);
+  assert.equal(minimumJerkProgress(1), 1);
+  assert.ok(Math.abs(minimumJerkProgress(0.5) - 0.5) < 1e-9);
+
+  // Bell-shaped velocity profile peaks at tau = 0.5 (1.875x mean speed) and is zero at boundaries
+  assert.equal(minimumJerkVelocityFactor(0), 0);
+  assert.equal(minimumJerkVelocityFactor(1), 0);
+  assert.ok(Math.abs(minimumJerkVelocityFactor(0.5) - 1.875) < 1e-9);
+
+  const start = computeMinimumJerkTrajectoryPoint(0, 0, 400, 0, 0, 0.08);
+  const mid = computeMinimumJerkTrajectoryPoint(0, 0, 400, 0, 0.5, 0.08);
+  const end = computeMinimumJerkTrajectoryPoint(0, 0, 400, 0, 1, 0.08);
+
+  assert.equal(start.x, 0);
+  assert.equal(start.y, 0);
+  assert.ok(Math.abs(mid.x - 200) < 1e-6);
+  // Perpendicular arc offset should be non-zero at midpoint
+  assert.ok(Math.abs(mid.y) > 10);
+  assert.equal(end.x, 400);
+  assert.ok(Math.abs(end.y) < 1e-6);
+});
+
+test('v2.8.0 Causal Ancestor Unfolder: unfolds closed <details> and hidden [role="tabpanel"] before interaction', () => {
+  const { scope, makeElement, selectorMap } = createMockDom();
+  const dispatcher = new InPageActionDispatcher();
+
+  const tabController = makeElement('button', { id: 'tab-enterprise', role: 'tab', 'aria-controls': 'panel-enterprise', 'aria-selected': 'false' });
+  const tabPanel = makeElement('div', { id: 'panel-enterprise', role: 'tabpanel', hidden: true });
+  tabController.onClick = () => {
+    tabPanel.hidden = false;
+    tabPanel.removeAttribute('hidden');
+  };
+  selectorMap.set('[role="tab"][aria-controls="panel-enterprise"]', tabController);
+
+  const detailsEl = makeElement('details', { id: 'faq-sla', open: false });
+  detailsEl.parentElement = tabPanel;
+  const innerBtn = makeElement('button', { id: 'btn-sla-download' }, 'Stáhnout SLA');
+  innerBtn.parentElement = detailsEl;
+
+  const unfoldRes = dispatcher.unfoldAncestors(innerBtn, scope);
+  assert.equal(unfoldRes.unfolded, true);
+  assert.equal(unfoldRes.steps.length, 2);
+  assert.equal(detailsEl.open, true);
+  assert.equal(tabController.clicked, 1);
+  assert.equal(tabPanel.hidden, false);
+});
+
+test('v2.8.0 Deictic Sub-Node Highlighter: 3-tier DOM Range + sub-element + container highlight with auto-unfold', () => {
+  const { scope, makeElement, addTextNode, cssHighlights } = createMockDom();
+  const dispatcher = new InPageActionDispatcher();
+
+  const faqDetails = makeElement('details', { id: 'faq-voice-price', open: false });
+  const paragraph = makeElement('p', { id: 'p-voice' });
+  paragraph.parentElement = faqDetails;
+  addTextNode(paragraph, 'Tarif Voice & Actions stojí 6 900 Kč jednorázově a zahrnuje hlas Sulafat.');
+
+  assert.equal(foldDeicticText('6 900 Kč jednorázově'), '6 900 kc jednorazove');
+
+  const match = dispatcher.groundEvidenceInDom(
+    'Odpověď: Tarif Voice & Actions stojí 6 900 Kč jednorázově a zahrnuje hlas Sulafat.',
+    { highlightName: 'framemind-source' },
+    scope,
+  );
+
+  assert.ok(match);
+  assert.equal(faqDetails.open, true, 'Closed <details> must be automatically unfolded to reveal text');
+  assert.equal(paragraph.classList.contains('fm-deictic-subelement'), true, 'Tier 2 sub-element highlight applied');
+  assert.equal(faqDetails.classList.contains('fm-highlight-pulse'), true, 'Tier 3 container pulse applied');
+  assert.equal(cssHighlights.has('framemind-source'), true, 'Tier 1 CSS Custom Highlight API range registered');
+
+  dispatcher.cleanup(scope);
+  assert.equal(paragraph.classList.contains('fm-deictic-subelement'), false);
+  assert.equal(cssHighlights.has('framemind-source'), false);
+});
+
+test('v2.8.0 Closed-Loop Homing Lock: tracks moving BoundingClientRect during scroll and locks only when settled', async () => {
+  const { scope, makeElement } = createMockDom();
+  const dispatcher = new InPageActionDispatcher();
+
+  const ctaBtn = makeElement('button', {
+    id: 'cta-pilot',
+    rect: { left: 200, top: 680, width: 180, height: 48 },
+  }, 'Spustit pilot');
+
+  // Simulate layout shift / smooth scroll settling over time
+  setTimeout(() => ctaBtn.setRect({ left: 200, top: 420, width: 180, height: 48 }), 15);
+  setTimeout(() => ctaBtn.setRect({ left: 200, top: 300, width: 180, height: 48 }), 35);
+
+  const frames = [];
+  let lockedPoint = null;
+
+  await new Promise((resolve) => {
+    dispatcher.homingLockToElement(
+      '#cta-pilot',
+      {
+        startX: 40,
+        startY: 40,
+        durationMs: 70,
+        frameIntervalMs: 15,
+        clickOnLock: true,
+        calloutLabel: 'Klikám na Spustit pilot',
+        onFrame: (pt) => frames.push(pt),
+        onLock: (pt) => {
+          lockedPoint = pt;
+          resolve();
+        },
+      },
+      scope,
+    );
+  });
+
+  assert.ok(frames.length >= 3);
+  assert.ok(lockedPoint);
+  // Final locked Y must match the settled rect center (top 300 + height 48 / 2 = 324)
+  assert.equal(lockedPoint.x, 290);
+  assert.equal(lockedPoint.y, 324);
+  assert.equal(ctaBtn.clicked, 1);
+
+  const callout = scope.document.getElementById('fm-foveal-callout');
+  assert.ok(callout);
+  assert.equal(callout.textContent, 'Klikám na Spustit pilot');
+  assert.equal(callout.getAttribute('data-placement'), 'top');
+
+  dispatcher.cleanup(scope);
+});
+
+test('v2.8.0 Foveal Callout & Comparative Multi-Highlight: flips callout near top edge and shifts ①/② focus', () => {
+  const { scope, makeElement } = createMockDom();
+  const dispatcher = new InPageActionDispatcher();
+
+  const topHeaderCard = makeElement('div', {
+    id: 'card-chat',
+    rect: { left: 80, top: 18, width: 220, height: 120 },
+  }, 'Tarif Chat');
+  const secondCard = makeElement('div', {
+    id: 'card-voice',
+    rect: { left: 360, top: 220, width: 220, height: 120 },
+  }, 'Tarif Voice & Actions');
+
+  // Near top edge (top: 18 < 52), callout must flip to bottom placement
+  const callout = dispatcher.showFovealCallout(topHeaderCard, { label: 'Srovnání tarifů', durationMs: 0 }, scope);
+  assert.ok(callout);
+  assert.equal(callout.getAttribute('data-placement'), 'bottom');
+
+  const handle = dispatcher.compareElements(
+    [
+      { selector: '#card-chat', label: 'Tarif Chat' },
+      { selector: '#card-voice', label: 'Tarif Voice' },
+    ],
+    { durationMs: 0 },
+    scope,
+  );
+
+  assert.ok(handle);
+  assert.equal(handle.items.length, 2);
+  assert.equal(topHeaderCard.getAttribute('data-fm-compare-badge'), '①');
+  assert.equal(secondCard.getAttribute('data-fm-compare-badge'), '②');
+  assert.equal(topHeaderCard.classList.contains('fm-compare-active'), true);
+  assert.equal(secondCard.classList.contains('fm-compare-standby'), true);
+
+  // Shift focus to second item on voice cue-point
+  const shifted = handle.focusItem(1);
+  assert.ok(shifted);
+  assert.equal(topHeaderCard.classList.contains('fm-compare-standby'), true);
+  assert.equal(secondCard.classList.contains('fm-compare-active'), true);
+
+  handle.clear();
+  assert.equal(topHeaderCard.getAttribute('data-fm-compare-badge'), null);
+  assert.equal(secondCard.getAttribute('data-fm-compare-badge'), null);
+  dispatcher.cleanup(scope);
+});
+

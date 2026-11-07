@@ -131,6 +131,8 @@ export type ActionTool =
   | 'open_menu'
   | 'scroll_to'
   | 'highlight_element'
+  | 'highlight_range'
+  | 'compare_elements'
   | 'click_element'
   | 'switch_tab'
   | 'open_accordion'

@@ -1,6 +1,13 @@
-# FrameMind Solution 2.7.0
+# FrameMind Solution 2.8.0
 
 FrameMind Solution is a provider-independent orchestration, knowledge and privacy layer. It is not a foundation model or LLM.
+
+Version 2.8.0 introduces Deictic Visual Grounding, Causal DOM Unfolding, and Minimum-Jerk Homing Kinematics in `InPageActionDispatcher`:
+- **Three-Tier Deictic Sub-Node Highlighting (`buildDeicticTextMap`, `findDeicticTextMatch`, `highlightTextRange`, `groundEvidenceInDom`)**: Maps Czech diacritic-folded text back to exact DOM `Text` node offsets, applying simultaneous Tier 1 `CSS.highlights` (`::highlight(framemind-source)`), Tier 2 sub-element focus (`fm-deictic-subelement`), and Tier 3 container pulse (`fm-highlight-pulse`).
+- **Causal Ancestor Unfolder (`unfoldAncestors`)**: Automatically detects and unfolds closed `<details>` accordions, collapsed `[aria-expanded="false"]` controllers, and hidden `[role="tabpanel"]` tabs in top-down order before highlighting or clicking inside them.
+- **Minimum-Jerk Kinematic & Closed-Loop Homing Cursor (`minimumJerkProgress`, `computeMinimumJerkTrajectoryPoint`, `homingLockToElement`)**: Implements Flash & Hogan (1985) 5th-order minimum-jerk polynomial trajectory ($10\tau^3 - 15\tau^4 + 6\tau^5$) with biological perpendicular Bézier arc and closed-loop `getBoundingClientRect()` visual servoing that waits for scroll velocity to settle before locking and clicking.
+- **Synchronized Comparative Multi-Highlight (`compareElements`, `activateComparativeFocus`, `clearComparison`)**: Simultaneous multi-target comparison with circled numeral badges (`①`, `②`, etc.) and voice cue-point focus shifting between compared elements.
+- **Foveal Callout Badge (`showFovealCallout`, `clearFovealCallout`)**: Floating contextual status pill (`#fm-foveal-callout`) anchored to the target's `BoundingClientRect` with automatic viewport-top collision flip (`top` vs `bottom`).
 
 Version 2.7.0 introduces GhostPilot 2.0 and the DOM Action Graph for deterministic, zero-token UI control:
 - **Autonomous DOM Interactions (`InPageActionDispatcher`)**: Direct, safe execution of UI interactions including `click_element`, `switch_tab`, `open_accordion`, `fill_field`, and `inspect_item`. Interacts with existing tabs (ARIA `tab`, `tabpanel`), accordions (`details`, `aria-expanded`), and form inputs without modifying page markup.
